@@ -2,7 +2,7 @@
 
 **Multi-Interface Bridge for Aerofly FS 4 Flight Simulator**
 
-[![License](https://img.shields.io/badge/license-BSD--3--Clause-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg)]()
 [![Aerofly FS 4](https://img.shields.io/badge/Aerofly%20FS-4-orange.svg)]()
 
@@ -177,7 +177,7 @@ See our [Contributing Guide](CONTRIBUTING.md) for details.
 
 ## 📄 License
 
-This project is licensed under the **BSD 3-Clause License** - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
 **Key permissions:**
 - ✅ Commercial use
@@ -187,6 +187,7 @@ This project is licensed under the **BSD 3-Clause License** - see the [LICENSE](
 
 ## 🙏 Acknowledgments
 
+- **Juan Luis Gabriel** - Project creator and lead developer
 - **Aerofly FS Team** for the excellent flight simulator and SDK
 - **Flight simulation community** for inspiration and feedback
 - **Open source contributors** who make projects like this possible
