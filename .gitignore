@@ -6,6 +6,8 @@ src/tm_external_message.h
 /dist/
 *.dll
 *.pdb
+*.obj
+dist/*.obj
 
 # OS/editor
 Thumbs.db

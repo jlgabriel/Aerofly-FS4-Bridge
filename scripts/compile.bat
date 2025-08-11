@@ -42,6 +42,7 @@ echo.
 REM Compile with NDEBUG to disable assert() macros
 cl.exe /LD /EHsc /O2 /DNDEBUG /std:c++17 /DWIN32 /D_WINDOWS /D_USRDLL ^
     /I . /I src ^
+    /Fo:dist\ ^
     aerofly_bridge_dll.cpp ^
     /Fe:dist\AeroflyBridge.dll ^
     /link ws2_32.lib kernel32.lib user32.lib
