@@ -19,7 +19,6 @@ This tutorial explores the network programming techniques used in the Aerofly Br
 
 ## 📋 Prerequisites
 
-- **[Thread-Safe Programming](03_thread_safety.md)** completed
 - **C++ networking** (basic socket concepts)
 - **HTTP protocol** awareness
 - **JSON processing** familiarity
@@ -1405,5 +1404,3 @@ public:
 ---
 
 **Network programming is the backbone of modern distributed applications.** Master these patterns and you'll be able to build robust, scalable communication systems for any domain.
-
-**Next**: [Performance Optimization](05_performance_guide.md) - Learn to measure, analyze, and optimize every aspect of your flight simulation systems.
