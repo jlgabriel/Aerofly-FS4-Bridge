@@ -49,6 +49,8 @@ Licensed under the MIT License. Legal note: Despite AI authorship, the project r
 ## Releases (what they are)
 GitHub Releases are versioned publications where you upload compiled binaries. They are NOT a folder in the repo. Create a release in the repository’s “Releases” tab (e.g., v1.0.0) and attach `dist\AeroflyBridge.dll` as an asset.
 
+See `CHANGELOG.md` for version history.
+
 ---
 Copyright (c) 2025 Juan Luis Gabriel
 
