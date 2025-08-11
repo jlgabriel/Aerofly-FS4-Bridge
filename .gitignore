@@ -1,5 +1,15 @@
-dist/
-*.obj
-*.exp
-*.lib
+# Ignore private Aerofly SDK header (keep out of repo)
+tm_external_message.h
+src/tm_external_message.h
+
+# Build outputs
+/dist/
+*.dll
 *.pdb
+
+# OS/editor
+Thumbs.db
+.DS_Store
+*.log
+.idea/
+.vscode/
