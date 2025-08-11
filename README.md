@@ -27,6 +27,10 @@ A multi-interface bridge (Shared Memory, TCP, WebSocket) between Aerofly FS4 and
 ## Documentation
 See `docs/README.md` for full documentation and index.
 
+## AI Authorship
+
+This project was fully developed by artificial intelligence using the Claude Sonnet 4 and ChatGPT 5 models, leveraging web tools and the Cursor IDE.
+
 ## Releases (what they are)
 GitHub Releases are versioned publications where you upload compiled binaries. They are NOT a folder in the repo. Create a release in the repository’s “Releases” tab (e.g., v1.0.0) and attach `dist\AeroflyBridge.dll` as an asset.
 
