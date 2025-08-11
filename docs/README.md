@@ -83,6 +83,16 @@ Note: To build from source you must download `tm_external_message.h` from `https
 - `examples/aerofly_realtime_monitor.py`: Live telemetry monitor (Python, TCP).
 - `examples/master_control_panel.py`: Command/control panel (Python, TCP/commands).
 
+Run examples:
+- Realtime monitor (needs offsets JSON):
+  ```bash
+  python examples/aerofly_realtime_monitor.py AeroflyBridge_offsets.json
+  ```
+- Master control panel (connects to command port 12346):
+  ```bash
+  python examples/master_control_panel.py
+  ```
+
 ## 🌟 Use Cases
 
 ### 🎮 **Real-time Dashboards**
