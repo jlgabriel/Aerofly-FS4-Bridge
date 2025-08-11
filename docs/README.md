@@ -93,6 +93,15 @@ Run examples:
   python examples/master_control_panel.py
   ```
 
+#### Getting the offsets JSON
+
+- The file `AeroflyBridge_offsets.json` is created next to `AeroflyBridge.dll` and describes the shared-memory layout (base, stride, per-variable offsets).
+- Copy it to your working directory or pass an absolute path to the realtime monitor:
+  ```bash
+  python examples/aerofly_realtime_monitor.py C:\path\to\AeroflyBridge_offsets.json
+  ```
+  If you don't have it, check the DLL output folder or your release assets.
+
 ## 🌟 Use Cases
 
 ### 🎮 **Real-time Dashboards**
