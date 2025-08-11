@@ -215,9 +215,34 @@ class AeroflyTkApp(tk.Tk):
         )
         return unit or ""
 
+    def _is_boolean_by_meta(self, name: str, unit: str) -> bool:
+        """Heuristic to detect boolean variables from metadata and naming.
+
+        Prefer explicit unit == 'Boolean'. Fallback to name keywords that
+        conventionally indicate boolean states in Aerofly variables.
+        """
+        try:
+            if (unit or "").strip().lower() == "boolean":
+                return True
+            lname = (name or "").strip().lower()
+            boolean_tokens = (
+                "engaged", "disengage", "master", "swap", "running", "paused",
+                "warning", "caution", "reverse", "ignition", "starter",
+                "fire", "overspeed", "overheat", "available", "armed",
+                "onground", "onrunway", "sound", "usemousecontrol",
+                "playbackstart", "playbackstop"
+            )
+            return any(tok in lname for tok in boolean_tokens)
+        except Exception:
+            return False
+
     def _format_value_raw(self, v: dict, val: float) -> str:
         """Show raw numeric value from DLL without conversions and without unit text."""
         try:
+            name = v.get("name", "")
+            unit = self._get_unit_from_meta(v)
+            if self._is_boolean_by_meta(name, unit):
+                return "1" if (val or 0.0) >= 0.5 else "0"
             return f"{val:.6f}"
         except Exception:
             return f"{val:.6f}"
@@ -237,6 +262,10 @@ class AeroflyTkApp(tk.Tk):
             return "N/A"
         try:
             lname = name.lower()
+
+            # Booleans → ON/OFF for both INTL and US
+            if self._is_boolean_by_meta(name, unit):
+                return "ON" if value >= 0.5 else "OFF"
 
             # Normalized controls (0..1) → percentage for both INTL and US
             if unit == "none" and 0.0 <= value <= 1.0:
