@@ -1,1 +1,81 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/aerofly-bridge/json-schema.json",
+  "title": "Aerofly Bridge Telemetry",
+  "description": "Schema for telemetry frames emitted by AeroflyBridge.dll over TCP/WebSocket",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "timestamp",
+    "timestamp_unit",
+    "data_valid",
+    "update_counter",
+    "variables",
+    "all_variables"
+  ],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "const": "aerofly-bridge-telemetry"
+    },
+    "schema_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "timestamp": {
+      "type": "integer",
+      "description": "Microsecond timestamp"
+    },
+    "timestamp_unit": {
+      "type": "string",
+      "enum": ["microseconds"]
+    },
+    "data_valid": {
+      "type": "integer",
+      "enum": [0, 1],
+      "description": "1 when the frame is complete and safe to read"
+    },
+    "update_counter": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Monotonic counter incremented each update"
+    },
+    "broadcast_rate_hz": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Hint: current broadcast frequency in Hz (optional)"
+    },
+    "variables": {
+      "type": "object",
+      "description": "Canonical Aerofly SDK variable map (name → numeric value)",
+      "additionalProperties": {
+        "type": "number"
+      }
+    },
+    "all_variables": {
+      "type": "array",
+      "description": "Raw values by logical index (see VariableIndex order)",
+      "items": { "type": "number" }
+    }
+  },
+  "examples": [
+    {
+      "schema": "aerofly-bridge-telemetry",
+      "schema_version": 1,
+      "timestamp": 1640995200000000,
+      "timestamp_unit": "microseconds",
+      "data_valid": 1,
+      "update_counter": 12345,
+      "broadcast_rate_hz": 50.0,
+      "variables": {
+        "Aircraft.Altitude": 1066.8,
+        "Aircraft.IndicatedAirspeed": 61.8
+      },
+      "all_variables": [0.0, 1066.8, 0.76]
+    }
+  ]
+}
+
 
