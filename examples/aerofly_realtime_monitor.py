@@ -4,6 +4,10 @@ This tool displays live Aerofly Bridge variables by reading a shared-memory
 region created by the Aerofly Bridge DLL. A JSON offsets file describes the
 memory layout (base, stride, per-variable offsets and data types).
 
+NOTE: The file 'AeroflyBridge_offsets.json' is generated next to the DLL at:
+  %USERPROFILE%\Documents\Aerofly FS 4\external_dll\
+You can pass its full path as an argument to this program, or load it via 'Open JSON...'.
+
 UI shows:
 - Grouped variable tree
 - Raw values exactly as provided by the DLL (no transformation)
@@ -170,6 +174,11 @@ class AeroflyTkApp(tk.Tk):
         foot.pack(side=tk.BOTTOM, fill=tk.X, padx=8, pady=6)
         self.layout_var = tk.StringVar(value="layout_version: ?")
         ttk.Label(foot, textvariable=self.layout_var).pack(side=tk.LEFT)
+        
+        # JSON location hint (visible in UI)
+        hint = ("Offsets JSON is in external_dll next to AeroflyBridge.dll. "
+                "Use 'Open JSON...' or pass a file path.")
+        ttk.Label(foot, text=hint, foreground="#555").pack(side=tk.RIGHT)
 
         # Auto-load if provided
         if json_path:
