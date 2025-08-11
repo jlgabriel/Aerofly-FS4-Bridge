@@ -17,7 +17,6 @@ This tutorial explores the advanced architectural patterns used in the Aerofly B
 
 ## 📋 Prerequisites
 
-- **[DLL Development Basics](01_dll_basics.md)** completed
 - **C++ intermediate** knowledge (templates, RAII, STL)
 - **Multi-threading concepts** (basic understanding)
 - **Network programming** awareness
