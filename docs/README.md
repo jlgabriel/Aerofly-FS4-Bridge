@@ -176,17 +176,6 @@ Learn professional DLL development for flight simulators:
 
 **Note**: The compiled DLL includes `/DNDEBUG` flag to prevent assert() breakpoint exceptions on Windows 10.
 
-## 🤝 Contributing
-
-We welcome contributions! This project serves both production users and the learning community:
-
-- **Bug reports** and **feature requests** via [Issues](issues/)
-- **Code contributions** via Pull Requests
-- **Documentation improvements** always appreciated
-- **Example applications** to showcase different use cases
-
-See our [Contributing Guide](CONTRIBUTING.md) for details.
-
 ## 📄 License
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
@@ -195,6 +184,10 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 - ✅ Commercial use
 - ✅ Modification and distribution
 - ✅ Private use
+
+## 🤖 AI Authorship
+
+This project was fully developed by artificial intelligence using the Claude Sonnet 4 and ChatGPT 5 models, leveraging web tools and the Cursor IDE.
 
 ## 🙏 Acknowledgments
 
