@@ -370,12 +370,23 @@ Create a file called `autopilot_controller.html`:
             }
             
             processFlightData(data) {
-                // Extract current flight parameters
-                const flightData = data.flight_data || {};
+                // Extract current flight parameters from canonical variables map
+                const v = (data && data.variables) ? data.variables : {};
                 
-                this.currentData.altitude = flightData.BarometricAltitude || 0;
-                this.currentData.heading = flightData.TrueHeading || 0;
-                this.currentData.speed = flightData.IndicatedAirspeed || 0;
+                const M_TO_FT = 3.280839895;
+                const MPS_TO_KT = 1.943844492;
+                const RAD_TO_DEG = 180 / Math.PI;
+                
+                const altitude_m = v["Aircraft.Altitude"] || 0;
+                const heading_rad = v["Aircraft.TrueHeading"] || 0;
+                const ias_mps = v["Aircraft.IndicatedAirspeed"] || 0;
+                
+                this.currentData.altitude = altitude_m * M_TO_FT; // feet
+                // Normalize heading to 0-360 degrees
+                let hdg_deg = (heading_rad * RAD_TO_DEG) % 360;
+                if (hdg_deg < 0) hdg_deg += 360;
+                this.currentData.heading = hdg_deg;
+                this.currentData.speed = ias_mps * MPS_TO_KT; // knots
                 
                 // Update display
                 document.getElementById('current-altitude').textContent = Math.round(this.currentData.altitude);
@@ -404,11 +415,11 @@ Create a file called `autopilot_controller.html`:
                     const altError = targetAlt - this.currentData.altitude;
                     
                     if (Math.abs(altError) > 50) { // 50 ft deadband
-                        const elevatorInput = Math.max(-1, Math.min(1, altError * this.controlGains.altitude));
-                        this.sendCommand({
-                            variable: "ElevatorInput",
+                         const elevatorInput = Math.max(-1, Math.min(1, altError * this.controlGains.altitude));
+                         this.sendCommand({
+                            variable: "Controls.Pitch.Input",
                             value: elevatorInput
-                        });
+                         });
                     }
                 }
                 
@@ -422,11 +433,11 @@ Create a file called `autopilot_controller.html`:
                     if (hdgError < -180) hdgError += 360;
                     
                     if (Math.abs(hdgError) > 2) { // 2 degree deadband
-                        const aileronInput = Math.max(-1, Math.min(1, hdgError * this.controlGains.heading));
-                        this.sendCommand({
-                            variable: "AileronInput",
+                         const aileronInput = Math.max(-1, Math.min(1, hdgError * this.controlGains.heading));
+                         this.sendCommand({
+                            variable: "Controls.Roll.Input",
                             value: aileronInput
-                        });
+                         });
                     }
                 }
                 
@@ -436,11 +447,11 @@ Create a file called `autopilot_controller.html`:
                     const spdError = targetSpd - this.currentData.speed;
                     
                     if (Math.abs(spdError) > 5) { // 5 kt deadband
-                        const throttleInput = Math.max(0, Math.min(1, 0.5 + (spdError * this.controlGains.speed)));
-                        this.sendCommand({
-                            variable: "ThrottleInput",
+                         const throttleInput = Math.max(0, Math.min(1, 0.5 + (spdError * this.controlGains.speed)));
+                         this.sendCommand({
+                            variable: "Controls.Throttle",
                             value: throttleInput
-                        });
+                         });
                     }
                 }
             }
@@ -584,7 +595,7 @@ this.ws.onmessage = (event) => {
 
 // Sending control commands
 this.ws.send(JSON.stringify({
-    variable: "ElevatorInput",
+    variable: "Controls.Pitch.Input",
     value: elevatorInput
 }));
 ```
@@ -598,7 +609,7 @@ controlLoop() {
     
     // Send control command
     this.sendCommand({
-        variable: "ElevatorInput", 
+        variable: "Controls.Pitch.Input", 
         value: elevatorInput
     });
 }
@@ -638,10 +649,10 @@ controlLoop() {
 ```
 
 ### Available Control Variables
-- `ElevatorInput` (-1.0 to 1.0) - Pitch control
-- `AileronInput` (-1.0 to 1.0) - Roll control  
-- `RudderInput` (-1.0 to 1.0) - Yaw control
-- `ThrottleInput` (0.0 to 1.0) - Engine power
+- `Controls.Pitch.Input` (-1.0 to 1.0) - Pitch control
+- `Controls.Roll.Input` (-1.0 to 1.0) - Roll control  
+- `Controls.Yaw.Input` (-1.0 to 1.0) - Yaw control
+- `Controls.Throttle` (0.0 to 1.0) - Engine power
 
 ## Step 4: Safety Features
 

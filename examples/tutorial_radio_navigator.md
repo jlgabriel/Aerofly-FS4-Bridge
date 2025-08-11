@@ -206,21 +206,25 @@ class AeroflyConnection:
             return False
     
     def get_position(self) -> Tuple[float, float, float]:
-        """Get current aircraft position"""
-        flight_data = self.current_data.get('flight_data', {})
-        lat = flight_data.get('Latitude', 0.0)
-        lon = flight_data.get('Longitude', 0.0)
-        alt = flight_data.get('BarometricAltitude', 0.0)
-        return lat, lon, alt
+        """Get current aircraft position (degrees, meters) from canonical variables"""
+        v = self.current_data.get('variables', {})
+        lat = v.get('Aircraft.Latitude', 0.0)
+        lon = v.get('Aircraft.Longitude', 0.0)
+        alt_m = v.get('Aircraft.Altitude', 0.0)
+        return lat, lon, alt_m
     
     def get_navigation_data(self) -> Dict:
-        """Get current navigation radio frequencies"""
-        nav_data = self.current_data.get('navigation', {})
+        """Get current NAV/COM frequencies from canonical variables"""
+        v = self.current_data.get('variables', {})
         return {
-            'nav1_freq': nav_data.get('NavFreq1', 0.0),
-            'nav2_freq': nav_data.get('NavFreq2', 0.0),
-            'com1_freq': nav_data.get('ComFreq1', 0.0),
-            'com2_freq': nav_data.get('ComFreq2', 0.0)
+            'nav1_freq': v.get('Navigation.NAV1Frequency', 0.0),
+            'nav1_stby': v.get('Navigation.NAV1StandbyFrequency', 0.0),
+            'nav2_freq': v.get('Navigation.NAV2Frequency', 0.0),
+            'nav2_stby': v.get('Navigation.NAV2StandbyFrequency', 0.0),
+            'com1_freq': v.get('Communication.COM1Frequency', 0.0),
+            'com1_stby': v.get('Communication.COM1StandbyFrequency', 0.0),
+            'com2_freq': v.get('Communication.COM2Frequency', 0.0),
+            'com2_stby': v.get('Communication.COM2StandbyFrequency', 0.0)
         }
 
 class RadioNavigatorGUI:
@@ -426,8 +430,9 @@ class RadioNavigatorGUI:
         nearby_navaids = self.get_nearby_navaids()
         if nearby_navaids:
             navaid, distance = nearby_navaids[0]
-            variable = f"NavFreq{radio_num}"
-            if self.aerofly.send_command(variable, navaid.freq):
+            standby_var = f"Navigation.NAV{radio_num}StandbyFrequency"
+            swap_var = f"Navigation.NAV{radio_num}FrequencySwap"
+            if self.aerofly.send_command(standby_var, navaid.freq) and self.aerofly.send_command(swap_var, 1):
                 self.log(f"Tuned NAV{radio_num} to {navaid.ident} ({navaid.freq:.1f} MHz) - {distance:.1f} NM")
             else:
                 self.log(f"Failed to tune NAV{radio_num}")
@@ -447,8 +452,9 @@ class RadioNavigatorGUI:
         else:
             return
         
-        variable = f"ComFreq{radio_num}"
-        if self.aerofly.send_command(variable, freq):
+        standby_var = f"Communication.COM{radio_num}StandbyFrequency"
+        swap_var = f"Communication.COM{radio_num}FrequencySwap"
+        if self.aerofly.send_command(standby_var, freq) and self.aerofly.send_command(swap_var, 1):
             self.log(f"Tuned COM{radio_num} to {self.current_airport.icao} {freq_name} ({freq:.2f} MHz)")
         else:
             self.log(f"Failed to tune COM{radio_num}")
@@ -469,7 +475,8 @@ class RadioNavigatorGUI:
         
         if lat != 0 or lon != 0:
             self.position_label.config(text=f"Position: {lat:.4f}°, {lon:.4f}°")
-            self.altitude_label.config(text=f"Altitude: {alt:.0f} ft")
+            alt_ft = alt * 3.280839895
+            self.altitude_label.config(text=f"Altitude: {alt_ft:.0f} ft")
             
             # Update nearest airport
             nearest = self.nav_db.get_nearest_airport(lat, lon)
@@ -535,14 +542,16 @@ class RadioNavigatorGUI:
         
         # Auto-tune COM1 to tower if not already tuned
         if abs(nav_data['com1_freq'] - self.current_airport.tower_freq) > 0.01:
-            if self.aerofly.send_command("ComFreq1", self.current_airport.tower_freq):
+            if self.aerofly.send_command("Communication.COM1StandbyFrequency", self.current_airport.tower_freq) and \
+               self.aerofly.send_command("Communication.COM1FrequencySwap", 1):
                 self.log(f"Auto-tuned COM1 to {self.current_airport.icao} Tower")
         
         # Auto-tune NAV1 to nearest VOR
         nearby_navaids = self.get_nearby_navaids()
         if nearby_navaids and abs(nav_data['nav1_freq'] - nearby_navaids[0][0].freq) > 0.1:
             navaid = nearby_navaids[0][0]
-            if self.aerofly.send_command("NavFreq1", navaid.freq):
+            if self.aerofly.send_command("Navigation.NAV1StandbyFrequency", navaid.freq) and \
+               self.aerofly.send_command("Navigation.NAV1FrequencySwap", 1):
                 self.log(f"Auto-tuned NAV1 to {navaid.ident} VOR")
     
     def update_loop(self):
@@ -615,11 +624,13 @@ if __name__ == "__main__":
 ```python
 def auto_tune_radios(self):
     # Auto-tune COM1 to airport tower
-    if self.aerofly.send_command("ComFreq1", airport.tower_freq):
+    if self.aerofly.send_command("Communication.COM1StandbyFrequency", airport.tower_freq) and 
+       self.aerofly.send_command("Communication.COM1FrequencySwap", 1):
         self.log(f"Auto-tuned COM1 to {airport.icao} Tower")
     
     # Auto-tune NAV1 to nearest VOR
-    if self.aerofly.send_command("NavFreq1", navaid.freq):
+    if self.aerofly.send_command("Navigation.NAV1StandbyFrequency", navaid.freq) and 
+       self.aerofly.send_command("Navigation.NAV1FrequencySwap", 1):
         self.log(f"Auto-tuned NAV1 to {navaid.ident} VOR")
 ```
 
@@ -643,9 +654,11 @@ def send_command(self, variable: str, value: float, command_port=12346):
 ```
 
 ### Radio Variable Names
-- `NavFreq1` / `NavFreq2` - Navigation radio frequencies
-- `ComFreq1` / `ComFreq2` - Communication radio frequencies
-- Values in MHz (e.g., 115.9 for VOR, 119.1 for COM)
+- `Navigation.NAV1StandbyFrequency` / `Navigation.NAV2StandbyFrequency` (MHz)
+- `Navigation.NAV1FrequencySwap` / `Navigation.NAV2FrequencySwap` (0/1)
+- `Communication.COM1StandbyFrequency` / `Communication.COM2StandbyFrequency` (MHz)
+- `Communication.COM1FrequencySwap` / `Communication.COM2FrequencySwap` (0/1)
+Values in MHz (e.g., 115.90 for VOR, 119.10 for COM)
 
 ### Distance-Based Automation
 ```python

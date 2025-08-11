@@ -84,19 +84,15 @@ class SharedMemoryInterface:
         base = 64  # Estimated base offset
         stride = 8  # sizeof(double)
         
-        # These are example offsets - real offsets come from the JSON file
+        # These are example indices - real indices must come from AeroflyBridge_offsets.json
+        # Use canonical variable names from the reference (examples only)
         engine_vars = {
-            'Engine1RPM': 50,
-            'Engine1FuelFlow': 51, 
-            'Engine1Oil': 52,
-            'Engine1Temperature': 53,
-            'Engine2RPM': 60,
-            'Engine2FuelFlow': 61,
-            'Engine2Oil': 62, 
-            'Engine2Temperature': 63,
-            'IndicatedAirspeed': 10,
-            'BarometricAltitude': 15,
-            'VerticalSpeed': 20
+            'Aircraft.EngineRotationSpeed1': 241,  # RPM
+            'Aircraft.EngineRotationSpeed2': 242,  # RPM
+            'Aircraft.IndicatedAirspeed': 5,
+            'Aircraft.Altitude': 1,
+            'Aircraft.VerticalSpeed': 2,
+            'Controls.Throttle': 207
         }
         
         for name, index in engine_vars.items():
@@ -204,9 +200,9 @@ class EngineMonitor:
     def update_loop(self):
         """High-speed data update loop"""
         engine_variables = [
-            'Engine1RPM', 'Engine1FuelFlow', 'Engine1Oil', 'Engine1Temperature',
-            'Engine2RPM', 'Engine2FuelFlow', 'Engine2Oil', 'Engine2Temperature',
-            'IndicatedAirspeed', 'BarometricAltitude', 'VerticalSpeed'
+            'Aircraft.EngineRotationSpeed1', 'Aircraft.EngineRotationSpeed2',
+            'Controls.Throttle',
+            'Aircraft.IndicatedAirspeed', 'Aircraft.Altitude', 'Aircraft.VerticalSpeed'
         ]
         
         while self.running:
@@ -256,38 +252,29 @@ class EngineMonitor:
                 print("🔧 AEROFLY ENGINE MONITOR DASHBOARD")
                 print("═" * 80)
                 
-                # Flight data header
-                ias = data.get('IndicatedAirspeed', 0)
-                alt = data.get('BarometricAltitude', 0)
-                vs = data.get('VerticalSpeed', 0)
+                # Flight data header (convert units for display)
+                M_TO_FT = 3.280839895
+                MPS_TO_KT = 1.943844492
+                ias = (data.get('Aircraft.IndicatedAirspeed', 0) or 0) * MPS_TO_KT
+                alt = (data.get('Aircraft.Altitude', 0) or 0) * M_TO_FT
+                vs = (data.get('Aircraft.VerticalSpeed', 0) or 0) * 196.8503937
                 
                 print(f"✈️ Flight Data: {ias:.0f} kts IAS | {alt:.0f} ft | {vs:+.0f} ft/min")
                 print("─" * 80)
                 
                 # Engine 1
-                rpm1 = data.get('Engine1RPM', 0)
-                ff1 = data.get('Engine1FuelFlow', 0)
-                oil1 = data.get('Engine1Oil', 0)
-                temp1 = data.get('Engine1Temperature', 0)
+                rpm1 = data.get('Aircraft.EngineRotationSpeed1', 0) or 0
+                throttle = (data.get('Controls.Throttle', 0) or 0) * 100
                 
                 print("🔧 ENGINE 1:")
-                print(f"   RPM:  {rpm1:7.0f} {self.create_gauge(rpm1, 0, 3000, 25, 2500, 2700)} [{rpm1:4.0f}/3000]")
-                print(f"   FUEL: {ff1:7.1f} {self.create_gauge(ff1, 0, 25, 25, 18, 22)} [{ff1:4.1f}/25.0] gph")
-                print(f"   OIL:  {oil1:7.1f} {self.create_gauge(oil1, 0, 100, 25, None, 25)} [{oil1:4.1f}/100] psi")
-                print(f"   TEMP: {temp1:7.0f} {self.create_gauge(temp1, 0, 300, 25, 200, 240)} [{temp1:3.0f}/300]°F")
+                print(f"   RPM:   {rpm1:7.0f} {self.create_gauge(rpm1, 0, 3000, 25, 2500, 2700)} [{rpm1:4.0f}/3000]")
+                print(f"   THR:   {throttle:6.1f}% {self.create_gauge(throttle, 0, 100, 25, 90, 100)} [{throttle:5.1f}/100]%")
                 
                 # Engine 2 (if twin engine)
-                rpm2 = data.get('Engine2RPM', 0)
+                rpm2 = data.get('Aircraft.EngineRotationSpeed2', 0) or 0
                 if rpm2 > 0:  # Only show if Engine 2 is active
-                    ff2 = data.get('Engine2FuelFlow', 0)
-                    oil2 = data.get('Engine2Oil', 0)
-                    temp2 = data.get('Engine2Temperature', 0)
-                    
                     print("\n🔧 ENGINE 2:")
-                    print(f"   RPM:  {rpm2:7.0f} {self.create_gauge(rpm2, 0, 3000, 25, 2500, 2700)} [{rpm2:4.0f}/3000]")
-                    print(f"   FUEL: {ff2:7.1f} {self.create_gauge(ff2, 0, 25, 25, 18, 22)} [{ff2:4.1f}/25.0] gph")
-                    print(f"   OIL:  {oil2:7.1f} {self.create_gauge(oil2, 0, 100, 25, None, 25)} [{oil2:4.1f}/100] psi")
-                    print(f"   TEMP: {temp2:7.0f} {self.create_gauge(temp2, 0, 300, 25, 200, 240)} [{temp2:3.0f}/300]°F")
+                    print(f"   RPM:   {rpm2:7.0f} {self.create_gauge(rpm2, 0, 3000, 25, 2500, 2700)} [{rpm2:4.0f}/3000]")
                 
                 # Warning checks
                 warnings = []
@@ -295,16 +282,13 @@ class EngineMonitor:
                     warnings.append("🚨 ENGINE 1 RPM REDLINE!")
                 if rpm1 > self.thresholds['rpm_caution']:
                     warnings.append("⚠️ Engine 1 RPM Caution")
-                if oil1 < self.thresholds['oil_pressure_min']:
-                    warnings.append("🚨 ENGINE 1 LOW OIL PRESSURE!")
-                if temp1 > self.thresholds['oil_temp_max']:
-                    warnings.append("🚨 ENGINE 1 OVERTEMP!")
+                # Note: Oil pressure/temperature variables are aircraft-specific and not exposed in the generic set.
+                # Use aircraft-specific variables only when confirmed by offsets JSON.
                 
                 if rpm2 > 0:  # Twin engine warnings
                     if rpm2 > self.thresholds['rpm_redline']:
                         warnings.append("🚨 ENGINE 2 RPM REDLINE!")
-                    if oil2 < self.thresholds['oil_pressure_min']:
-                        warnings.append("🚨 ENGINE 2 LOW OIL PRESSURE!")
+                    # See note above regarding aircraft-specific engine variables
                 
                 # Display warnings
                 if warnings:

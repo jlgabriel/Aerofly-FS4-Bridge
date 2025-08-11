@@ -95,6 +95,8 @@ Create a file called `altitude_monitor.html`:
         const statusDisplay = document.getElementById('status');
         const warningText = document.getElementById('warning-text');
 
+        const M_TO_FT = 3.280839895; // meters → feet
+
         function connect() {
             try {
                 // Connect to AeroflyBridge WebSocket (default port 8765)
@@ -142,25 +144,22 @@ Create a file called `altitude_monitor.html`:
         }
 
         function updateAltitudeDisplay(data) {
-            // Get altitude in feet from the JSON data
-            const altitudeFeet = data.flight_data?.BarometricAltitude || 0;
+            // Use canonical variable map; units are meters → convert to feet for display
+            const altitudeMeters = data?.variables?.["Aircraft.Altitude"] ?? 0;
+            const altitudeFeet = altitudeMeters * M_TO_FT;
             
-            // Display altitude with proper formatting
             altitudeDisplay.textContent = Math.round(altitudeFeet).toLocaleString() + ' ft';
             
-            // Apply warning styles based on altitude
+            // Apply warning styles based on altitude (thresholds in feet)
             resetMonitorStyle();
             
             if (altitudeFeet < 500) {
-                // Danger zone - below 500ft
                 monitor.className = 'monitor warning';
                 warningText.textContent = '⚠️ DANGER - VERY LOW ALTITUDE ⚠️';
             } else if (altitudeFeet < 1000) {
-                // Caution zone - below 1000ft
                 monitor.className = 'monitor caution';
                 warningText.textContent = '⚡ CAUTION - LOW ALTITUDE ⚡';
             } else {
-                // Safe altitude
                 warningText.textContent = '✈️ Safe Flying Altitude';
             }
         }
@@ -193,9 +192,10 @@ This connects to the AeroflyBridge WebSocket server on the default port 8765.
 ### JSON Data Processing
 ```javascript
 const data = JSON.parse(event.data);
-const altitudeFeet = data.flight_data?.BarometricAltitude || 0;
+const altitudeMeters = data.variables["Aircraft.Altitude"];
+const altitudeFeet = altitudeMeters * 3.28084;
 ```
-The bridge sends complete flight data as JSON. We extract the `BarometricAltitude` field from the `flight_data` section.
+The bridge sends canonical variables in `data.variables`. We use `Aircraft.Altitude` and convert meters → feet.
 
 ### Visual Feedback System
 - **Green**: Safe altitude (above 1000ft)

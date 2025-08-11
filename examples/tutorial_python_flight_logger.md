@@ -86,12 +86,12 @@ class FlightLogger:
         
         self.csv_file = open(filepath, 'w', newline='')
         
-        # Define columns to log
+        # Define columns to log (derived from canonical variables)
         fieldnames = [
-            'timestamp', 'elapsed_time', 'latitude', 'longitude', 'altitude_ft',
-            'indicated_airspeed', 'ground_speed', 'vertical_speed',
-            'heading', 'pitch', 'bank', 'engine_rpm', 'fuel_flow',
-            'nav_freq1', 'com_freq1'
+            'timestamp', 'elapsed_time', 'latitude_deg', 'longitude_deg', 'altitude_ft',
+            'indicated_airspeed_kt', 'ground_speed_kt', 'vertical_speed_fpm',
+            'heading_deg', 'pitch_deg', 'bank_deg',
+            'com1_freq_mhz', 'nav1_freq_mhz'
         ]
         
         self.csv_writer = csv.DictWriter(self.csv_file, fieldnames=fieldnames)
@@ -103,26 +103,27 @@ class FlightLogger:
     def parse_flight_data(self, json_data):
         """Extract relevant data from JSON and update flight statistics"""
         try:
-            flight_data = json_data.get('flight_data', {})
-            navigation = json_data.get('navigation', {})
+            v = json_data.get('variables', {})
+            M_TO_FT = 3.280839895
+            MPS_TO_KT = 1.943844492
+            RAD_TO_DEG = 180 / 3.141592653589793
+            MPS_TO_FPM = 196.8503937
             
-            # Current position and basic data
+            # Current position and basic data (convert to friendly units)
             current_data = {
                 'timestamp': datetime.datetime.now().isoformat(),
                 'elapsed_time': self.get_elapsed_time(),
-                'latitude': flight_data.get('Latitude', 0),
-                'longitude': flight_data.get('Longitude', 0),
-                'altitude_ft': flight_data.get('BarometricAltitude', 0),
-                'indicated_airspeed': flight_data.get('IndicatedAirspeed', 0),
-                'ground_speed': flight_data.get('GroundSpeed', 0),
-                'vertical_speed': flight_data.get('VerticalSpeed', 0),
-                'heading': flight_data.get('TrueHeading', 0),
-                'pitch': flight_data.get('Pitch', 0),
-                'bank': flight_data.get('Bank', 0),
-                'engine_rpm': flight_data.get('Engine1RPM', 0),
-                'fuel_flow': flight_data.get('Engine1FuelFlow', 0),
-                'nav_freq1': navigation.get('NavFreq1', 0),
-                'com_freq1': navigation.get('ComFreq1', 0)
+                'latitude_deg': v.get('Aircraft.Latitude', 0.0),
+                'longitude_deg': v.get('Aircraft.Longitude', 0.0),
+                'altitude_ft': v.get('Aircraft.Altitude', 0.0) * M_TO_FT,
+                'indicated_airspeed_kt': v.get('Aircraft.IndicatedAirspeed', 0.0) * MPS_TO_KT,
+                'ground_speed_kt': v.get('Aircraft.GroundSpeed', 0.0) * MPS_TO_KT,
+                'vertical_speed_fpm': v.get('Aircraft.VerticalSpeed', 0.0) * MPS_TO_FPM,
+                'heading_deg': (v.get('Aircraft.TrueHeading', 0.0) * RAD_TO_DEG) % 360,
+                'pitch_deg': v.get('Aircraft.Pitch', 0.0) * RAD_TO_DEG,
+                'bank_deg': v.get('Aircraft.Bank', 0.0) * RAD_TO_DEG,
+                'com1_freq_mhz': v.get('Communication.COM1Frequency', 0.0),
+                'nav1_freq_mhz': v.get('Navigation.NAV1Frequency', 0.0)
             }
             
             # Update flight statistics
@@ -137,9 +138,9 @@ class FlightLogger:
     def update_flight_stats(self, data):
         """Update flight session statistics"""
         altitude = data['altitude_ft']
-        speed = data['ground_speed']
-        lat = data['latitude']
-        lon = data['longitude']
+        speed = data['ground_speed_kt']
+        lat = data['latitude_deg']
+        lon = data['longitude_deg']
         
         # Track maximum values
         if altitude > self.max_altitude:
@@ -209,12 +210,11 @@ class FlightLogger:
         if self.current_flight_data:
             data = self.current_flight_data
             print("\n📊 CURRENT STATUS:")
-            print(f"   Position: {data['latitude']:.4f}, {data['longitude']:.4f}")
+            print(f"   Position: {data['latitude_deg']:.4f}, {data['longitude_deg']:.4f}")
             print(f"   Altitude: {data['altitude_ft']:.0f} ft")
-            print(f"   Speed: {data['indicated_airspeed']:.0f} kts IAS / {data['ground_speed']:.0f} kts GS")
-            print(f"   Heading: {data['heading']:.0f}°")
-            print(f"   V/S: {data['vertical_speed']:.0f} ft/min")
-            print(f"   Engine: {data['engine_rpm']:.0f} RPM")
+            print(f"   Speed: {data['indicated_airspeed_kt']:.0f} kts IAS / {data['ground_speed_kt']:.0f} kts GS")
+            print(f"   Heading: {data['heading_deg']:.0f}°")
+            print(f"   V/S: {data['vertical_speed_fpm']:.0f} ft/min")
         
         print(f"\n🎯 Status: {'🛫 Airborne' if self.takeoff_detected else '🛬 On Ground'}")
         print("=" * 60)
@@ -328,12 +328,11 @@ The script shows:
 
 ### CSV Log Files
 Each session creates a timestamped CSV file in the `flight_logs/` folder with columns:
-- `timestamp`, `elapsed_time` 
-- `latitude`, `longitude`, `altitude_ft`
-- `indicated_airspeed`, `ground_speed`, `vertical_speed`
-- `heading`, `pitch`, `bank`
-- `engine_rpm`, `fuel_flow`
-- `nav_freq1`, `com_freq1`
+- `timestamp`, `elapsed_time`
+- `latitude_deg`, `longitude_deg`, `altitude_ft`
+- `indicated_airspeed_kt`, `ground_speed_kt`, `vertical_speed_fpm`
+- `heading_deg`, `pitch_deg`, `bank_deg`
+- `com1_freq_mhz`, `nav1_freq_mhz`
 
 ## How It Works
 
@@ -346,10 +345,11 @@ Connects to the AeroflyBridge TCP server on port 12345 for real-time JSON data.
 
 ### JSON Processing
 ```python
-flight_data = json_data.get('flight_data', {})
-altitude = flight_data.get('BarometricAltitude', 0)
+v = json_data.get('variables', {})
+altitude_m = v.get('Aircraft.Altitude', 0.0)
+altitude_ft = altitude_m * 3.28084
 ```
-Extracts specific values from the complete JSON structure provided by the bridge.
+Extracts canonical variables and converts units for display.
 
 ### Flight Detection Logic
 - **Takeoff**: Speed > 40 knots + altitude > 100 feet

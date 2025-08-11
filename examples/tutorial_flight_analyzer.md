@@ -374,9 +374,9 @@ class MultiInterfaceConnector:
             try:
                 import websocket
                 
-                def on_message(ws, message):
+                 def on_message(ws, message):
                     try:
-                        flight_data = json.loads(message)
+                         flight_data = json.loads(message)
                         self.ws_data_queue.put({
                             'source': 'websocket',
                             'timestamp': time.time(),
@@ -433,19 +433,22 @@ class MultiInterfaceConnector:
                 while self.running and self.shmem_connected:
                     try:
                         # Read key variables directly from memory
-                        # This is a simplified example - real implementation needs offset mapping
-                        alt_offset = 120  # Example offset for altitude
-                        speed_offset = 80  # Example offset for airspeed
+                        # IMPORTANT: Use AeroflyBridge_offsets.json in production to compute correct offsets.
+                        # Below offsets are placeholders for illustration only.
+                        # Example: altitude (index 1), airspeed (index 5)
+                        array_base = 16  # see docs/api_reference.md
+                        stride = 8
+                        alt_offset = array_base + (1 * stride)
+                        ias_offset = array_base + (5 * stride)
+
+                        altitude_m = struct.unpack('d', ctypes.string_at(self.shmem_view + alt_offset, 8))[0]
+                        ias_mps = struct.unpack('d', ctypes.string_at(self.shmem_view + ias_offset, 8))[0]
                         
-                        altitude = struct.unpack('d', ctypes.string_at(self.shmem_view + alt_offset, 8))[0]
-                        airspeed = struct.unpack('d', ctypes.string_at(self.shmem_view + speed_offset, 8))[0]
-                        
-                        # Create simplified data structure
+                        # Create simplified data structure with canonical names
                         flight_data = {
-                            'flight_data': {
-                                'BarometricAltitude': altitude,
-                                'IndicatedAirspeed': airspeed,
-                                'Timestamp': time.time()
+                            'variables': {
+                                'Aircraft.Altitude': altitude_m,
+                                'Aircraft.IndicatedAirspeed': ias_mps
                             }
                         }
                         
@@ -584,16 +587,16 @@ class FlightPerformanceAnalyzer:
     def _process_flight_data(self, data_packet, source_interface):
         """Process incoming flight data and calculate metrics"""
         try:
-            flight_data = data_packet['data'].get('flight_data', {})
+            v = data_packet['data'].get('variables', {})
             timestamp = datetime.fromtimestamp(data_packet['timestamp'])
             
             # Extract key metrics
-            altitude = flight_data.get('BarometricAltitude', 0)
-            airspeed = flight_data.get('IndicatedAirspeed', 0)
-            ground_speed = flight_data.get('GroundSpeed', 0)
-            fuel_flow = flight_data.get('Engine1FuelFlow', 0)
-            engine_rpm = flight_data.get('Engine1RPM', 0)
-            climb_rate = flight_data.get('VerticalSpeed', 0)
+            altitude = v.get('Aircraft.Altitude', 0.0)
+            airspeed = v.get('Aircraft.IndicatedAirspeed', 0.0)
+            ground_speed = v.get('Aircraft.GroundSpeed', 0.0)
+            engine_rpm = v.get('Aircraft.EngineRotationSpeed1', 0.0)
+            climb_rate = v.get('Aircraft.VerticalSpeed', 0.0)
+            fuel_flow = 0.0  # Not available in generic set; set 0 or compute aircraft-specific
             
             # Calculate derived metrics
             fuel_economy = self._calculate_fuel_economy(ground_speed, fuel_flow)
@@ -800,7 +803,7 @@ class FlightPerformanceAnalyzer:
         )
         
         # Interface performance
-        interface_rates = self.analysis_results['interface_performance']
+        interface_rates = self.analysis_results.get('interface_performance', {'tcp_rate': 0, 'ws_rate': 0, 'shmem_rate': 0})
         interfaces = list(interface_rates.keys())
         rates = [interface_rates[iface] for iface in interfaces]
         
