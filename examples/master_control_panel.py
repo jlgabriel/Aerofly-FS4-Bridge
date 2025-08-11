@@ -1,3 +1,7 @@
+# NOTA: El archivo 'AeroflyBridge_offsets.json' se genera junto a 'AeroflyBridge.dll' en:
+# %USERPROFILE%\Documents\Aerofly FS 4\external_dll\
+# Este panel de control NO requiere ese JSON; se utiliza en el monitor en tiempo real.
+
 # aerofly_master_control_panel.py
 import tkinter as tk
 from tkinter import ttk
@@ -73,7 +77,7 @@ class AeroflyMasterControlPanel:
         self.create_warning_controls(scrollable_frame, current_row, 1)
         self.create_performance_controls(scrollable_frame, current_row, 2)
         self.create_command_controls(scrollable_frame, current_row, 3)
-
+ 
         # Row 5: C172 Specific Controls
         current_row = max(current_row + 22, 69)  # Start next row
         self.create_c172_specific_controls(scrollable_frame, current_row, 0)
