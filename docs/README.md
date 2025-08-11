@@ -69,6 +69,7 @@ Note: To build from source you must download `tm_external_message.h` from `https
 - **API Reference** (`docs/api_reference.md`): Complete interface documentation for Shared Memory, TCP, and WebSocket.
 - **Variables Reference** (`docs/variables_reference.md`): All 339+ available variables with canonical names.
 - **JSON Schema** (`reference/json_schema.json`): Telemetry payload structure.
+- **Release Guide** (`docs/release_guide.md`): How to build the DLL and publish a GitHub Release.
 
 ### Learning Resources
 - **DLL Development Basics** (`docs/dll_basics_tutorial.md`): Create Aerofly DLLs from scratch.
