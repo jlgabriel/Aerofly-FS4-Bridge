@@ -1,7 +1,3 @@
-# NOTA: El archivo 'AeroflyBridge_offsets.json' se genera junto a 'AeroflyBridge.dll' en:
-# %USERPROFILE%\Documents\Aerofly FS 4\external_dll\
-# Este panel de control NO requiere ese JSON; se utiliza en el monitor en tiempo real.
-
 # aerofly_master_control_panel.py
 import tkinter as tk
 from tkinter import ttk
