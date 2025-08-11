@@ -1925,7 +1925,6 @@ MESSAGE_LIST(TM_MESSAGE)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // AIRCRAFT-SPECIFIC CONTROLS EXTENSION
-// Add this to your existing DLL after the MESSAGE_LIST
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 // === AIRCRAFT-SPECIFIC CONTROLS DEFINITIONS ===
@@ -2011,7 +2010,6 @@ private:
         pData->all_variables[variable_index] = new_value;
     }
 
-    // Add this INSIDE the SharedMemoryInterface class, after other methods
 private:
     /**
      * @brief Safely processes string messages with proper error handling
@@ -2594,7 +2592,7 @@ public:
             }
             if (hash == MessagePerformanceSpeedVFE.GetID()) {
                 const double value = message.GetDouble();
-                pData->performance_speed_vfe = value;  // Fixed: was vs1_speed (critical bug)
+                pData->performance_speed_vfe = value;
                 pData->all_variables[(int)VariableIndex::PERFORMANCE_SPEED_VFE] = value;
                 return;
             }
@@ -3098,7 +3096,7 @@ public:
                 // NOTE: Vector3d cannot be stored in all_variables array (double only)
                 return;
             }
-            if (hash == MessageAircraftBestRunwayEnd.GetID()) {  // ✅ CORREGIDO: Nombre exacto
+            if (hash == MessageAircraftBestRunwayEnd.GetID()) {
                 const tm_vector3d value = message.GetVector3d();
                 pData->aircraft_best_runway_end = value;
                 // NOTE: Vector3d cannot be stored in all_variables array (double only)
@@ -3578,7 +3576,7 @@ public:
                 return;
             }
 
-            // === COMMUNICATION EXTENDED (Variables con Messages definidos - 3 variables) ===
+            // === COMMUNICATION EXTENDED ===
 
             if (hash == MessageNavigationCOM3Frequency.GetID()) {
                 const double value = message.GetDouble();
@@ -3611,7 +3609,7 @@ public:
                 return;
             }
 
-            // === AUTOPILOT EXTENDED (Solo variables con Messages definidos - 1 variable) ===
+            // === AUTOPILOT EXTENDED ===
 
             if (hash == MessageAutopilotMaster.GetID()) {
                 const double value = message.GetDouble();
@@ -3824,7 +3822,7 @@ public:
                 return;
             }
 
-            // === COMMUNICATION EXTENDED (Prioridad ALTA - 15 variables) ===
+            // === COMMUNICATION EXTENDED ===
 
             if (hash == MessageNavigationCOM3Frequency.GetID()) {
                 const double value = message.GetDouble();
@@ -5431,7 +5429,7 @@ private:
 };
 
 // =============================================================================
-// HELPER FUNCTION IMPLEMENTATIONS - Add these AFTER the ParseCommand method
+// HELPER FUNCTION IMPLEMENTATIONS
 // =============================================================================
 
 tm_external_message CommandProcessor::ProcessAircraftVariables(const std::string& var_name, double value) {
@@ -5530,7 +5528,7 @@ tm_external_message CommandProcessor::ProcessAircraftVariables(const std::string
 tm_external_message CommandProcessor::ProcessNavigationVariables(const std::string& var_name, double value) {
     tm_external_message empty_msg;
     
-    // === EXISTING COMMUNICATION VARIABLES (keep these) ===
+    // === EXISTING COMMUNICATION VARIABLES ===
     if (var_name == "Communication.COM1Frequency") {
         MessageNavigationCOM1Frequency.SetValue(value);
         DBG("Creating message Communication.COM1Frequency\n");
@@ -5579,7 +5577,7 @@ tm_external_message CommandProcessor::ProcessNavigationVariables(const std::stri
         return MessageNavigationCOM3FrequencySwap;
     }
     
-    // === EXISTING NAV VARIABLES (keep these) ===
+    // === EXISTING NAV VARIABLES ===
     if (var_name == "Navigation.NAV1Frequency") {
         MessageNavigationNAV1Frequency.SetValue(value);
         DBG("Creating message Navigation.NAV1Frequency\n");
@@ -5756,13 +5754,12 @@ tm_external_message CommandProcessor::ProcessNavigationVariables(const std::stri
 
 // =============================================================================
 // MISSING HELPER FUNCTION IMPLEMENTATIONS
-// Add these AFTER the existing ProcessAircraftVariables and ProcessNavigationVariables
 // =============================================================================
 
 tm_external_message CommandProcessor::ProcessAutopilotVariables(const std::string& var_name, double value) {
     tm_external_message empty_msg;
     
-    // === EXISTING AUTOPILOT VARIABLES (keep these) ===
+    // === EXISTING AUTOPILOT VARIABLES ===
     if (var_name == "Autopilot.Master") {
         MessageAutopilotMaster.SetValue(value);
         DBG("Creating message Autopilot.Master\n");
@@ -5994,7 +5991,7 @@ tm_external_message CommandProcessor::ProcessAutopilotVariables(const std::strin
 tm_external_message CommandProcessor::ProcessControlsVariables(const std::string& var_name, double value) {
     tm_external_message empty_msg;
     
-    // === EXISTING CONTROLS (keep these) ===
+    // === EXISTING CONTROLS ===
     if (var_name == "Controls.AileronTrim") {
         MessageControlsAileronTrim.SetValue(value);
         DBG("Creating message Controls.AileronTrim\n");
@@ -6396,7 +6393,7 @@ tm_external_message CommandProcessor::ProcessSimulationVariables(const std::stri
 tm_external_message CommandProcessor::ProcessWarningVariables(const std::string& var_name, double value) {
     tm_external_message empty_msg;
     
-    // === EXISTING WARNING VARIABLES (keep these) ===
+    // === EXISTING WARNING VARIABLES ===
     if (var_name == "Warnings.MasterWarning") {
         MessageWarningsMasterWarning.SetValue(value);
         DBG("Creating message Warnings.MasterWarning\n");
