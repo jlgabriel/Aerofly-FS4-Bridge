@@ -135,22 +135,43 @@ class BridgeReceiver:
         v = payload.get("variables", {})
 
         # Extract canonical variables
-        lat = float(v.get("Aircraft.Latitude", 0.0))
-        lon = float(v.get("Aircraft.Longitude", 0.0))
+        lat_val = float(v.get("Aircraft.Latitude", 0.0))
+        lon_val = float(v.get("Aircraft.Longitude", 0.0))
         alt_m = float(v.get("Aircraft.Altitude", 0.0))
         gs_mps = float(v.get("Aircraft.GroundSpeed", 0.0))
-        heading_rad = float(v.get("Aircraft.TrueHeading", 0.0))
+        # Prefer magnetic heading (matches cockpit compass); fallback to true heading
+        heading_val = float(v.get("Aircraft.MagneticHeading", v.get("Aircraft.TrueHeading", 0.0)))
         pitch_rad = float(v.get("Aircraft.Pitch", 0.0))
         bank_rad = float(v.get("Aircraft.Bank", 0.0))
 
         RAD_TO_DEG = 180.0 / 3.141592653589793
-        heading_deg = (heading_rad * RAD_TO_DEG) % 360.0
+        # Latitude/Longitude can be provided as degrees (most JSON outputs)
+        # or radians depending on bridge configuration. Use a heuristic:
+        # If values are within plausible radian ranges, convert to degrees.
+        if abs(lat_val) <= 3.2 and abs(lon_val) <= 6.5:
+            lat_deg = lat_val * RAD_TO_DEG
+            lon_deg = lon_val * RAD_TO_DEG
+        else:
+            lat_deg = lat_val
+            lon_deg = lon_val
+        # Normalize longitude to [-180, 180]
+        if lon_deg > 180.0:
+            lon_deg -= 360.0
+        elif lon_deg < -180.0:
+            lon_deg += 360.0
+        # Heading can be radians (mathematical, 0°=East CCW+) or degrees.
+        # Convert to mathematical degrees first, then to compass (0°=North CW).
+        if abs(heading_val) <= 6.5:
+            hdg_math = (heading_val * RAD_TO_DEG) % 360.0
+        else:
+            hdg_math = heading_val % 360.0
+        heading_deg = (90.0 - hdg_math) % 360.0
         pitch_deg = pitch_rad * RAD_TO_DEG
         roll_deg = bank_rad * RAD_TO_DEG
 
         self.latest_gps_data = GPSData(
-            longitude=lon,
-            latitude=lat,
+            longitude=lon_deg,
+            latitude=lat_deg,
             altitude_m=alt_m,
             track_deg=heading_deg,
             ground_speed_mps=gs_mps,
@@ -310,7 +331,10 @@ class AircraftTrackerApp:
         M_TO_FT = 3.280839895
         MPS_TO_KT = 1.943844492
 
+        # Some aircraft/sources may deliver altitude already in feet through custom bridges;
+        # however, the canonical variable is meters, so convert meters → feet here.
         alt_ft = gps.altitude_m * M_TO_FT
+        # Ground speed canonical is m/s → knots
         gs_kts = gps.ground_speed_mps * MPS_TO_KT
 
         info_text = "=" * 24 + "\n"
@@ -318,7 +342,7 @@ class AircraftTrackerApp:
         info_text += f"{'Longitude:':<15}{gps.longitude:>8.2f}°\n"
         info_text += f"{'Altitude:':<15}{alt_ft:>6.0f} ft\n"
         info_text += f"{'Ground Speed:':<15}{gs_kts:>5.2f} kts\n"
-        info_text += f"{'True Heading:':<15}{att.true_heading_deg:>8.2f}°\n"
+        info_text += f"{'Heading:':<15}{att.true_heading_deg:>8.2f}°\n"
         info_text += f"{'Pitch:':<15}{att.pitch_deg:>8.2f}°\n"
         info_text += f"{'Roll:':<15}{att.roll_deg:>8.2f}°\n"
         info_text += "=" * 24 + "\n"
@@ -337,11 +361,12 @@ class AircraftTrackerApp:
         # Triangle arrow
         w, h = width, height
         triangle = [(w * 0.5, h * 0.1), (w * 0.1, h * 0.9), (w * 0.9, h * 0.9)]
-        draw.polygon(triangle, fill=(255, 255, 255, 255))
+        # Dark blue fill
+        draw.polygon(triangle, fill=(14, 35, 64, 255))
         # Center dot
         r = max(1, int(min(w, h) * 0.06))
         cx, cy = int(w * 0.5), int(h * 0.6)
-        draw.ellipse((cx - r, cy - r, cx + r, cy + r), fill=(0, 0, 0, 255))
+        draw.ellipse((cx - r, cy - r, cx + r, cy + r), fill=(255, 255, 255, 255))
         return img
 
     def _change_map(self) -> None:
