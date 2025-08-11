@@ -235,23 +235,6 @@ AEROFLY_BRIDGE_BROADCAST_MS=50
 2. **Load an aircraft**: Some data requires aircraft to be loaded
 3. **Check environment variables**: Verify broadcast interval isn't too high
 
----
-
-## 📞 Getting Help
-
-**If you have issues:**
-
-1. **Check this troubleshooting section first**
-2. **Search existing [Issues](../../../issues/)** on GitHub
-3. **Create a new issue** with:
-   - Your Windows version
-   - Aerofly FS 4 version
-   - Error messages (if any)
-   - Steps you tried
-
-**For developers:**
-- See [Build Instructions](#-building-from-source-developers) below
-- Check [API Reference](api_reference.md) for integration help
 
 ---
 
