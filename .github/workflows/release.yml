@@ -1,0 +1,60 @@
+name: Build and Release DLL
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build AeroflyBridge.dll
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup MSVC dev cmd
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Verify Aerofly SDK header
+        shell: pwsh
+        run: |
+          if (Test-Path 'tm_external_message.h' -or Test-Path 'src/tm_external_message.h') {
+            Write-Host 'Found tm_external_message.h in repository.'
+          } else {
+            Write-Error 'Missing tm_external_message.h. Place it in repo root or src/ before running release.'
+          }
+
+      - name: Compile DLL
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          cl.exe /LD /EHsc /O2 /DNDEBUG /std:c++17 /DWIN32 /D_WINDOWS /D_USRDLL `
+            aerofly_bridge_dll.cpp `
+            /Fe:dist\AeroflyBridge.dll `
+            /link ws2_32.lib kernel32.lib user32.lib
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AeroflyBridge-dll
+          path: dist/AeroflyBridge.dll
+
+  release:
+    name: Attach DLL to GitHub Release
+    runs-on: windows-latest
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: AeroflyBridge-dll
+          path: dist
+
+      - name: Create GitHub Release and upload asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/AeroflyBridge.dll
+

@@ -29,20 +29,8 @@ echo Setting up Visual Studio 2022 environment...
 call "%VCVARS%"
 
 echo.
-echo Verifying Aerofly SDK header (tm_external_message.h)...
+echo Skipping SDK header pre-check (compiler will report missing includes if needed)...
 echo.
-
-REM Locate SDK header
-set "SDK_HEADER="
-if exist "src\tm_external_message.h" set "SDK_HEADER=src\tm_external_message.h"
-if exist "tm_external_message.h" set "SDK_HEADER=tm_external_message.h"
-if not defined SDK_HEADER (
-    echo ERROR: Required SDK header 'tm_external_message.h' not found.
-    echo Download it from https://www.aerofly.com/developers/ (section "External DLL")
-    echo and place 'tm_external_message.h' in the project root OR in the 'src' folder.
-    pause
-    exit /b 1
-)
 
 REM Create output directory
 if not exist dist mkdir dist
@@ -53,6 +41,7 @@ echo.
 
 REM Compile with NDEBUG to disable assert() macros
 cl.exe /LD /EHsc /O2 /DNDEBUG /std:c++17 /DWIN32 /D_WINDOWS /D_USRDLL ^
+    /I . /I src ^
     aerofly_bridge_dll.cpp ^
     /Fe:dist\AeroflyBridge.dll ^
     /link ws2_32.lib kernel32.lib user32.lib
