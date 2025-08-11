@@ -38,7 +38,7 @@ This document provides comprehensive information about every variable accessible
 
 | Index | Variable Name | Type | Unit | Range | Description |
 |-------|---------------|------|------|-------|-------------|
-| 0 | `Aircraft.UniversalTime` | Double | Radians | 0.0 - 2π | UTC time of day |
+| 0 | `Aircraft.UniversalTime` | Double | Seconds | 0 - 86400 | UTC time of day |
 | 1 | `Aircraft.Altitude` | Double | Meters | -1000 - 50000 | Barometric altitude |
 | 2 | `Aircraft.VerticalSpeed` | Double | m/s | -50 - 50 | Rate of climb/descent |
 | 3 | `Aircraft.Pitch` | Double | Radians | -π/2 - π/2 | Pitch attitude |
@@ -231,11 +231,11 @@ if current_ias > vne:
 | 118 | `Navigation.DME1Frequency` | Double | MHz | 960 - 1215 | DME1 frequency |
 | 119 | `Navigation.DME1Distance` | Double | NM | 0 - 200 | DME1 distance |
 | 120 | `Navigation.DME1Speed` | Double | Knots | 0 - 999 | DME1 ground speed |
-| 121 | `Navigation.DME1Time` | Double | Minutes | 0 - 99 | DME1 time to station |
+| 121 | `Navigation.DME1Time` | Double | Seconds | 0 - 5940 | DME1 time to station |
 | 122 | `Navigation.DME2Frequency` | Double | MHz | 960 - 1215 | DME2 frequency |
 | 123 | `Navigation.DME2Distance` | Double | NM | 0 - 200 | DME2 distance |
 | 124 | `Navigation.DME2Speed` | Double | Knots | 0 - 999 | DME2 ground speed |
-| 125 | `Navigation.DME2Time` | Double | Minutes | 0 - 99 | DME2 time to station |
+| 125 | `Navigation.DME2Time` | Double | Seconds | 0 - 5940 | DME2 time to station |
 
 ### ILS Systems
 
