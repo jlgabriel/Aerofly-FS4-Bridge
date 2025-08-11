@@ -434,11 +434,50 @@ void TCPServerInterface::RemoveClientUnsafe(SOCKET client) {
    Connection: Upgrade
    Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=
 
-3. WebSocket Frames:
-   ┌─────────────┬─────────────┬─────────────┬─────────────┐
-   │ FIN │ OpCode │   Length    │   Payload   │
-   │  1  │   4    │   7/16/64   │     Data    │
-   └─────────────┴─────────────┴─────────────┴─────────────┘
+3. WebSocket Frames (high level):
+   ┌───────┬────────┬────────┬──────┬───────────┬──────────┐
+   │ FIN   │  RSV   │ OpCode │ MASK │  Length   │ Payload  │
+   │ 1 bit │ 3 bits │ 4 bits │ 1bit │ 7/16/64b  │ n bytes  │
+   └───────┴────────┴────────┴──────┴───────────┴──────────┘
+```
+
+#### Frame fields explained (RFC 6455)
+
+- FIN (1 bit): final fragment flag. 1 = last frame of the message; 0 = more fragments follow.
+- RSV1/RSV2/RSV3 (3 bits, not shown in the diagram): must be 0 unless an extension negotiates their use.
+- OpCode (4 bits):
+  - 0x0 Continuation
+  - 0x1 Text (UTF-8)
+  - 0x2 Binary
+  - 0x8 Close (control)
+  - 0x9 Ping (control)
+  - 0xA Pong (control)
+  - Notes: Control frames must not be fragmented (FIN=1) and payload length ≤ 125 bytes.
+- MASK (1 bit, in the second byte MSB): client→server frames must set MASK=1; server→client frames must set MASK=0.
+- Payload length (7 bits):
+  - 0–125: length in this 7-bit field
+  - 126: next 16 bits are unsigned length (network byte order)
+  - 127: next 64 bits are unsigned length (network byte order)
+- Masking key (32 bits): present only if MASK=1. Applied cyclically to payload bytes.
+- Payload data: if MASK=1, each byte must be unmasked as `payload[i] ^= masking_key[i % 4]`.
+
+#### Fragmentation
+
+- A message may be split across multiple frames: the first frame uses a non-zero OpCode (text/binary), subsequent frames use OpCode=0x0 (Continuation) until a frame with FIN=1.
+- Control frames (close/ping/pong) cannot be fragmented and may appear in the middle of a fragmented message.
+
+#### Close and Ping/Pong semantics
+
+- Close (0x8): optional body starts with a 2-byte status code followed by UTF‑8 reason.
+  - Common codes: 1000 (normal), 1001 (going away), 1002 (protocol error), 1003 (unsupported data), 1009 (message too big), 1010 (mandatory extension), 1011 (unexpected condition).
+- Ping (0x9): peer should respond with Pong (0xA) carrying the exact same payload. Use for keep-alive and RTT.
+
+#### Example (server → client text "Hello")
+
+```
+81 05 48 65 6c 6c 6f
+└─┘ └┘ └────────────
+FIN+TXT  len=5  UTF‑8 payload "Hello"
 ```
 
 ### WebSocket Handshake Implementation
