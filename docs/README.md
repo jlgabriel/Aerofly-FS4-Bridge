@@ -76,6 +76,8 @@ Note: To build from source you must download `tm_external_message.h` from `https
 - **Thread-Safe Programming** (`docs/thread_safety_tutorial.md`): Synchronization patterns for real-time systems.
 - **Network Programming Patterns** (`docs/network_programming_tutorial.md`): TCP/WebSocket servers from scratch.
 - **Performance Optimization** (`docs/performance_optimization_tutorial.md`): Measuring and tuning for 50+ Hz.
+- **Web App Tutorial** (`docs/web_app_tutorial.md`): Build a browser dashboard using WebSocket.
+- **Python App Tutorial** (`docs/python_app_tutorial.md`): Read telemetry via Shared Memory and TCP.
 
 ### Examples
 - `examples/dll_ws_demo_runner.cpp`: Minimal C++ example for running the DLL.
