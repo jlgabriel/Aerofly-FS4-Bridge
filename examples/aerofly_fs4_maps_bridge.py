@@ -29,7 +29,7 @@ from typing import Optional, Dict, Any, Tuple, List
 import tkinter as tk
 from tkinter import font as tkfont
 from tkintermapview import TkinterMapView
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageDraw
 
 
 # Constants
@@ -254,7 +254,11 @@ class AircraftTrackerApp:
         self.info_display.pack(padx=10, pady=10)
 
     def _setup_aircraft_marker(self) -> None:
-        self.aircraft_image = Image.open("aircraft_icon.png").resize((32, 32))
+        # Load custom icon if available; otherwise generate a simple arrow
+        try:
+            self.aircraft_image = Image.open("aircraft_icon.png").resize((32, 32))
+        except Exception:
+            self.aircraft_image = self._generate_default_icon(32, 32)
         self.rotated_image = ImageTk.PhotoImage(self.aircraft_image)
         self.aircraft_marker = None
         self.initial_position_set = False
@@ -324,6 +328,21 @@ class AircraftTrackerApp:
 
     def _rotate_image(self, angle_deg: float) -> ImageTk.PhotoImage:
         return ImageTk.PhotoImage(self.aircraft_image.rotate(-angle_deg))
+
+    @staticmethod
+    def _generate_default_icon(width: int, height: int) -> Image.Image:
+        # Create a transparent image with a simple upward-pointing arrow
+        img = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(img)
+        # Triangle arrow
+        w, h = width, height
+        triangle = [(w * 0.5, h * 0.1), (w * 0.1, h * 0.9), (w * 0.9, h * 0.9)]
+        draw.polygon(triangle, fill=(255, 255, 255, 255))
+        # Center dot
+        r = max(1, int(min(w, h) * 0.06))
+        cx, cy = int(w * 0.5), int(h * 0.6)
+        draw.ellipse((cx - r, cy - r, cx + r, cy + r), fill=(0, 0, 0, 255))
+        return img
 
     def _change_map(self) -> None:
         selected = self.map_listbox.curselection()
