@@ -18,8 +18,6 @@ This tutorial explores the thread-safety techniques used in the Aerofly Bridge, 
 
 ## 📋 Prerequisites
 
-- **[DLL Development Basics](01_dll_basics.md)** completed
-- **[Architecture Deep Dive](02_architecture_explained.md)** understood
 - **C++ threading** (std::thread, std::mutex basics)
 - **Memory model** awareness (helpful but not required)
 
@@ -37,7 +35,7 @@ Timing Requirements:
 ┌──────────────────┬─────────────┬──────────────────┐
 │ Operation        │ Max Time    │ Consequence      │
 ├──────────────────┼─────────────┼──────────────────┤
-│ Update()         │ ~1ms        │ Sim stuttering  │
+│ Update()         │ ~1ms        │ Sim stuttering   │
 │ Data broadcast   │ ~5ms        │ Client lag       │
 │ Command process  │ ~10ms       │ Control delay    │
 │ Memory access    │ ~1µs        │ Cache miss cost  │
@@ -477,13 +475,13 @@ Challenge:
 │ Aerofly Thread  │    │ TCP Thread      │    │ Local App       │
 │ (Writer)        │    │ (Reader)        │    │ (Reader)        │
 ├─────────────────┤    ├─────────────────┤    ├─────────────────┤
-│ altitude = 1000 │───▶│ Read altitude   │───▶│ Read altitude   │
+│ altitude = 1000 │──▶│ Read altitude   │───▶│ Read altitude   │
 │ altitude = 1001 │    │ Read airspeed   │    │ Read airspeed   │
 │ airspeed = 120  │    │ Build JSON      │    │ Update display  │
 │ airspeed = 121  │    │ Send to client  │    │                 │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
        ▲                        ▲                        ▲
-       │ Problem: What if readers see inconsistent state? │
+       │ Problem: What if readers see inconsistent state?│
        └─────────────────────────────────────────────────┘
 */
 ```
