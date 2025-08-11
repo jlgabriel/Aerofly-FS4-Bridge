@@ -19,8 +19,6 @@ This tutorial explores advanced performance optimization techniques used in the 
 
 ## 📋 Prerequisites
 
-- **[Network Programming Patterns](04_network_programming.md)** completed
-- **[Thread-Safe Programming](03_thread_safety.md)** mastered
 - **C++ advanced** concepts (memory model, optimization)
 - **Performance analysis** tools familiarity
 
