@@ -293,6 +293,9 @@ class AeroflyTkApp(tk.Tk):
 
             # Time
             if unit == "second":
+                # Special-case: UTC time of day → HH:MM:SSZ
+                if "UniversalTime" in name:
+                    return self._format_time_hms(value)
                 return f"{value:.2f} s"
 
             # Frequency → MHz
