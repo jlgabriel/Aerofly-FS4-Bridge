@@ -83,6 +83,12 @@ Note: To build from source you must download `tm_external_message.h` from `https
 ### Examples
 - `examples/aerofly_realtime_monitor.py`: Live telemetry monitor (Python, TCP).
 - `examples/master_control_panel.py`: Command/control panel (Python, TCP/commands).
+- `examples/tutorial_websocket_altitude_monitor.md`: WebSocket altitude monitor (browser).
+- `examples/tutorial_autopilot_controller.md`: Simple autopilot controller logic.
+- `examples/tutorial_radio_navigator.md`: Tune radios and courses programmatically.
+- `examples/tutorial_flight_analyzer.md`: Analyze flight data snapshots.
+- `examples/tutorial_python_shared_memory.md`: Read shared memory in Python.
+- `examples/tutorial_python_flight_logger.md`: Log flights to JSON/CSV in Python.
 
 Run examples:
 - Realtime monitor (needs offsets JSON):
