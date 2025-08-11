@@ -173,15 +173,15 @@ The bridge uses a **specialized threading model** optimized for real-time perfor
 ```cpp
 /*
 Threading Overview:
-┌──────────────────┐    ┌─────────────────┐    ┌──────────────────┐
-│ Aerofly Thread   │    │ TCP Thread Pool │    │ WebSocket Thread │
-│ (50-60 Hz)       │    │ (2 threads)     │    │ (1 thread)       │
-├──────────────────┤    ├─────────────────┤    ├──────────────────┤
+┌──────────────────┐    ┌──────────────────┐    ┌──────────────────┐
+│ Aerofly Thread   │    │ TCP Thread Pool  │    │ WebSocket Thread │
+│ (50-60 Hz)       │    │ (2 threads)      │    │ (1 thread)       │
+├──────────────────┤    ├──────────────────┤    ├──────────────────┤
 │ • Update()       │    │ • Accept clients │    │ • Accept clients │
 │ • ProcessMsgs    │    │ • Handle commands│    │ • WebSocket I/O  │
 │ • UpdateSharedMem│    │ • Broadcast data │    │ • Broadcast data │
 │ • Fast execution │    │ • Non-blocking   │    │ • RFC 6455       │
-└──────────────────┘    └─────────────────┘    └──────────────────┘
+└──────────────────┘    └──────────────────┘    └──────────────────┘
          │                        │                        │
          └────────── SharedMemory ─────────────────────────┘
                     (Thread-safe)
@@ -848,14 +848,6 @@ void readable_processing_path() {
 3. **Implement graceful degradation** 
 4. **Add performance monitoring**
 5. **Scale to multiple interfaces**
-
-### Advanced Topics to Explore
-
-**After mastering this architecture:**
-
-- **[Thread-Safe Programming](03_thread_safety.md)** - Deep dive into synchronization
-- **[Network Programming Patterns](04_network_programming.md)** - Protocol implementation
-- **[Performance Optimization](05_performance_guide.md)** - Measurement and tuning
 
 ### Real-World Applications
 
