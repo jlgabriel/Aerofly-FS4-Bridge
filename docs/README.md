@@ -1,0 +1,229 @@
+# Aerofly FS4 Bridge DLL
+
+**Multi-Interface Bridge for Aerofly FS 4 Flight Simulator**
+
+Copyright (c) 2025 Juan Luis Gabriel
+
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg)]()
+[![Aerofly FS 4](https://img.shields.io/badge/Aerofly%20FS-4-orange.svg)]()
+
+A comprehensive, open-source bridge that enables real-time data exchange between Aerofly FS 4 and external applications through **three simultaneous interfaces**: Shared Memory, TCP, and WebSocket.
+
+## 🚀 Quick Start
+
+### For Users (Ready to Use)
+
+1. **Download** the compiled DLL from [GitHub Releases](https://github.com/jlgabriel/Aerofly-FS4-Bridge/releases)
+2. **Copy** `AeroflyBridge.dll` to:
+   ```
+   %USERPROFILE%\Documents\Aerofly FS 4\external_dll\AeroflyBridge.dll
+   ```
+3. **Launch** Aerofly FS 4 - the bridge activates automatically
+4. **Connect** your applications:
+   - **Shared Memory**: `"AeroflyBridgeData"` (fastest)
+   - **TCP**: Port 12345 (JSON data), Port 12346 (commands)
+   - **WebSocket**: Port 8765 (web/mobile apps)
+
+### For Developers (Build from Source)
+
+```bash
+# Clone or download the repository
+git clone https://github.com/jlgabriel/Aerofly-FS4-Bridge.git
+
+# Compile using the provided script (recommended)
+cd Aerofly-FS4-Bridge
+scripts\compile.bat
+
+# Or manual compilation (x64 Native Tools Command Prompt for VS 2022)
+cl.exe /LD /EHsc /O2 /DNDEBUG /std:c++17 /DWIN32 /D_WINDOWS /D_USRDLL aerofly_bridge_dll.cpp /Fe:AeroflyBridge.dll /link ws2_32.lib kernel32.lib user32.lib
+```
+
+For detailed setup, see the Installation Guide in this docs folder: `installation_guide.md`.
+
+Note: To build from source you must download `tm_external_message.h` from `https://www.aerofly.com/developers/` (section "External DLL") and place it in the project root or in `src/`.
+
+## ✨ Features
+
+### 🔗 **Triple Interface Architecture**
+- **Shared Memory**: Ultra-fast local access for performance-critical applications
+- **TCP Server**: Network-accessible JSON API for remote monitoring and control
+- **WebSocket Server**: Native browser and mobile app connectivity
+
+### 📊 **Comprehensive Data Access**
+- **339+ variables** exposed with canonical Aerofly SDK names (e.g., `"Aircraft.Altitude"`)
+- **Real-time updates**: 50Hz telemetry streaming (configurable)
+- **Bidirectional control**: Read telemetry + send commands
+- **JSON protocol**: Consistent format across TCP and WebSocket
+
+### 🛠 **Developer-Friendly**
+- **Thread-safe**: Production-ready concurrent access
+- **No Dependencies**: WebSocket implementation built-in, no external libraries
+- **Graceful Fallbacks**: Interfaces fail independently
+- **Environment Config**: Ports and settings via environment variables
+
+## 📖 Documentation
+
+### Quick Reference
+- **Installation Guide** (`docs/installation_guide.md`): Step-by-step setup and build instructions.
+- **API Reference** (`docs/api_reference.md`): Complete interface documentation for Shared Memory, TCP, and WebSocket.
+- **Variables Reference** (`docs/variables_reference.md`): All 339+ available variables with canonical names.
+- **JSON Schema** (`reference/json_schema.json`): Telemetry payload structure.
+
+### Learning Resources
+- **DLL Development Basics** (`docs/dll_basics_tutorial.md`): Create Aerofly DLLs from scratch.
+- **Architecture Deep Dive** (`docs/architecture_deep_dive.md`): Internals and design decisions.
+- **Thread-Safe Programming** (`docs/thread_safety_tutorial.md`): Synchronization patterns for real-time systems.
+- **Network Programming Patterns** (`docs/network_programming_tutorial.md`): TCP/WebSocket servers from scratch.
+- **Performance Optimization** (`docs/performance_optimization_tutorial.md`): Measuring and tuning for 50+ Hz.
+
+### Examples
+- `examples/dll_ws_demo_runner.cpp`: Minimal C++ example for running the DLL.
+- `examples/ws_client_example.html`: Simple WebSocket client snippet.
+- `examples/ws_dashboard.html`: Example dashboard consuming WebSocket telemetry.
+
+## 🌟 Use Cases
+
+### 🎮 **Real-time Dashboards**
+Create web or mobile dashboards displaying live flight data:
+```javascript
+// WebSocket example (canonical variables)
+const ws = new WebSocket('ws://localhost:8765');
+ws.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+  const altitude_m = data.variables["Aircraft.Altitude"]; // meters
+  const ias_mps = data.variables["Aircraft.IndicatedAirspeed"]; // m/s
+  updateAltitude(altitude_m);
+  updateSpeed(ias_mps);
+};
+```
+
+### 🔧 **Hardware Integration**
+Connect physical panels and controls:
+```cpp
+// Shared memory example (C++)
+HANDLE hMapFile = OpenFileMapping(FILE_MAP_ALL_ACCESS, FALSE, "AeroflyBridgeData");
+AeroflyBridgeData* pData = (AeroflyBridgeData*)MapViewOfFile(hMapFile, FILE_MAP_ALL_ACCESS, 0, 0, 0);
+double altitude_m = pData->aircraft_altitude;
+```
+
+### 📱 **Mobile Applications**
+Build companion apps for tablets and phones:
+```python
+# Python TCP example (canonical variables)
+import socket, json
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+sock.connect(("localhost", 12345))
+data = json.loads(sock.recv(16384).decode())
+print(f"Altitude: {data['variables']['Aircraft.Altitude']} m")
+```
+
+### 📈 **Data Logging & Analytics**
+Record flights for analysis and training:
+```json
+{
+  "schema": "aerofly-bridge-telemetry",
+  "schema_version": 1,
+  "timestamp": 1640995200000000,
+  "timestamp_unit": "microseconds",
+  "data_valid": 1,
+  "broadcast_rate_hz": 50.0,
+  "variables": {
+    "Aircraft.Altitude": 3500.0,
+    "Aircraft.IndicatedAirspeed": 120.5,
+    "Aircraft.MagneticHeading": 1.5708
+  }
+}
+```
+
+## 🔧 Configuration
+
+The bridge supports configuration via environment variables:
+
+```bash
+# WebSocket settings
+set AEROFLY_BRIDGE_WS_ENABLE=1        # Enable WebSocket (default: 1)
+set AEROFLY_BRIDGE_WS_PORT=8765       # WebSocket port (default: 8765)
+
+# Performance tuning
+set AEROFLY_BRIDGE_BROADCAST_MS=20    # Broadcast interval (default: 20ms)
+```
+
+## 🎯 Project Goals
+
+### **Production Use**
+This bridge is designed for real-world applications:
+- Flight training tools
+- Hardware integration
+- Mobile companion apps
+- Data logging systems
+- Stream overlays
+
+### **Educational Purpose**
+Learn professional DLL development for flight simulators:
+- Modern C++ practices
+- Multi-threading patterns
+- Network programming
+- Memory management
+- Performance optimization
+
+## 🛡️ Requirements
+
+- **Aerofly FS 4** (any version with external DLL support)
+- **Windows** (Windows 10/11 recommended)
+- **Visual Studio 2022** (Community, Professional, or Enterprise - for building from source)
+- **Windows SDK** (latest version)
+
+**Note**: The compiled DLL includes `/DNDEBUG` flag to prevent assert() breakpoint exceptions on Windows 10.
+
+## 🤝 Contributing
+
+We welcome contributions! This project serves both production users and the learning community:
+
+- **Bug reports** and **feature requests** via [Issues](issues/)
+- **Code contributions** via Pull Requests
+- **Documentation improvements** always appreciated
+- **Example applications** to showcase different use cases
+
+See our [Contributing Guide](CONTRIBUTING.md) for details.
+
+## 📄 License
+
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+**Key permissions:**
+- ✅ Commercial use
+- ✅ Modification and distribution
+- ✅ Private use
+
+## 🙏 Acknowledgments
+
+- **Juan Luis Gabriel** - Project creator and lead developer
+- **Aerofly FS Team** for the excellent flight simulator and SDK
+- **Flight simulation community** for inspiration and feedback
+- **Open source contributors** who make projects like this possible
+
+## 📞 Support
+
+- Documentation: See the files in `docs/` and examples in `examples/` within this repository.
+- Issues: Report bugs or request features via GitHub Issues.
+- Community: Coming soon.
+
+---
+
+## 📚 Index
+
+- `docs/installation_guide.md`: Installation and build instructions for users and developers.
+- `docs/api_reference.md`: Detailed usage of each interface, message formats, and commands.
+- `docs/variables_reference.md`: Full list of variables exposed by the bridge with names and types.
+- `docs/architecture_deep_dive.md`: Deep dive into the multi-interface architecture and data flow.
+- `docs/thread_safety_tutorial.md`: Threading model and safe concurrent access patterns.
+- `docs/network_programming_tutorial.md`: TCP/WebSocket implementations and design patterns.
+- `docs/performance_optimization_tutorial.md`: Performance budgets, profiling, and optimization techniques.
+- `reference/json_schema.json`: JSON schema reference for telemetry/broadcast payloads.
+
+Short descriptions are embedded above for quick orientation. Use the relative paths in this repository (no external links) to avoid 404 issues.
+
+---
+
+Copyright (c) 2025 Juan Luis Gabriel
