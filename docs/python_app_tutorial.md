@@ -128,6 +128,5 @@ if __name__ == '__main__':
 
 ## Next steps
 
-- Explore variable names in the [Variables Reference](variables_reference.md)
-- See protocol details in the [API Reference](api_reference.md)
+- Explore variable names and see protocol details in the documentation
 - When building GUIs, throttle UI updates (e.g., 10–20 Hz) even if telemetry is 50 Hz

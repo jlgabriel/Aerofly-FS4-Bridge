@@ -165,6 +165,5 @@ window.addEventListener('load', () => {
 
 ## Next steps
 
-- Add more variables from the [Variables Reference](variables_reference.md)
 - Plot time series using a charting library
 - Build a React/Vue front-end (the protocol stays the same)
