@@ -441,6 +441,26 @@ void TCPServerInterface::RemoveClientUnsafe(SOCKET client) {
    └───────┴────────┴────────┴──────┴───────────┴──────────┘
 ```
 
+#### Bit-level view (first two bytes)
+
+```
+Byte 1 (FIN/RSV/OpCode):
+bit: 7   6   5   4   3   2   1   0
+     +---+---+---+-----------------+
+     |FIN|R1 |R2 |   OPCODE(4b)    |
+     +---+---+---+-----------------+
+
+Byte 2 (MASK/Length):
+bit: 7   6   5   4   3   2   1   0
+     +---+-------------------------+
+     |M  |        LEN (7b)         |
+     +---+-------------------------+
+
+If LEN == 126 → append 16-bit unsigned length (network byte order)
+If LEN == 127 → append 64-bit unsigned length (network byte order)
+If M == 1    → append 4-byte masking key, then payload (unmask on receive)
+```
+
 #### Frame fields explained (RFC 6455)
 
 - FIN (1 bit): final fragment flag. 1 = last frame of the message; 0 = more fragments follow.
