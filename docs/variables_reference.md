@@ -48,8 +48,8 @@ This document provides comprehensive information about every variable accessible
 | 7 | `Aircraft.GroundSpeed` | Double | m/s | 0 - 500 | Speed over ground |
 | 8 | `Aircraft.MagneticHeading` | Double | Radians | 0 - 2π | Magnetic compass heading |
 | 9 | `Aircraft.TrueHeading` | Double | Radians | 0 - 2π | True heading |
-| 10 | `Aircraft.Latitude` | Double | Degrees | -90 - 90 | Geographic latitude |
-| 11 | `Aircraft.Longitude` | Double | Degrees | -180 - 180 | Geographic longitude |
+| 10 | `Aircraft.Latitude` | Double | Radians | -π/2 - π/2 | Geographic latitude |
+| 11 | `Aircraft.Longitude` | Double | Radians | -π - π | Geographic longitude |
 
 ### Position and Physics
 
@@ -230,11 +230,11 @@ if current_ias > vne:
 |-------|---------------|------|------|-------|-------------|
 | 118 | `Navigation.DME1Frequency` | Double | MHz | 960 - 1215 | DME1 frequency |
 | 119 | `Navigation.DME1Distance` | Double | NM | 0 - 200 | DME1 distance |
-| 120 | `Navigation.DME1Speed` | Double | Knots | 0 - 999 | DME1 ground speed |
+| 120 | `Navigation.DME1Speed` | Double | m/s | 0 - 999 | DME1 ground speed |
 | 121 | `Navigation.DME1Time` | Double | Seconds | 0 - 5940 | DME1 time to station |
 | 122 | `Navigation.DME2Frequency` | Double | MHz | 960 - 1215 | DME2 frequency |
 | 123 | `Navigation.DME2Distance` | Double | NM | 0 - 200 | DME2 distance |
-| 124 | `Navigation.DME2Speed` | Double | Knots | 0 - 999 | DME2 ground speed |
+| 124 | `Navigation.DME2Speed` | Double | m/s | 0 - 999 | DME2 ground speed |
 | 125 | `Navigation.DME2Time` | Double | Seconds | 0 - 5940 | DME2 time to station |
 
 ### ILS Systems
