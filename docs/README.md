@@ -253,9 +253,11 @@ Learn professional DLL development for flight simulators:
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
 **Key permissions:**
+- ✅ Educational use
+- ✅ Private use
 - ✅ Commercial use
 - ✅ Modification and distribution
-- ✅ Private use
+
 
 **Legal note:** Despite AI authorship, this project remains licensed under MIT with no additional restrictions; standard copyright and licensing notices apply as stated in the LICENSE file.
 
