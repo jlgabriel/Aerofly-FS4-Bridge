@@ -651,7 +651,10 @@ def main() -> None:
     print("🌐 Starting web dashboard...")
     print("📱 Open http://localhost:8050 in your browser")
     try:
-        app.run_server(debug=False, host="0.0.0.0", port=8050)
+        if hasattr(app, "run"):
+            app.run(debug=False, host="0.0.0.0", port=8050)
+        else:
+            app.run_server(debug=False, host="0.0.0.0", port=8050)
     except KeyboardInterrupt:
         print("\n🛑 Shutting down...")
         analyzer.stop_analysis()
