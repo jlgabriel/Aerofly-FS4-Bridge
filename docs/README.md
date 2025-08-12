@@ -94,6 +94,16 @@ Highlights in `tutorials/`:
 - `tutorial_radio_navigator.md` — Python GUI that auto‑tunes NAV/COM by position using the TCP command channel.
 - `tutorial_python_shared_memory.md` — Reading variables directly from the memory‑mapped region.
 - `tutorial_python_flight_logger.md` — Logging complete JSON frames to CSV with basic flight statistics.
+
+#### Tutorials index (one‑liners)
+- `tutorial_websocket_altitude_monitor.md`: Build a minimal web altitude monitor that warns below 1000/500 ft.
+- `tutorial_websocket_copilot_checklist.md`: Implement a browser checklist that turns items green/yellow/red from canonical variables.
+- `tutorial_websocket_airspeed_envelope.md`: Draw an airspeed tape with VS0/VFE/VNO/VNE arcs and VAPP marker in `<canvas>`.
+- `tutorial_radio_navigator.md`: Create a Python Tk GUI that auto‑tunes COM/NAV based on nearest airport and VORs.
+- `tutorial_python_shared_memory.md`: Access the `AeroflyBridgeData` mapping and read variables by name/index from offsets JSON.
+- `tutorial_python_flight_logger.md`: Consume TCP JSON frames, log to CSV, and compute flight stats (time, distance, maxima).
+- `tutorial_autopilot_controller.md`: Explore simple autopilot logic patterns using canonical variables and command outputs.
+- `tutorial_flight_analyzer.md`: Analyze captured telemetry snapshots and derive insights for post‑flight review.
 - `python/aerofly_realtime_monitor.py` — Tk desktop monitor that reads shared memory and groups variables.
 - `python/master_control_panel.py` — Demuestra el envío de comandos por el puerto de comandos TCP.
 
