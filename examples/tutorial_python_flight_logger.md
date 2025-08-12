@@ -119,7 +119,20 @@ class FlightLogger:
                 'indicated_airspeed_kt': v.get('Aircraft.IndicatedAirspeed', 0.0) * MPS_TO_KT,
                 'ground_speed_kt': v.get('Aircraft.GroundSpeed', 0.0) * MPS_TO_KT,
                 'vertical_speed_fpm': v.get('Aircraft.VerticalSpeed', 0.0) * MPS_TO_FPM,
-                'heading_deg': (v.get('Aircraft.TrueHeading', 0.0) * RAD_TO_DEG) % 360,
+                # Heading normalization:
+                # Prefer MagneticHeading; fallback to TrueHeading. Detect radians vs degrees
+                # and convert to compass heading (0°=North, clockwise).
+                **(lambda hv: {
+                    'heading_deg': (
+                        (lambda hdg_deg: hdg_deg if hdg_deg >= 0 else hdg_deg + 360)(
+                            (90.0 - (
+                                ((hv * RAD_TO_DEG) % 360.0) if abs(hv) <= 6.5 else (hv % 360.0)
+                            )) % 360.0
+                        )
+                    )
+                })(
+                    v.get('Aircraft.MagneticHeading', v.get('Aircraft.TrueHeading', 0.0))
+                ),
                 'pitch_deg': v.get('Aircraft.Pitch', 0.0) * RAD_TO_DEG,
                 'bank_deg': v.get('Aircraft.Bank', 0.0) * RAD_TO_DEG,
                 'com1_freq_mhz': v.get('Communication.COM1Frequency', 0.0),

@@ -54,7 +54,12 @@ if __name__ == '__main__':
         alt = shm.get('Aircraft.Altitude')
         ias = shm.get('Aircraft.IndicatedAirspeed')
         hdg = shm.get('Aircraft.TrueHeading')
-        print(f"ALT={alt:.0f} m  IAS={(ias*1.94384):.1f} kt  HDG={(hdg*180/3.14159265):.0f}°  t={shm.timestamp_us()}µs")
+         # Heading normalization: values may be radians (|x| <= ~6.5) or degrees.
+         # Convert from math (0°=East, CCW+) to compass (0°=North, CW) and normalize.
+         RAD_TO_DEG = 180.0/3.141592653589793
+         hdg_math_deg = (hdg * RAD_TO_DEG) if abs(hdg) <= 6.5 else hdg
+         heading_deg = (90.0 - (hdg_math_deg % 360.0)) % 360.0
+         print(f"ALT={alt:.0f} m  IAS={(ias*1.94384):.1f} kt  HDG={heading_deg:.0f}°  t={shm.timestamp_us()}µs")
 ```
 
 Notes:

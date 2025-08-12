@@ -435,6 +435,21 @@ cmd_sock.close()  # One command per connection
 }
 ```
 
+### Heading normalization
+
+- Prefer `Aircraft.MagneticHeading` for UI/compass displays; fall back to `Aircraft.TrueHeading` if magnetic is unavailable.
+- Canonical units are radians (mathematical convention, 0° = East, counter-clockwise positive). Some example/tutorial outputs may present degrees for convenience.
+- To display standard aviation compass heading (0° = North, clockwise), convert mathematical degrees using:
+
+```javascript
+const src = (v["Aircraft.MagneticHeading"] ?? v["Aircraft.TrueHeading"] ?? 0);
+const RAD_TO_DEG = 180 / Math.PI;
+const hdgMathDeg = (Math.abs(src) <= 6.5) ? (src * RAD_TO_DEG) % 360 : (src % 360);
+let heading_deg = (90 - hdgMathDeg) % 360; if (heading_deg < 0) heading_deg += 360;
+```
+
+This ensures a normalized [0, 360) compass heading consistent with cockpit instruments.
+
 ### Command Format
 
 ```json

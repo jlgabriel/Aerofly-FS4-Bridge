@@ -378,14 +378,25 @@ Create a file called `autopilot_controller.html`:
                 const RAD_TO_DEG = 180 / Math.PI;
                 
                 const altitude_m = v["Aircraft.Altitude"] || 0;
-                const heading_rad = v["Aircraft.TrueHeading"] || 0;
+                 // Prefer magnetic heading (matches cockpit compass); fallback to true heading
+                 const heading_val = (v["Aircraft.MagneticHeading"] !== undefined)
+                     ? v["Aircraft.MagneticHeading"]
+                     : ((v["Aircraft.TrueHeading"] !== undefined) ? v["Aircraft.TrueHeading"] : 0);
                 const ias_mps = v["Aircraft.IndicatedAirspeed"] || 0;
                 
                 this.currentData.altitude = altitude_m * M_TO_FT; // feet
-                // Normalize heading to 0-360 degrees
-                let hdg_deg = (heading_rad * RAD_TO_DEG) % 360;
-                if (hdg_deg < 0) hdg_deg += 360;
-                this.currentData.heading = hdg_deg;
+                 // Normalize heading to 0-360 degrees with radians/degree detection and compass conversion (0°=North, CW)
+                 let hdgMathDeg;
+                 if (Math.abs(heading_val) <= 6.5) {
+                     // value likely in radians → convert to degrees
+                     hdgMathDeg = (heading_val * RAD_TO_DEG) % 360;
+                 } else {
+                     // value likely already in degrees
+                     hdgMathDeg = heading_val % 360;
+                 }
+                 let heading_deg = (90 - hdgMathDeg) % 360;
+                 if (heading_deg < 0) heading_deg += 360;
+                 this.currentData.heading = heading_deg;
                 this.currentData.speed = ias_mps * MPS_TO_KT; // knots
                 
                 // Update display
@@ -614,6 +625,36 @@ controlLoop() {
     });
 }
 ```
+
+### Heading Normalization (Magnetic/True, Radians/Degrees)
+
+Some data sources provide heading in radians and others in degrees, and the reference can be magnetic or true. The UI and autopilot expect a standard compass heading (0° = North, increasing clockwise). We therefore:
+
+- Prefer `Aircraft.MagneticHeading` (matches cockpit compass); fall back to `Aircraft.TrueHeading` if magnetic is unavailable.
+- Detect units: values with magnitude ≤ 6.5 are treated as radians, otherwise as degrees.
+- Convert mathematical heading to compass heading via: `heading_deg = (90 - hdgMathDeg) % 360`, then normalize to [0, 360).
+
+```javascript
+// Select source heading
+const heading_val = (v["Aircraft.MagneticHeading"] !== undefined)
+  ? v["Aircraft.MagneticHeading"]
+  : ((v["Aircraft.TrueHeading"] !== undefined) ? v["Aircraft.TrueHeading"] : 0);
+
+// Radians vs degrees detection
+const RAD_TO_DEG = 180 / Math.PI;
+let hdgMathDeg;
+if (Math.abs(heading_val) <= 6.5) {
+  hdgMathDeg = (heading_val * RAD_TO_DEG) % 360;
+} else {
+  hdgMathDeg = heading_val % 360;
+}
+
+// Convert to compass heading (0°=North, CW) and normalize
+let heading_deg = (90 - hdgMathDeg) % 360;
+if (heading_deg < 0) heading_deg += 360;
+```
+
+This ensures the displayed value matches the aircraft’s compass and that heading-hold logic computes shortest-turn errors correctly.
 
 ### Autopilot Modes
 

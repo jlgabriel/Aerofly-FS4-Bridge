@@ -104,12 +104,19 @@ function connect() {
       // Canonical variables
       const alt_m = v['Aircraft.Altitude'];
       const ias_mps = v['Aircraft.IndicatedAirspeed'];
-      const hdg_rad = v['Aircraft.TrueHeading'];
+      // Prefer magnetic heading; fallback to true
+      const hdg_val = (v['Aircraft.MagneticHeading'] !== undefined)
+        ? v['Aircraft.MagneticHeading']
+        : v['Aircraft.TrueHeading'];
 
       // Display (unit conversions for readability)
       document.getElementById('alt').textContent = `${Math.round(alt_m)} m`;
       document.getElementById('ias').textContent = `${(ias_mps * 1.94384).toFixed(1)} kt`;
-      document.getElementById('hdg').textContent = `${(hdg_rad * 180/Math.PI).toFixed(0)}°`;
+      // Normalize heading: detect radians (|x| <= ~6.5) vs degrees and convert to compass (0°=N, CW)
+      const RAD_TO_DEG = 180/Math.PI;
+      const hdgMathDeg = (Math.abs(hdg_val) <= 6.5) ? (hdg_val * RAD_TO_DEG) % 360 : (hdg_val % 360);
+      let heading_deg = (90 - hdgMathDeg) % 360; if (heading_deg < 0) heading_deg += 360;
+      document.getElementById('hdg').textContent = `${heading_deg.toFixed(0)}°`;
     } catch (e) {
       console.error('Bad frame', e);
     }
@@ -156,6 +163,12 @@ window.addEventListener('load', () => {
 </body>
 </html>
 ```
+
+### Heading normalization note
+
+- Prefer `Aircraft.MagneticHeading` when available; fall back to `Aircraft.TrueHeading`.
+- Detect units: values with magnitude ≤ 6.5 are treated as radians; otherwise as degrees.
+- Convert mathematical heading (0°=East, CCW+) to aviation compass heading (0°=North, CW) via `heading_deg = (90 - hdgMathDeg) % 360`, then normalize to [0, 360).
 
 ## Common issues
 

@@ -140,6 +140,18 @@ const throttle = data.all_variables[28]; // Aircraft.Throttle
 }
 ```
 
+> Note on heading normalization
+>
+> - Prefer `Aircraft.MagneticHeading` for display; fall back to `Aircraft.TrueHeading` if magnetic is unavailable.
+> - Canonical units are radians in mathematical convention (0° = East, CCW positive). If you need compass heading (0° = North, clockwise), convert as follows:
+>
+> ```javascript
+> const src = (v["Aircraft.MagneticHeading"] ?? v["Aircraft.TrueHeading"] ?? 0);
+> const RAD_TO_DEG = 180 / Math.PI;
+> const hdgMathDeg = (Math.abs(src) <= 6.5) ? (src * RAD_TO_DEG) % 360 : (src % 360);
+> let heading_deg = (90 - hdgMathDeg) % 360; if (heading_deg < 0) heading_deg += 360;
+> ```
+
 ---
 
 ## 🎯 Performance Speeds (95-104)
