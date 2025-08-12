@@ -94,8 +94,8 @@ Highlights in `examples/`:
 - `tutorial_radio_navigator.md` — Python GUI that auto‑tunes NAV/COM by position using the TCP command channel.
 - `tutorial_python_shared_memory.md` — Reading variables directly from the memory‑mapped region.
 - `tutorial_python_flight_logger.md` — Logging complete JSON frames to CSV with basic flight statistics.
-- `aerofly_realtime_monitor.py` — Tk desktop monitor that reads shared memory and groups variables.
-- `master_control_panel.py` — Demonstrates sending commands over the TCP command port.
+- `python/aerofly_realtime_monitor.py` — Tk desktop monitor that reads shared memory and groups variables.
+- `python/master_control_panel.py` — Demuestra el envío de comandos por el puerto de comandos TCP.
 
 Standalone browser demos in `web/` (no build tools):
 - `altitude_monitor.html` — Drop‑in altitude display with color‑coded cautions.
@@ -110,11 +110,11 @@ Notes for running the examples:
 Run examples (Python):
 - Realtime monitor (needs offsets JSON):
   ```bash
-  python examples/aerofly_realtime_monitor.py AeroflyBridge_offsets.json
+  python python/aerofly_realtime_monitor.py AeroflyBridge_offsets.json
   ```
 - Master control panel (connects to command port 12346):
   ```bash
-  python examples/master_control_panel.py
+  python python/master_control_panel.py
   ```
 
 #### Getting the offsets JSON
