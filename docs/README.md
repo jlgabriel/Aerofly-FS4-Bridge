@@ -84,10 +84,10 @@ Note: To build from source you must download `tm_external_message.h` from `https
 
 This repository includes two convenience areas for learning-by-doing:
 
-- `examples/`: Tutorial guides (Markdown) and small Python applications showing how to use Shared Memory, TCP, and WebSocket interfaces.
+- `tutorials/`: Tutorial guides (Markdown) that cover Shared Memory, TCP, and WebSocket usage.
 - `web/`: Standalone HTML demos that you can open directly in a browser when the WebSocket interface is enabled.
 
-Highlights in `examples/`:
+Highlights in `tutorials/`:
 - `tutorial_websocket_altitude_monitor.md` — Real-time altitude monitor in the browser using canonical variable `Aircraft.Altitude` with simple low-altitude warnings.
 - `tutorial_websocket_copilot_checklist.md` — Co‑Pilot checklist dashboard that evaluates takeoff/landing rules from canonical variables (parking brake, flaps, throttle, IAS, vertical speed, headings).
 - `tutorial_websocket_airspeed_envelope.md` — Airspeed tape that visualizes performance envelopes from `Performance.Speed.*` (VS0, VFE, VNO, VNE, VAPP).

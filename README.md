@@ -20,7 +20,9 @@ A multi-interface bridge (Shared Memory, TCP, WebSocket) between Aerofly FS4 and
 - `aerofly_bridge_dll.cpp` (source)
 - `scripts/compile.bat` (build script)
 - `docs/` (documentation)
-- `examples/` (examples)
+- `tutorials/` (Markdown tutorial guides)
+- `python/` (Python example apps)
+- `web/` (standalone HTML demos for WebSocket)
 - `reference/` (JSON schema)
 - `dist/` (local build outputs; not committed)
 
@@ -31,9 +33,10 @@ Quick tutorials:
 - Web App Tutorial (`docs/web_app_tutorial.md`)
 - Python App Tutorial (`docs/python_app_tutorial.md`)
 
-Examples (see `examples/`):
-- `examples/aerofly_realtime_monitor.py`
-- `examples/master_control_panel.py`
+Examples quick start:
+- Python: `python/python/aerofly_realtime_monitor.py AeroflyBridge_offsets.json`
+- Python (commands): `python/python/master_control_panel.py`
+- Web: open files in `web/` directly in your browser (require `AEROFLY_BRIDGE_WS_ENABLE=1`)
 
 Release:
 - See `docs/release_guide.md` for building the DLL and publishing a GitHub Release.
