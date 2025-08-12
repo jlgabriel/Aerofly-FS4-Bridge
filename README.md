@@ -29,9 +29,16 @@ A multi-interface bridge (Shared Memory, TCP, WebSocket) between Aerofly FS4 and
 ## Documentation
 See `docs/README.md` for full documentation and index.
 
-Quick tutorials:
-- Web App Tutorial (`docs/web_app_tutorial.md`)
-- Python App Tutorial (`docs/python_app_tutorial.md`)
+Quick tutorials (top picks)
+- Web app basics: `docs/web_app_tutorial.md`
+- Python app basics: `docs/python_app_tutorial.md`
+- Tutorials folder (guides): `tutorials/`
+  - `tutorial_websocket_altitude_monitor.md` — Minimal altitude monitor (web)
+  - `tutorial_websocket_copilot_checklist.md` — Co‑Pilot checklist (web)
+  - `tutorial_websocket_airspeed_envelope.md` — Airspeed tape with VS0/VFE/VNO/VNE (web)
+  - `tutorial_radio_navigator.md` — Smart radio navigator (Python GUI)
+  - `tutorial_python_shared_memory.md` — Read shared memory in Python
+  - `tutorial_python_flight_logger.md` — Flight logger to CSV
 
 Examples quick start:
 - Python: `python/python/aerofly_realtime_monitor.py AeroflyBridge_offsets.json`
