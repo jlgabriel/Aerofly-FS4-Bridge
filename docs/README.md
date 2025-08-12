@@ -117,6 +117,24 @@ Notes for running the examples:
 - Python TCP samples expect the data stream on port `12345` and the command channel on port `12346`.
 - Shared memory readers expect a mapping named `AeroflyBridgeData` and may use the offsets metadata file `AeroflyBridge_offsets.json` for names/indices.
 
+#### Python folder quick runs (`python/`)
+- Realtime monitor (Shared Memory UI):
+  ```bash
+  python python/aerofly_realtime_monitor.py AeroflyBridge_offsets.json
+  ```
+- Master control panel (TCP commands on 12346):
+  ```bash
+  python python/master_control_panel.py
+  ```
+- Maps/position tracker (TCP data on 12345):
+  ```bash
+  python python/aerofly_fs4_maps_bridge.py
+  ```
+- Flight analyzer (local analysis utility):
+  ```bash
+  python python/flight_analyzer.py
+  ```
+
 Run examples (Python):
 - Realtime monitor (needs offsets JSON):
   ```bash
