@@ -231,7 +231,9 @@ def check_performance_alerts(self, current_data):
 
 🎯 **Mission Complete!** You now have a comprehensive flight performance analysis system that combines all three AeroflyBridge interfaces with advanced data science capabilities. This demonstrates the full potential of the bridge system for creating professional-grade flight analysis tools with real-time visualization, machine learning integration, and comprehensive performance reporting.
 
-This tutorial showcases how AeroflyBridge can be the foundation for sophisticated flight simulation analytics, pilot training systems, aircraft performance validation, and advanced flight management applications.```bash
+This tutorial showcases how AeroflyBridge can be the foundation for sophisticated flight simulation analytics, pilot training systems, aircraft performance validation, and advanced flight management applications.
+
+```bash
 pip install pandas numpy matplotlib plotly dash ctypes socket json threading
 ```
 
