@@ -373,10 +373,10 @@ class MultiInterfaceConnector:
         while self.running:
             try:
                 import websocket
-                
-                 def on_message(ws, message):
+
+                def on_message(ws, message):
                     try:
-                         flight_data = json.loads(message)
+                        flight_data = json.loads(message)
                         self.ws_data_queue.put({
                             'source': 'websocket',
                             'timestamp': time.time(),
@@ -385,24 +385,26 @@ class MultiInterfaceConnector:
                         self.interface_stats['websocket']['count'] += 1
                     except (json.JSONDecodeError, queue.Full):
                         pass
-                
+
                 def on_open(ws):
                     self.ws_connected = True
                     print("✅ WebSocket connected")
-                
+
                 def on_close(ws, close_status_code, close_msg):
                     self.ws_connected = False
                     print("❌ WebSocket disconnected")
-                
+
                 def on_error(ws, error):
                     print(f"❌ WebSocket error: {error}")
-                
-                ws = websocket.WebSocketApp("ws://localhost:8765",
-                                          on_message=on_message,
-                                          on_open=on_open,
-                                          on_close=on_close,
-                                          on_error=on_error)
-                
+
+                ws = websocket.WebSocketApp(
+                    "ws://localhost:8765",
+                    on_message=on_message,
+                    on_open=on_open,
+                    on_close=on_close,
+                    on_error=on_error,
+                )
+
                 ws.run_forever()
                 
             except Exception as e:
@@ -415,16 +417,24 @@ class MultiInterfaceConnector:
             try:
                 if not self.shmem_connected:
                     kernel32 = ctypes.windll.kernel32
-                    
+
+                    # Set argtypes/restype for called functions
+                    kernel32.OpenFileMappingW.argtypes = [ctypes.c_ulong, ctypes.c_int, ctypes.c_wchar_p]
+                    kernel32.OpenFileMappingW.restype = ctypes.c_void_p
+                    kernel32.MapViewOfFile.argtypes = [ctypes.c_void_p, ctypes.c_ulong, ctypes.c_ulong, ctypes.c_ulong, ctypes.c_size_t]
+                    kernel32.MapViewOfFile.restype = ctypes.c_void_p
+                    kernel32.UnmapViewOfFile.argtypes = [ctypes.c_void_p]
+                    kernel32.UnmapViewOfFile.restype = ctypes.c_int
+                    kernel32.CloseHandle.argtypes = [ctypes.c_void_p]
+                    kernel32.CloseHandle.restype = ctypes.c_int
+
+                    FILE_MAP_READ = 0x0004
+
                     # Open shared memory
-                    self.shmem_handle = kernel32.OpenFileMappingW(
-                        0x0004, False, "AeroflyBridgeData"
-                    )
-                    
+                    self.shmem_handle = kernel32.OpenFileMappingW(FILE_MAP_READ, False, "AeroflyBridgeData")
+
                     if self.shmem_handle:
-                        self.shmem_view = kernel32.MapViewOfFile(
-                            self.shmem_handle, 0x0004, 0, 0, 8192
-                        )
+                        self.shmem_view = kernel32.MapViewOfFile(self.shmem_handle, FILE_MAP_READ, 0, 0, 0)
                         if self.shmem_view:
                             self.shmem_connected = True
                             print("✅ Shared Memory connected")
@@ -441,8 +451,8 @@ class MultiInterfaceConnector:
                         alt_offset = array_base + (1 * stride)
                         ias_offset = array_base + (5 * stride)
 
-                        altitude_m = struct.unpack('d', ctypes.string_at(self.shmem_view + alt_offset, 8))[0]
-                        ias_mps = struct.unpack('d', ctypes.string_at(self.shmem_view + ias_offset, 8))[0]
+                        altitude_m = struct.unpack_from('<d', (ctypes.c_char * 8).from_address(self.shmem_view + alt_offset))[0]
+                        ias_mps = struct.unpack_from('<d', (ctypes.c_char * 8).from_address(self.shmem_view + ias_offset))[0]
                         
                         # Create simplified data structure with canonical names
                         flight_data = {
