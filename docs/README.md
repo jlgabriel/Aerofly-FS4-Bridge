@@ -81,16 +81,33 @@ Note: To build from source you must download `tm_external_message.h` from `https
 - **Python App Tutorial** (`docs/python_app_tutorial.md`): Read telemetry via Shared Memory and TCP.
 
 ### Examples
-- `examples/aerofly_realtime_monitor.py`: Live telemetry monitor (Python, TCP).
-- `examples/master_control_panel.py`: Command/control panel (Python, TCP/commands).
-- `examples/tutorial_websocket_altitude_monitor.md`: WebSocket altitude monitor (browser).
-- `examples/tutorial_autopilot_controller.md`: Simple autopilot controller logic.
-- `examples/tutorial_radio_navigator.md`: Tune radios and courses programmatically.
-- `examples/tutorial_flight_analyzer.md`: Analyze flight data snapshots.
-- `examples/tutorial_python_shared_memory.md`: Read shared memory in Python.
-- `examples/tutorial_python_flight_logger.md`: Log flights to JSON/CSV in Python.
 
-Run examples:
+This repository includes two convenience areas for learning-by-doing:
+
+- `examples/`: Tutorial guides (Markdown) and small Python applications showing how to use Shared Memory, TCP, and WebSocket interfaces.
+- `web/`: Standalone HTML demos that you can open directly in a browser when the WebSocket interface is enabled.
+
+Highlights in `examples/`:
+- `tutorial_websocket_altitude_monitor.md` — Real-time altitude monitor in the browser using canonical variable `Aircraft.Altitude` with simple low-altitude warnings.
+- `tutorial_websocket_copilot_checklist.md` — Co‑Pilot checklist dashboard that evaluates takeoff/landing rules from canonical variables (parking brake, flaps, throttle, IAS, vertical speed, headings).
+- `tutorial_websocket_airspeed_envelope.md` — Airspeed tape that visualizes performance envelopes from `Performance.Speed.*` (VS0, VFE, VNO, VNE, VAPP).
+- `tutorial_radio_navigator.md` — Python GUI that auto‑tunes NAV/COM by position using the TCP command channel.
+- `tutorial_python_shared_memory.md` — Reading variables directly from the memory‑mapped region.
+- `tutorial_python_flight_logger.md` — Logging complete JSON frames to CSV with basic flight statistics.
+- `aerofly_realtime_monitor.py` — Tk desktop monitor that reads shared memory and groups variables.
+- `master_control_panel.py` — Demonstrates sending commands over the TCP command port.
+
+Standalone browser demos in `web/` (no build tools):
+- `altitude_monitor.html` — Drop‑in altitude display with color‑coded cautions.
+- `copilot_checklist.html` — Rule‑based takeoff/landing indicators.
+- `airspeed_envelope.html` — Horizontal airspeed tape with white/green/yellow/red arcs and a VAPP marker.
+
+Notes for running the examples:
+- Web demos require the WebSocket interface to be active. Ensure `AEROFLY_BRIDGE_WS_ENABLE=1`. Default port is `8765` and can be changed with `AEROFLY_BRIDGE_WS_PORT`.
+- Python TCP samples expect the data stream on port `12345` and the command channel on port `12346`.
+- Shared memory readers expect a mapping named `AeroflyBridgeData` and may use the offsets metadata file `AeroflyBridge_offsets.json` for names/indices.
+
+Run examples (Python):
 - Realtime monitor (needs offsets JSON):
   ```bash
   python examples/aerofly_realtime_monitor.py AeroflyBridge_offsets.json
