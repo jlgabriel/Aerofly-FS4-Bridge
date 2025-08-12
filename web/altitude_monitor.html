@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Altitude Monitor</title>
+  <style>
+    body {
+      font-family: 'Courier New', monospace;
+      background: #000;
+      color: #0f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      overflow: hidden;
+    }
+    .monitor {
+      text-align: center;
+      border: 2px solid #0f0;
+      padding: 30px;
+      border-radius: 10px;
+      background: rgba(0, 50, 0, 0.3);
+      box-shadow: 0 0 20px #0f0;
+    }
+    .altitude {
+      font-size: 4em;
+      font-weight: bold;
+      margin: 20px 0;
+    }
+    .warning {
+      background: #ff0000 !important;
+      color: #fff !important;
+      border-color: #ff0000 !important;
+      box-shadow: 0 0 20px #ff0000 !important;
+      animation: pulse 1s infinite;
+    }
+    .caution {
+      background: #ffaa00 !important;
+      color: #000 !important;
+      border-color: #ffaa00 !important;
+      box-shadow: 0 0 20px #ffaa00 !important;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .status { margin: 10px 0; font-size: 1.2em; }
+    .connected { color: #0f0; }
+    .disconnected { color: #f00; }
+  </style>
+</head>
+<body>
+  <div class="monitor" id="monitor">
+    <h1>ALTITUDE MONITOR</h1>
+    <div class="status" id="status">Connecting...</div>
+    <div class="altitude" id="altitude">---</div>
+    <div id="warning-text"></div>
+    <div style="font-size: 0.8em; margin-top: 20px;">
+      Green: Safe altitude<br>
+      Orange: Caution (below 1000ft)<br>
+      Red: Danger (below 500ft)
+    </div>
+  </div>
+
+  <script>
+    let ws = null;
+    let reconnectInterval = null;
+
+    const monitor = document.getElementById('monitor');
+    const altitudeDisplay = document.getElementById('altitude');
+    const statusDisplay = document.getElementById('status');
+    const warningText = document.getElementById('warning-text');
+
+    const M_TO_FT = 3.280839895; // meters → feet
+
+    function connect() {
+      try {
+        ws = new WebSocket('ws://localhost:8765');
+
+        ws.onopen = function() {
+          statusDisplay.textContent = 'Connected';
+          statusDisplay.className = 'status connected';
+          clearInterval(reconnectInterval);
+        };
+
+        ws.onmessage = function(event) {
+          try {
+            const data = JSON.parse(event.data);
+            updateAltitudeDisplay(data);
+          } catch (e) {
+            console.error('Error parsing JSON:', e);
+          }
+        };
+
+        ws.onclose = function() {
+          statusDisplay.textContent = 'Disconnected';
+          statusDisplay.className = 'status disconnected';
+          altitudeDisplay.textContent = '---';
+          resetMonitorStyle();
+          if (!reconnectInterval) {
+            reconnectInterval = setInterval(connect, 3000);
+          }
+        };
+
+        ws.onerror = function(error) {
+          console.error('WebSocket error:', error);
+        };
+      } catch (e) {
+        console.error('Connection error:', e);
+        if (!reconnectInterval) {
+          reconnectInterval = setInterval(connect, 3000);
+        }
+      }
+    }
+
+    function updateAltitudeDisplay(data) {
+      const altitudeMeters = data?.variables?.["Aircraft.Altitude"] ?? 0;
+      const altitudeFeet = altitudeMeters * M_TO_FT;
+
+      altitudeDisplay.textContent = Math.round(altitudeFeet).toLocaleString() + ' ft';
+
+      resetMonitorStyle();
+      if (altitudeFeet < 500) {
+        monitor.className = 'monitor warning';
+        warningText.textContent = '⚠️ DANGER - VERY LOW ALTITUDE ⚠️';
+      } else if (altitudeFeet < 1000) {
+        monitor.className = 'monitor caution';
+        warningText.textContent = '⚡ CAUTION - LOW ALTITUDE ⚡';
+      } else {
+        warningText.textContent = '✈️ Safe Flying Altitude';
+      }
+    }
+
+    function resetMonitorStyle() { monitor.className = 'monitor'; }
+
+    connect();
+  </script>
+</body>
+</html>
