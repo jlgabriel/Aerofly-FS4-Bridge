@@ -49,311 +49,446 @@ Create `web/radio_navigator.html` with the following content (already added to t
     .log { font-family: Consolas, Menlo, monospace; font-size:12px; height:160px; overflow:auto; background:#0b1322; border-radius:8px; padding:8px; white-space: pre-wrap; }
     code { background:#0b1322; color:#b7cffb; padding:2px 6px; border-radius:6px; }
   </style>
-  </head>
-  <body>
-    <h1>Smart Radio Navigator</h1>
-    <div class="status">WebSocket: <span id="ws" class="pill">connecting…</span></div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Radio Navigator</title>
+  <style>
+    :root {
+      --bg:#0e1420; --fg:#e6f0ff; --muted:#7f8da3; --card:#152038;
+      --ok:#00d26a; --warn:#ffaa00; --bad:#ff3b3b;
+    }
+    body { margin:0; padding:20px; background: radial-gradient(1200px 800px at 70% -10%, #1b2a4a, var(--bg)); color:var(--fg); font-family: system-ui, Segoe UI, Roboto, Arial, sans-serif; }
+    h1 { font-size:20px; margin:0 0 10px 0; letter-spacing:.4px; }
+    .status { font-size:12px; color:var(--muted); margin-bottom:12px; }
+    .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:16px; }
+    .card { background:var(--card); border-radius:12px; padding:16px; box-shadow:0 8px 24px rgba(0,0,0,.25); }
+    .kv { display:grid; grid-template-columns: 1fr auto; gap:6px; font-family: Consolas, Menlo, monospace; font-size:13px; }
+    .kv div { padding:6px 0; border-bottom: 1px dashed rgba(255,255,255,0.08); }
+    .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; }
+    .ok { color:var(--ok); } .warn { color:var(--warn); } .err { color:var(--bad); }
+    .pill.ok { background: rgba(0,210,106,0.15); border:1px solid rgba(0,210,106,0.35); }
+    .pill.err { background: rgba(255,59,59,0.15); border:1px solid rgba(255,59,59,0.35); }
+    .btn { appearance:none; border:1px solid rgba(255,255,255,0.15); color:var(--fg); background:rgba(255,255,255,0.04); padding:8px 10px; border-radius:8px; font-size:13px; cursor:pointer; }
+    .btn:hover { background:rgba(255,255,255,0.08); }
+    .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .table { width:100%; border-collapse: collapse; font-family: Consolas, Menlo, monospace; font-size:13px; }
+    .table th, .table td { padding:6px 8px; border-bottom: 1px dashed rgba(255,255,255,0.08); text-align:left; }
+    .muted { color:var(--muted); }
+    .log { font-family: Consolas, Menlo, monospace; font-size:12px; height:160px; overflow:auto; background:#0b1322; border-radius:8px; padding:8px; white-space: pre-wrap; }
+    code { background:#0b1322; color:#b7cffb; padding:2px 6px; border-radius:6px; }
+  </style>
+</head>
+<body>
+  <h1>Smart Radio Navigator</h1>
+  <div class="status">WebSocket: <span id="ws" class="pill">connecting…</span></div>
 
-    <div class="grid">
-      <div class="card">
-        <div class="row" style="justify-content:space-between;">
-          <div>
-            <div class="muted" style="text-transform:uppercase; font-size:12px; letter-spacing:.12em;">Aircraft Position</div>
-            <div id="pos" class="kv"></div>
-          </div>
-          <div>
-            <label style="font-size:13px;">
-              <input id="auto" type="checkbox" /> Auto‑tune
-            </label>
-            <br/>
-            <label style="font-size:13px;">
-              <input id="useIndex" type="checkbox" /> Use index for commands
-            </label>
-          </div>
+  <div class="grid">
+    <div class="card">
+      <div class="row" style="justify-content:space-between;">
+        <div>
+          <div class="muted" style="text-transform:uppercase; font-size:12px; letter-spacing:.12em;">Aircraft Position</div>
+          <div id="pos" class="kv"></div>
         </div>
-
-        <div class="row" style="margin-top:10px; gap:16px;">
-          <div style="flex:1;">
-            <div class="muted" style="text-transform:uppercase; font-size:12px; letter-spacing:.12em;">COM Radios</div>
-            <div id="com" class="kv"></div>
-            <div class="row" style="margin-top:8px;">
-              <button class="btn" id="btnCom1Tower">Tune COM1 Tower</button>
-              <button class="btn" id="btnCom2Ground">Tune COM2 Ground</button>
-            </div>
-          </div>
-          <div style="flex:1;">
-            <div class="muted" style="text-transform:uppercase; font-size:12px; letter-spacing:.12em;">NAV Radios</div>
-            <div id="nav" class="kv"></div>
-            <div class="row" style="margin-top:8px;">
-              <button class="btn" id="btnNav1Nearest">Tune NAV1 Nearest VOR</button>
-              <button class="btn" id="btnNav2Nearest">Tune NAV2 Nearest VOR</button>
-            </div>
-          </div>
+        <div>
+          <label style="font-size:13px;">
+            <input id="auto" type="checkbox" /> Auto‑tune
+          </label>
+          <br/>
+          <label style="font-size:13px;">
+            <input id="useIndex" type="checkbox" /> Use index for commands
+          </label>
         </div>
       </div>
 
-      <div class="card">
-        <div class="muted" style="text-transform:uppercase; font-size:12px; letter-spacing:.12em;">Nearest Airport</div>
-        <div id="apt" class="kv" style="margin-bottom:8px;"></div>
-        <div class="muted" style="text-transform:uppercase; font-size:12px; letter-spacing:.12em;">Nearby Navaids</div>
-        <table class="table" id="navaids">
-          <thead><tr><th>Ident</th><th>Type</th><th>Freq</th><th>Dist (NM)</th></tr></thead>
-          <tbody></tbody>
-        </table>
-      </div>
-
-      <div class="card">
-        <div class="muted" style="text-transform:uppercase; font-size:12px; letter-spacing:.12em;">Activity Log</div>
-        <div id="log" class="log"></div>
-        <div class="muted" style="margin-top:8px; font-size:12px;">Uses canonical variables like <code>Aircraft.Latitude</code>, <code>Aircraft.Longitude</code>, <code>Navigation.NAV1Frequency</code>, <code>Communication.COM1Frequency</code>.</div>
+      <div class="row" style="margin-top:10px; gap:16px;">
+        <div style="flex:1;">
+          <div class="muted" style="text-transform:uppercase; font-size:12px; letter-spacing:.12em;">COM Radios</div>
+          <div id="com" class="kv"></div>
+          <div class="row" style="margin-top:8px;">
+            <button class="btn" id="btnCom1Tower">Tune COM1 Tower</button>
+            <button class="btn" id="btnCom2Ground">Tune COM2 Ground</button>
+          </div>
+        </div>
+        <div style="flex:1;">
+          <div class="muted" style="text-transform:uppercase; font-size:12px; letter-spacing:.12em;">NAV Radios</div>
+          <div id="nav" class="kv"></div>
+          <div class="row" style="margin-top:8px;">
+            <button class="btn" id="btnNav1Nearest">Tune NAV1 Nearest VOR</button>
+            <button class="btn" id="btnNav2Nearest">Tune NAV2 Nearest VOR</button>
+          </div>
+        </div>
       </div>
     </div>
 
-    <script>
-      const wsUrl = 'ws://localhost:8765';
-      const RAD_TO_DEG = 180/Math.PI;
-      const M_TO_FT = 3.280839895;
-      const EARTH_RADIUS_NM = 3440.065;
+    <div class="card">
+      <div class="muted" style="text-transform:uppercase; font-size:12px; letter-spacing:.12em;">Nearest Airport</div>
+      <div id="apt" class="kv" style="margin-bottom:8px;"></div>
+      <div class="muted" style="text-transform:uppercase; font-size:12px; letter-spacing:.12em;">Nearby Navaids</div>
+      <table class="table" id="navaids">
+        <thead><tr><th>Ident</th><th>Type</th><th>Freq</th><th>Dist (NM)</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
 
-      const el = (id) => document.getElementById(id);
-      const wsState = el('ws');
-      const posEl = el('pos');
-      const comEl = el('com');
-      const navEl = el('nav');
-      const aptEl = el('apt');
-      const navaidsTable = el('navaids').querySelector('tbody');
-      const logEl = el('log');
-      const autoChk = el('auto');
-      const useIndexChk = el('useIndex');
-      // Indices from Variables Reference
-      const Index = {
-        Aircraft: { Altitude: 1, Latitude: 10, Longitude: 11 },
-        Communication: {
-          COM1Frequency: 142, COM1StandbyFrequency: 143, COM1FrequencySwap: 144,
-          COM2Frequency: 145, COM2StandbyFrequency: 146, COM2FrequencySwap: 147
-        },
-        Navigation: {
-          NAV1Frequency: 111, NAV1StandbyFrequency: 112, NAV1FrequencySwap: 113,
-          NAV2Frequency: 115, NAV2StandbyFrequency: 116, NAV2FrequencySwap: 117
+    <div class="card">
+      <div class="muted" style="text-transform:uppercase; font-size:12px; letter-spacing:.12em;">Activity Log</div>
+      <div id="log" class="log"></div>
+      <div class="muted" style="margin-top:8px; font-size:12px;">Uses canonical variables like <code>Aircraft.Latitude</code>, <code>Aircraft.Longitude</code>, <code>Navigation.NAV1Frequency</code>, <code>Communication.COM1Frequency</code>.</div>
+    </div>
+  </div>
+
+  <script>
+    const wsUrl = 'ws://localhost:8765';
+    const RAD_TO_DEG = 180/Math.PI;
+    const M_TO_FT = 3.280839895;
+    const EARTH_RADIUS_NM = 3440.065;
+    const FREQ_EPS = 0.01; // MHz tolerance for comparisons
+
+    const el = (id) => document.getElementById(id);
+    const wsState = el('ws');
+    const posEl = el('pos');
+    const comEl = el('com');
+    const navEl = el('nav');
+    const aptEl = el('apt');
+    const navaidsTable = el('navaids').querySelector('tbody');
+    const logEl = el('log');
+    const autoChk = el('auto');
+    const useIndexChk = el('useIndex');
+
+    let ws = null; let reconnectTimer = null;
+    let lastFrame = null; let lastTuneAtMs = 0;
+
+    // Minimal demo databases (sample only)
+    const Airports = [
+      { icao:'KJFK', name:'John F Kennedy Intl', lat:40.6398, lon:-73.7789, tower:119.10, ground:121.90, atis:128.05, elev_ft:13 },
+      { icao:'KLGA', name:'LaGuardia', lat:40.7769, lon:-73.8740, tower:120.20, ground:121.70, atis:125.95, elev_ft:22 },
+      { icao:'KEWR', name:'Newark Liberty Intl', lat:40.6925, lon:-74.1687, tower:119.20, ground:121.80, atis:135.25, elev_ft:18 },
+      { icao:'KBOS', name:'Boston Logan Intl', lat:42.3629, lon:-71.0064, tower:120.60, ground:121.90, atis:135.05, elev_ft:20 },
+      { icao:'KORD', name:"Chicago O'Hare Intl", lat:41.9786, lon:-87.9048, tower:120.15, ground:121.67, atis:135.15, elev_ft:672 },
+      { icao:'KLAX', name:'Los Angeles Intl', lat:33.9425, lon:-118.4081, tower:120.95, ground:121.75, atis:135.65, elev_ft:125 },
+      { icao:'KSFO', name:'San Francisco Intl', lat:37.6213, lon:-122.3790, tower:120.50, ground:121.80, atis:135.10, elev_ft:13 },
+      { icao:'KDEN', name:'Denver Intl', lat:39.8617, lon:-104.6731, tower:118.30, ground:121.85, atis:135.45, elev_ft:5434 },
+      { icao:'KMIA', name:'Miami Intl', lat:25.7932, lon:-80.2906, tower:118.30, ground:121.90, atis:135.40, elev_ft:8 },
+      { icao:'KATL', name:'Hartsfield-Jackson Atlanta Intl', lat:33.6367, lon:-84.4281, tower:119.10, ground:121.90, atis:135.28, elev_ft:1026 },
+      // EU sample airports near Belgium/Netherlands/France/Germany
+      { icao:'EBBR', name:'Brussels National', lat:50.9010, lon:4.4840, tower:118.60, ground:121.80, atis:121.70, elev_ft:184 },
+      { icao:'EBCI', name:'Brussels South Charleroi', lat:50.4592, lon:4.4538, tower:118.10, ground:121.60, atis:127.35, elev_ft:614 },
+      { icao:'LFQQ', name:'Lille Lesquin', lat:50.5633, lon:3.0869, tower:120.20, ground:121.70, atis:127.15, elev_ft:157 },
+      { icao:'EHAM', name:'Amsterdam Schiphol', lat:52.3086, lon:4.7639, tower:118.10, ground:121.80, atis:132.70, elev_ft:-11 },
+      { icao:'EDDK', name:'Cologne Bonn', lat:50.8659, lon:7.1427, tower:124.90, ground:121.90, atis:121.80, elev_ft:302 },
+      { icao:'EHBK', name:'Maastricht Aachen', lat:50.9117, lon:5.7701, tower:118.35, ground:121.80, atis:123.80, elev_ft:375 },
+      { icao:'EBKT', name:'Kortrijk–Wevelgem', lat:50.8184, lon:3.2047, tower:120.80, ground:121.70, atis:123.60, elev_ft:64 },
+    ];
+
+    const Navaids = [
+      { ident:'JFK', name:'Kennedy VOR', type:'VOR', freq:115.90, lat:40.6398, lon:-73.7789 },
+      { ident:'LGA', name:'LaGuardia VOR', type:'VOR', freq:113.10, lat:40.7769, lon:-73.8740 },
+      { ident:'BOS', name:'Boston VOR', type:'VOR', freq:112.70, lat:42.3629, lon:-71.0064 },
+      { ident:'ORD', name:"O'Hare VOR", type:'VOR', freq:113.90, lat:41.9786, lon:-87.9048 },
+      { ident:'LAX', name:'Los Angeles VOR', type:'VOR', freq:113.60, lat:33.9425, lon:-118.4081 },
+      { ident:'SFO', name:'San Francisco VOR', type:'VOR', freq:115.80, lat:37.6213, lon:-122.3790 },
+      { ident:'DEN', name:'Denver VOR', type:'VOR', freq:117.90, lat:39.8617, lon:-104.6731 },
+      { ident:'MIA', name:'Miami VOR', type:'VOR', freq:116.40, lat:25.7932, lon:-80.2906 },
+      // EU sample VORs
+      { ident:'BUB', name:'Brussels VOR', type:'VOR', freq:114.60, lat:50.9010, lon:4.4840 },
+      { ident:'LIL', name:'Lille VOR', type:'VOR', freq:115.35, lat:50.5633, lon:3.0869 },
+      { ident:'LNO', name:'Lommel VOR', type:'VOR', freq:116.30, lat:51.1950, lon:5.3100 },
+      { ident:'RKN', name:'Rekken VOR', type:'VOR', freq:116.70, lat:52.1600, lon:6.7100 },
+    ];
+
+    function setWsState(s){ wsState.textContent = s; wsState.className = 'pill ' + (s==='connected'?'ok':(s==='connecting…'?'':'err')); }
+    function toMHz(val){
+      const n = Number(val);
+      if (!Number.isFinite(n)) return NaN;
+      // If it looks like Hz (>= 1000), convert to MHz; otherwise assume already MHz
+      return (Math.abs(n) >= 1000) ? (n / 1000000) : n;
+    }
+
+    function toDeg(rad){ return rad * RAD_TO_DEG; }
+    function haversineNm(lat1d, lon1d, lat2d, lon2d){
+      const toRad = (d)=> d/ RAD_TO_DEG;
+      const dLat = toRad(lat2d - lat1d); const dLon = toRad(lon2d - lon1d);
+      const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1d))*Math.cos(toRad(lat2d))*Math.sin(dLon/2)**2;
+      const c = 2 * Math.asin(Math.sqrt(a));
+      return 3440.065 * c;
+    }
+
+    function kvClear(node){ node.innerHTML=''; }
+    function kvRow(label,value){ const k=document.createElement('div'); const v=document.createElement('div'); k.textContent=label; v.textContent=value; const r=document.createElement('div'); r.className='kv'; r.appendChild(k); r.appendChild(v); return r; }
+    function log(msg){ const ts = new Date().toLocaleTimeString(); logEl.textContent += `[${ts}] ${msg}\n`; logEl.scrollTop = logEl.scrollHeight; }
+
+    // Indices from Variables Reference
+    const Index = {
+      Aircraft: { Altitude: 1, Latitude: 10, Longitude: 11 },
+      Communication: {
+        COM1Frequency: 142, COM1StandbyFrequency: 143, COM1FrequencySwap: 144,
+        COM2Frequency: 145, COM2StandbyFrequency: 146, COM2FrequencySwap: 147
+      },
+      Navigation: {
+        NAV1Frequency: 111, NAV1StandbyFrequency: 112, NAV1FrequencySwap: 113,
+        NAV2Frequency: 115, NAV2StandbyFrequency: 116, NAV2FrequencySwap: 117
+      }
+    };
+
+    function isFiniteNumber(x){ return typeof x === 'number' && Number.isFinite(x); }
+    function nearlyEqual(a, b, eps = FREQ_EPS){ return Number.isFinite(a) && Number.isFinite(b) && Math.abs(a - b) <= eps; }
+    function valByNameOrIndex(v, av, name, index){
+      const byName = v[name];
+      if (isFiniteNumber(byName)) return Number(byName);
+      if (Array.isArray(av) && isFiniteNumber(av[index])) return Number(av[index]);
+      return NaN;
+    }
+
+    function renderPosition(v, av){
+      const latRad = valByNameOrIndex(v, av, 'Aircraft.Latitude', Index.Aircraft.Latitude);
+      const lonRad = valByNameOrIndex(v, av, 'Aircraft.Longitude', Index.Aircraft.Longitude);
+      const altM = valByNameOrIndex(v, av, 'Aircraft.Altitude', Index.Aircraft.Altitude);
+      const latDeg = toDeg(latRad); const lonDeg = toDeg(lonRad);
+      kvClear(posEl);
+      posEl.appendChild(kvRow('Latitude', `${latDeg.toFixed(4)}°`));
+      posEl.appendChild(kvRow('Longitude', `${lonDeg.toFixed(4)}°`));
+      posEl.appendChild(kvRow('Altitude', `${(altM*M_TO_FT).toFixed(0)} ft`));
+      return { latDeg, lonDeg };
+    }
+
+    function renderRadios(v, av){
+      const com1 = toMHz(valByNameOrIndex(v, av, 'Communication.COM1Frequency', Index.Communication.COM1Frequency));
+      const com1s= toMHz(valByNameOrIndex(v, av, 'Communication.COM1StandbyFrequency', Index.Communication.COM1StandbyFrequency));
+      const com2 = toMHz(valByNameOrIndex(v, av, 'Communication.COM2Frequency', Index.Communication.COM2Frequency));
+      const com2s= toMHz(valByNameOrIndex(v, av, 'Communication.COM2StandbyFrequency', Index.Communication.COM2StandbyFrequency));
+      const nav1 = toMHz(valByNameOrIndex(v, av, 'Navigation.NAV1Frequency', Index.Navigation.NAV1Frequency));
+      const nav1s= toMHz(valByNameOrIndex(v, av, 'Navigation.NAV1StandbyFrequency', Index.Navigation.NAV1StandbyFrequency));
+      const nav2 = toMHz(valByNameOrIndex(v, av, 'Navigation.NAV2Frequency', Index.Navigation.NAV2Frequency));
+      const nav2s= toMHz(valByNameOrIndex(v, av, 'Navigation.NAV2StandbyFrequency', Index.Navigation.NAV2StandbyFrequency));
+      kvClear(comEl); kvClear(navEl);
+      comEl.appendChild(kvRow('COM1 Active', com1?`${com1.toFixed(2)} MHz`:'—'));
+      comEl.appendChild(kvRow('COM1 Standby', com1s?`${com1s.toFixed(2)} MHz`:'—'));
+      comEl.appendChild(kvRow('COM2 Active', com2?`${com2.toFixed(2)} MHz`:'—'));
+      comEl.appendChild(kvRow('COM2 Standby', com2s?`${com2s.toFixed(2)} MHz`:'—'));
+      navEl.appendChild(kvRow('NAV1 Active', nav1?`${nav1.toFixed(1)} MHz`:'—'));
+      navEl.appendChild(kvRow('NAV1 Standby', nav1s?`${nav1s.toFixed(1)} MHz`:'—'));
+      navEl.appendChild(kvRow('NAV2 Active', nav2?`${nav2.toFixed(1)} MHz`:'—'));
+      navEl.appendChild(kvRow('NAV2 Standby', nav2s?`${nav2s.toFixed(1)} MHz`:'—'));
+      return { com1, com2, nav1 };
+    }
+
+    function nearestAirport(latDeg, lonDeg, maxNm=50){
+      let best=null, bestD=1e9; for(const a of Airports){ const d=haversineNm(latDeg,lonDeg,a.lat,a.lon); if(d<bestD){ bestD=d; best=a; } }
+      if(bestD<=maxNm) return { airport:best, distNm:bestD }; return null;
+    }
+
+    function nearbyNavaids(latDeg, lonDeg, maxNm=100){
+      const list = Navaids.map(n=>({ n, d:haversineNm(latDeg,lonDeg,n.lat,n.lon) })).filter(x=>x.d<=maxNm).sort((a,b)=>a.d-b.d);
+      return list;
+    }
+
+    function renderAirport(latDeg, lonDeg){
+      const result = nearestAirport(latDeg, lonDeg);
+      kvClear(aptEl);
+      navaidsTable.innerHTML='';
+      if(!result){ aptEl.appendChild(kvRow('Nearest', 'No airport within 50 NM')); return null; }
+      const a = result.airport; const d = result.distNm;
+      aptEl.appendChild(kvRow('Airport', `${a.icao} — ${a.name}`));
+      aptEl.appendChild(kvRow('Distance', `${d.toFixed(1)} NM`));
+      aptEl.appendChild(kvRow('Elevation', `${a.elev_ft} ft`));
+      aptEl.appendChild(kvRow('Tower', `${a.tower.toFixed(2)} MHz`));
+      aptEl.appendChild(kvRow('Ground', `${a.ground.toFixed(2)} MHz`));
+      aptEl.appendChild(kvRow('ATIS', `${a.atis.toFixed(2)} MHz`));
+      const near = nearbyNavaids(latDeg, lonDeg);
+      for(const {n,d} of near.slice(0,10)){
+        const tr=document.createElement('tr');
+        tr.innerHTML = `<td>${n.ident}</td><td>${n.type}</td><td>${n.freq.toFixed(1)} MHz</td><td>${d.toFixed(1)}</td>`;
+        navaidsTable.appendChild(tr);
+      }
+      return { airport:a, distNm:d, nearestVOR: near.length? near[0].n : null };
+    }
+
+    function sendCommand(variable, value){
+      if(!ws || ws.readyState!==WebSocket.OPEN){ log('Cannot send (WS not open)'); return; }
+      // Send by name
+      ws.send(JSON.stringify({ variable, value }));
+    }
+
+    function sendCommandByIndex(index, value){
+      if(!ws || ws.readyState!==WebSocket.OPEN){ log('Cannot send (WS not open)'); return; }
+      ws.send(JSON.stringify({ index, value }));
+    }
+
+    function tuneCom(radio, freq){
+      const standby = `Communication.COM${radio}StandbyFrequency`;
+      const swap = `Communication.COM${radio}FrequencySwap`;
+      // Read current active/standby to avoid making both equal and to skip redundant swaps
+      const v = (lastFrame && lastFrame.variables) || {}; const av = (lastFrame && lastFrame.all_variables) || null;
+      const activeNow = toMHz(valByNameOrIndex(v,av, `Communication.COM${radio}Frequency`, radio===1? Index.Communication.COM1Frequency : Index.Communication.COM2Frequency));
+      const standbyNow = toMHz(valByNameOrIndex(v,av, `Communication.COM${radio}StandbyFrequency`, radio===1? Index.Communication.COM1StandbyFrequency : Index.Communication.COM2StandbyFrequency));
+
+      if (nearlyEqual(activeNow, freq)) { log(`COM${radio} already ${freq.toFixed(2)} MHz`); return; }
+      if (nearlyEqual(standbyNow, freq) && !nearlyEqual(activeNow, standbyNow)) {
+        // Only swap if target is already on standby and active != standby
+        sendCommand(swap, 1);
+        if (useIndexChk.checked) {
+          const swapIdx = radio===1? Index.Communication.COM1FrequencySwap : Index.Communication.COM2FrequencySwap;
+          sendCommandByIndex(swapIdx, 1);
+        }
+        log(`Swap COM${radio} to ${freq.toFixed(2)} MHz`);
+        return;
+      }
+
+      // Set standby then swap (with tiny delay to let standby latch)
+      const setStandby = ()=>{
+        sendCommand(standby, Number(freq));
+        sendCommand(standby, Number(freq) * 1000000);
+        if (useIndexChk.checked) {
+          const standbyIdx = radio===1? Index.Communication.COM1StandbyFrequency : Index.Communication.COM2StandbyFrequency;
+          sendCommandByIndex(standbyIdx, Number(freq));
+          sendCommandByIndex(standbyIdx, Number(freq) * 1000000);
         }
       };
-
-      function isFiniteNumber(x){ return typeof x === 'number' && Number.isFinite(x); }
-      function valByNameOrIndex(v, av, name, index){
-        const byName = v[name];
-        if (isFiniteNumber(byName)) return Number(byName);
-        if (Array.isArray(av) && isFiniteNumber(av[index])) return Number(av[index]);
-        return NaN;
-      }
-
-      let ws = null; let reconnectTimer = null;
-      let lastFrame = null; let lastTuneAtMs = 0;
-
-      // Minimal demo databases (sample only)
-      const Airports = [
-        { icao:'KJFK', name:'John F Kennedy Intl', lat:40.6398, lon:-73.7789, tower:119.10, ground:121.90, atis:128.05, elev_ft:13 },
-        { icao:'KLGA', name:'LaGuardia', lat:40.7769, lon:-73.8740, tower:120.20, ground:121.70, atis:125.95, elev_ft:22 },
-        { icao:'KEWR', name:'Newark Liberty Intl', lat:40.6925, lon:-74.1687, tower:119.20, ground:121.80, atis:135.25, elev_ft:18 },
-        { icao:'KBOS', name:'Boston Logan Intl', lat:42.3629, lon:-71.0064, tower:120.60, ground:121.90, atis:135.05, elev_ft:20 },
-        { icao:'KORD', name:"Chicago O'Hare Intl", lat:41.9786, lon:-87.9048, tower:120.15, ground:121.67, atis:135.15, elev_ft:672 },
-        { icao:'KLAX', name:'Los Angeles Intl', lat:33.9425, lon:-118.4081, tower:120.95, ground:121.75, atis:135.65, elev_ft:125 },
-        { icao:'KSFO', name:'San Francisco Intl', lat:37.6213, lon:-122.3790, tower:120.50, ground:121.80, atis:135.10, elev_ft:13 },
-        { icao:'KDEN', name:'Denver Intl', lat:39.8617, lon:-104.6731, tower:118.30, ground:121.85, atis:135.45, elev_ft:5434 },
-        { icao:'KMIA', name:'Miami Intl', lat:25.7932, lon:-80.2906, tower:118.30, ground:121.90, atis:135.40, elev_ft:8 },
-        { icao:'KATL', name:'Hartsfield-Jackson Atlanta Intl', lat:33.6367, lon:-84.4281, tower:119.10, ground:121.90, atis:135.28, elev_ft:1026 },
-      ];
-
-      const Navaids = [
-        { ident:'JFK', name:'Kennedy VOR', type:'VOR', freq:115.90, lat:40.6398, lon:-73.7789 },
-        { ident:'LGA', name:'LaGuardia VOR', type:'VOR', freq:113.10, lat:40.7769, lon:-73.8740 },
-        { ident:'BOS', name:'Boston VOR', type:'VOR', freq:112.70, lat:42.3629, lon:-71.0064 },
-        { ident:'ORD', name:"O'Hare VOR", type:'VOR', freq:113.90, lat:41.9786, lon:-87.9048 },
-        { ident:'LAX', name:'Los Angeles VOR', type:'VOR', freq:113.60, lat:33.9425, lon:-118.4081 },
-        { ident:'SFO', name:'San Francisco VOR', type:'VOR', freq:115.80, lat:37.6213, lon:-122.3790 },
-        { ident:'DEN', name:'Denver VOR', type:'VOR', freq:117.90, lat:39.8617, lon:-104.6731 },
-        { ident:'MIA', name:'Miami VOR', type:'VOR', freq:116.40, lat:25.7932, lon:-80.2906 },
-      ];
-
-      function setWsState(s){ wsState.textContent = s; wsState.className = 'pill ' + (s==='connected'?'ok':(s==='connecting…'?'':'err')); }
-
-      function toDeg(rad){ return rad * RAD_TO_DEG; }
-      function haversineNm(lat1d, lon1d, lat2d, lon2d){
-        const toRad = (d)=> d/ RAD_TO_DEG;
-        const dLat = toRad(lat2d - lat1d); const dLon = toRad(lon2d - lon1d);
-        const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1d))*Math.cos(toRad(lat2d))*Math.sin(dLon/2)**2;
-        const c = 2 * Math.asin(Math.sqrt(a));
-        return EARTH_RADIUS_NM * c;
-      }
-
-      function kvClear(node){ node.innerHTML=''; }
-      function kvRow(label,value){ const k=document.createElement('div'); const v=document.createElement('div'); k.textContent=label; v.textContent=value; const r=document.createElement('div'); r.className='kv'; r.appendChild(k); r.appendChild(v); return r; }
-      function log(msg){ const ts = new Date().toLocaleTimeString(); logEl.textContent += `[${ts}] ${msg}\n`; logEl.scrollTop = logEl.scrollHeight; }
-
-      function renderPosition(v, av){
-        const latRad = valByNameOrIndex(v, av, 'Aircraft.Latitude', Index.Aircraft.Latitude);
-        const lonRad = valByNameOrIndex(v, av, 'Aircraft.Longitude', Index.Aircraft.Longitude);
-        const altM = valByNameOrIndex(v, av, 'Aircraft.Altitude', Index.Aircraft.Altitude);
-        const latDeg = toDeg(latRad); const lonDeg = toDeg(lonRad);
-        kvClear(posEl);
-        posEl.appendChild(kvRow('Latitude', `${latDeg.toFixed(4)}°`));
-        posEl.appendChild(kvRow('Longitude', `${lonDeg.toFixed(4)}°`));
-        posEl.appendChild(kvRow('Altitude', `${(altM*M_TO_FT).toFixed(0)} ft`));
-        return { latDeg, lonDeg };
-      }
-
-      function toMHz(val){
-        const n = Number(val);
-        if (!Number.isFinite(n)) return NaN;
-        return (Math.abs(n) >= 1000) ? (n / 1000000) : n;
-      }
-      function renderRadios(v, av){
-        const com1 = toMHz(valByNameOrIndex(v, av, 'Communication.COM1Frequency', Index.Communication.COM1Frequency));
-        const com1s= toMHz(valByNameOrIndex(v, av, 'Communication.COM1StandbyFrequency', Index.Communication.COM1StandbyFrequency));
-        const com2 = toMHz(valByNameOrIndex(v, av, 'Communication.COM2Frequency', Index.Communication.COM2Frequency));
-        const com2s= toMHz(valByNameOrIndex(v, av, 'Communication.COM2StandbyFrequency', Index.Communication.COM2StandbyFrequency));
-        const nav1 = toMHz(valByNameOrIndex(v, av, 'Navigation.NAV1Frequency', Index.Navigation.NAV1Frequency));
-        const nav1s= toMHz(valByNameOrIndex(v, av, 'Navigation.NAV1StandbyFrequency', Index.Navigation.NAV1StandbyFrequency));
-        const nav2 = toMHz(valByNameOrIndex(v, av, 'Navigation.NAV2Frequency', Index.Navigation.NAV2Frequency));
-        const nav2s= toMHz(valByNameOrIndex(v, av, 'Navigation.NAV2StandbyFrequency', Index.Navigation.NAV2StandbyFrequency));
-        kvClear(comEl); kvClear(navEl);
-        comEl.appendChild(kvRow('COM1 Active', com1?`${com1.toFixed(2)} MHz`:'—'));
-        comEl.appendChild(kvRow('COM1 Standby', com1s?`${com1s.toFixed(2)} MHz`:'—'));
-        comEl.appendChild(kvRow('COM2 Active', com2?`${com2.toFixed(2)} MHz`:'—'));
-        comEl.appendChild(kvRow('COM2 Standby', com2s?`${com2s.toFixed(2)} MHz`:'—'));
-        navEl.appendChild(kvRow('NAV1 Active', nav1?`${nav1.toFixed(1)} MHz`:'—'));
-        navEl.appendChild(kvRow('NAV1 Standby', nav1s?`${nav1s.toFixed(1)} MHz`:'—'));
-        navEl.appendChild(kvRow('NAV2 Active', nav2?`${nav2.toFixed(1)} MHz`:'—'));
-        navEl.appendChild(kvRow('NAV2 Standby', nav2s?`${nav2s.toFixed(1)} MHz`:'—'));
-        return { com1, com2, nav1 };
-      }
-      function sendCommandByIndex(index, value){
-        if(!ws || ws.readyState!==WebSocket.OPEN){ log('Cannot send (WS not open)'); return; }
-        ws.send(JSON.stringify({ index, value }));
-      }
-
-      function nearestAirport(latDeg, lonDeg, maxNm=50){
-        let best=null, bestD=1e9; for(const a of Airports){ const d=haversineNm(latDeg,lonDeg,a.lat,a.lon); if(d<bestD){ bestD=d; best=a; } }
-        if(bestD<=maxNm) return { airport:best, distNm:bestD }; return null;
-      }
-
-      function nearbyNavaids(latDeg, lonDeg, maxNm=100){
-        const list = Navaids.map(n=>({ n, d:haversineNm(latDeg,lonDeg,n.lat,n.lon) })).filter(x=>x.d<=maxNm).sort((a,b)=>a.d-b.d);
-        return list;
-      }
-
-      function renderAirport(latDeg, lonDeg){
-        const result = nearestAirport(latDeg, lonDeg);
-        kvClear(aptEl);
-        navaidsTable.innerHTML='';
-        if(!result){ aptEl.appendChild(kvRow('Nearest', 'No airport within 50 NM')); return null; }
-        const a = result.airport; const d = result.distNm;
-        aptEl.appendChild(kvRow('Airport', `${a.icao} — ${a.name}`));
-        aptEl.appendChild(kvRow('Distance', `${d.toFixed(1)} NM`));
-        aptEl.appendChild(kvRow('Elevation', `${a.elev_ft} ft`));
-        aptEl.appendChild(kvRow('Tower', `${a.tower.toFixed(2)} MHz`));
-        aptEl.appendChild(kvRow('Ground', `${a.ground.toFixed(2)} MHz`));
-        aptEl.appendChild(kvRow('ATIS', `${a.atis.toFixed(2)} MHz`));
-        const near = nearbyNavaids(latDeg, lonDeg);
-        for(const {n,d} of near.slice(0,10)){
-          const tr=document.createElement('tr');
-          tr.innerHTML = `<td>${n.ident}</td><td>${n.type}</td><td>${n.freq.toFixed(1)} MHz</td><td>${d.toFixed(1)}</td>`;
-          navaidsTable.appendChild(tr);
+      const doSwap = ()=>{
+        sendCommand(swap, 1);
+        if (useIndexChk.checked) {
+          const swapIdx = radio===1? Index.Communication.COM1FrequencySwap : Index.Communication.COM2FrequencySwap;
+          sendCommandByIndex(swapIdx, 1);
         }
-        return { airport:a, distNm:d, nearestVOR: near.length? near[0].n : null };
-      }
+      };
+      setStandby();
+      setTimeout(doSwap, 40);
+      log(`Tune COM${radio} ${freq.toFixed(2)} MHz`);
+    }
 
-      function sendCommand(variable, value){
-        if(!ws || ws.readyState!==WebSocket.OPEN){ log('Cannot send (WS not open)'); return; }
-        ws.send(JSON.stringify({ variable, value }));
-      }
+    function tuneNav(radio, freq){
+      const standby = `Navigation.NAV${radio}StandbyFrequency`;
+      const swap = `Navigation.NAV${radio}FrequencySwap`;
+      // Read current active/standby
+      const v = (lastFrame && lastFrame.variables) || {}; const av = (lastFrame && lastFrame.all_variables) || null;
+      const activeNow = toMHz(valByNameOrIndex(v,av, `Navigation.NAV${radio}Frequency`, radio===1? Index.Navigation.NAV1Frequency : Index.Navigation.NAV2Frequency));
+      const standbyNow = toMHz(valByNameOrIndex(v,av, `Navigation.NAV${radio}StandbyFrequency`, radio===1? Index.Navigation.NAV1StandbyFrequency : Index.Navigation.NAV2StandbyFrequency));
 
-      const FREQ_EPS = 0.01; const nearlyEqual = (a,b,eps=FREQ_EPS)=> Number.isFinite(a)&&Number.isFinite(b)&&Math.abs(a-b)<=eps;
-      function tuneCom(radio, freq){
-        const standby = `Communication.COM${radio}StandbyFrequency`;
-        const swap = `Communication.COM${radio}FrequencySwap`;
-        const v = (lastFrame && lastFrame.variables) || {}; const av = (lastFrame && lastFrame.all_variables) || null;
-        const activeNow = toMHz(valByNameOrIndex(v,av, `Communication.COM${radio}Frequency`, radio===1? Index.Communication.COM1Frequency : Index.Communication.COM2Frequency));
-        const standbyNow = toMHz(valByNameOrIndex(v,av, `Communication.COM${radio}StandbyFrequency`, radio===1? Index.Communication.COM1StandbyFrequency : Index.Communication.COM2StandbyFrequency));
-        if (nearlyEqual(activeNow, freq)) { log(`COM${radio} already ${freq.toFixed(2)} MHz`); return; }
-        if (nearlyEqual(standbyNow, freq) && !nearlyEqual(activeNow, standbyNow)) { sendCommand(swap, 1); if (useIndexChk.checked){ const swapIdx = radio===1? Index.Communication.COM1FrequencySwap : Index.Communication.COM2FrequencySwap; sendCommandByIndex(swapIdx,1);} log(`Swap COM${radio} to ${freq.toFixed(2)} MHz`); return; }
-        const setStandby = ()=>{ sendCommand(standby, Number(freq)); sendCommand(standby, Number(freq) * 1000000); if (useIndexChk.checked){ const standbyIdx = radio===1? Index.Communication.COM1StandbyFrequency : Index.Communication.COM2StandbyFrequency; sendCommandByIndex(standbyIdx, Number(freq)); sendCommandByIndex(standbyIdx, Number(freq) * 1000000);} };
-        const doSwap = ()=>{ sendCommand(swap, 1); if (useIndexChk.checked){ const swapIdx = radio===1? Index.Communication.COM1FrequencySwap : Index.Communication.COM2FrequencySwap; sendCommandByIndex(swapIdx,1);} };
-        setStandby(); setTimeout(doSwap, 40);
-        log(`Tune COM${radio} ${freq.toFixed(2)} MHz`);
-      }
-
-      function tuneNav(radio, freq){
-        const standby = `Navigation.NAV${radio}StandbyFrequency`;
-        const swap = `Navigation.NAV${radio}FrequencySwap`;
-        const v = (lastFrame && lastFrame.variables) || {}; const av = (lastFrame && lastFrame.all_variables) || null;
-        const activeNow = toMHz(valByNameOrIndex(v,av, `Navigation.NAV${radio}Frequency`, radio===1? Index.Navigation.NAV1Frequency : Index.Navigation.NAV2Frequency));
-        const standbyNow = toMHz(valByNameOrIndex(v,av, `Navigation.NAV${radio}StandbyFrequency`, radio===1? Index.Navigation.NAV1StandbyFrequency : Index.Navigation.NAV2StandbyFrequency));
-        if (nearlyEqual(activeNow, freq)) { log(`NAV${radio} already ${freq.toFixed(1)} MHz`); return; }
-        if (nearlyEqual(standbyNow, freq) && !nearlyEqual(activeNow, standbyNow)) { sendCommand(swap, 1); if (useIndexChk.checked){ const swapIdx = radio===1? Index.Navigation.NAV1FrequencySwap : Index.Navigation.NAV2FrequencySwap; sendCommandByIndex(swapIdx,1);} log(`Swap NAV${radio} to ${freq.toFixed(1)} MHz`); return; }
-        const setStandby = ()=>{ sendCommand(standby, Number(freq)); sendCommand(standby, Number(freq) * 1000000); if (useIndexChk.checked){ const standbyIdx = radio===1? Index.Navigation.NAV1StandbyFrequency : Index.Navigation.NAV2StandbyFrequency; sendCommandByIndex(standbyIdx, Number(freq)); sendCommandByIndex(standbyIdx, Number(freq) * 1000000);} };
-        const doSwap = ()=>{ sendCommand(swap, 1); if (useIndexChk.checked){ const swapIdx = radio===1? Index.Navigation.NAV1FrequencySwap : Index.Navigation.NAV2FrequencySwap; sendCommandByIndex(swapIdx,1);} };
-        setStandby(); setTimeout(doSwap, 40);
-        log(`Tune NAV${radio} ${freq.toFixed(1)} MHz`);
-      }
-
-      function maybeAutoTune(v, context){
-        if(!autoChk.checked || !context) return;
-        const now = Date.now(); if(now - lastTuneAtMs < 1500) return; // rate‑limit
-        const nav1 = Number(v['Navigation.NAV1Frequency']||0);
-        const com1 = Number(v['Communication.COM1Frequency']||0);
-        // COM1 → Tower if different by > 0.01 MHz
-        if(context.airport && Math.abs((context.airport.tower||0)-com1) > 0.01){
-          tuneCom(1, context.airport.tower); lastTuneAtMs = now; return;
+      if (nearlyEqual(activeNow, freq)) { log(`NAV${radio} already ${freq.toFixed(1)} MHz`); return; }
+      if (nearlyEqual(standbyNow, freq) && !nearlyEqual(activeNow, standbyNow)) {
+        sendCommand(swap, 1);
+        if (useIndexChk.checked) {
+          const swapIdx = radio===1? Index.Navigation.NAV1FrequencySwap : Index.Navigation.NAV2FrequencySwap;
+          sendCommandByIndex(swapIdx, 1);
         }
-        // NAV1 → nearest VOR if different by > 0.1 MHz
-        if(context.nearestVOR && Math.abs((context.nearestVOR.freq||0)-nav1) > 0.1){
-          tuneNav(1, context.nearestVOR.freq); lastTuneAtMs = now; return;
+        log(`Swap NAV${radio} to ${freq.toFixed(1)} MHz`);
+        return;
+      }
+
+      const setStandby = ()=>{
+        sendCommand(standby, Number(freq));
+        sendCommand(standby, Number(freq) * 1000000);
+        if (useIndexChk.checked) {
+          const standbyIdx = radio===1? Index.Navigation.NAV1StandbyFrequency : Index.Navigation.NAV2StandbyFrequency;
+          sendCommandByIndex(standbyIdx, Number(freq));
+          sendCommandByIndex(standbyIdx, Number(freq) * 1000000);
         }
+      };
+      const doSwap = ()=>{
+        sendCommand(swap, 1);
+        if (useIndexChk.checked) {
+          const swapIdx = radio===1? Index.Navigation.NAV1FrequencySwap : Index.Navigation.NAV2FrequencySwap;
+          sendCommandByIndex(swapIdx, 1);
+        }
+      };
+      setStandby();
+      setTimeout(doSwap, 40);
+      log(`Tune NAV${radio} ${freq.toFixed(1)} MHz`);
+    }
+
+    function maybeAutoTune(v, context){
+      if(!autoChk.checked || !context) return;
+      const now = Date.now(); if(now - lastTuneAtMs < 1500) return; // rate‑limit
+      const nav1 = Number(v['Navigation.NAV1Frequency']||0);
+      const com1 = Number(v['Communication.COM1Frequency']||0);
+      if(context.airport && Math.abs((context.airport.tower||0)-com1) > 0.01){
+        tuneCom(1, context.airport.tower); lastTuneAtMs = now; return;
       }
-
-      function update(frame){
-        const v = (frame && frame.variables) || {};
-        const av = Array.isArray(frame && frame.all_variables) ? frame.all_variables : null;
-        const pos = renderPosition(v, av);
-        renderRadios(v, av);
-        const ctx = renderAirport(pos.latDeg, pos.lonDeg);
-        lastFrame = frame;
-        maybeAutoTune(v, ctx);
+      if(context.nearestVOR && Math.abs((context.nearestVOR.freq||0)-nav1) > 0.1){
+        tuneNav(1, context.nearestVOR.freq); lastTuneAtMs = now; return;
       }
+    }
 
-      function connect(){
-        try{
-          setWsState('connecting…');
-          ws = new WebSocket(wsUrl);
-          ws.onopen = ()=>{ setWsState('connected'); if(reconnectTimer){ clearInterval(reconnectTimer); reconnectTimer=null; } };
-          ws.onmessage = (ev)=>{ try{ const frame = JSON.parse(ev.data); if(frame && frame.data_valid===1) update(frame); }catch(_){} };
-          ws.onclose = ()=>{ setWsState('disconnected'); if(!reconnectTimer) reconnectTimer=setInterval(connect, 3000); };
-          ws.onerror = ()=>{ setWsState('error'); };
-        }catch(_){ setWsState('error'); if(!reconnectTimer) reconnectTimer=setInterval(connect, 3000); }
-      }
+    function update(frame){
+      const v = (frame && frame.variables) || {};
+      const av = Array.isArray(frame && frame.all_variables) ? frame.all_variables : null;
+      const pos = renderPosition(v, av);
+      renderRadios(v, av);
+      const ctx = renderAirport(pos.latDeg, pos.lonDeg);
+      lastFrame = frame;
+      maybeAutoTune(v, ctx);
+    }
 
-      // UI events
-      el('btnCom1Tower').addEventListener('click', ()=>{
-        if(!lastFrame) return; const v=lastFrame.variables||{}; const av = lastFrame.all_variables||null; const lat=toDeg(valByNameOrIndex(v,av,'Aircraft.Latitude',Index.Aircraft.Latitude)); const lon=toDeg(valByNameOrIndex(v,av,'Aircraft.Longitude',Index.Aircraft.Longitude));
-        const ctx = renderAirport(lat, lon); if(ctx && ctx.airport) tuneCom(1, ctx.airport.tower);
-      });
-      el('btnCom2Ground').addEventListener('click', ()=>{
-        if(!lastFrame) return; const v=lastFrame.variables||{}; const av = lastFrame.all_variables||null; const lat=toDeg(valByNameOrIndex(v,av,'Aircraft.Latitude',Index.Aircraft.Latitude)); const lon=toDeg(valByNameOrIndex(v,av,'Aircraft.Longitude',Index.Aircraft.Longitude));
-        const ctx = renderAirport(lat, lon); if(ctx && ctx.airport) tuneCom(2, ctx.airport.ground);
-      });
-      el('btnNav1Nearest').addEventListener('click', ()=>{
-        if(!lastFrame) return; const v=lastFrame.variables||{}; const av = lastFrame.all_variables||null; const lat=toDeg(valByNameOrIndex(v,av,'Aircraft.Latitude',Index.Aircraft.Latitude)); const lon=toDeg(valByNameOrIndex(v,av,'Aircraft.Longitude',Index.Aircraft.Longitude));
-        const near = nearbyNavaids(lat, lon); if(near.length) tuneNav(1, near[0].n.freq);
-      });
-      el('btnNav2Nearest').addEventListener('click', ()=>{
-        if(!lastFrame) return; const v=lastFrame.variables||{}; const av = lastFrame.all_variables||null; const lat=toDeg(valByNameOrIndex(v,av,'Aircraft.Latitude',Index.Aircraft.Latitude)); const lon=toDeg(valByNameOrIndex(v,av,'Aircraft.Longitude',Index.Aircraft.Longitude));
-        const near = nearbyNavaids(lat, lon); if(near.length) tuneNav(2, near[0].n.freq);
-      });
+    function connect(){
+      try{
+        setWsState('connecting…');
+        ws = new WebSocket(wsUrl);
+        ws.onopen = ()=>{ setWsState('connected'); log('WebSocket connected'); if(reconnectTimer){ clearInterval(reconnectTimer); reconnectTimer=null; } };
+        ws.onmessage = (ev)=>{
+          try {
+            const data = ev.data;
+            const handleText = (text) => {
+              // Some builds send multiple JSON frames separated by newlines
+              const parts = String(text).split(/\n+/).filter(Boolean);
+              for (const part of parts) {
+                try {
+                  const frame = JSON.parse(part);
+                  if (frame && frame.data_valid === 1) update(frame);
+                } catch (e) {
+                  log('Bad frame: ' + part.slice(0, 80));
+                }
+              }
+            };
+            if (typeof data === 'string') {
+              handleText(data);
+            } else if (data instanceof Blob) {
+              data.text().then(handleText).catch(()=> log('Bad frame (blob)'));
+            } else if (data instanceof ArrayBuffer) {
+              try {
+                const text = new TextDecoder('utf-8').decode(new Uint8Array(data));
+                handleText(text);
+              } catch (_) {
+                log('Bad frame (binary)');
+              }
+            } else {
+              log('Bad frame (unknown type)');
+            }
+          } catch (e) {
+            log('Bad frame');
+          }
+        };
+        ws.onclose = ()=>{ setWsState('disconnected'); log('WebSocket disconnected'); if(!reconnectTimer) { reconnectTimer=setInterval(connect, 3000); } };
+        ws.onerror = ()=>{ setWsState('error'); log('WebSocket error'); };
+      }catch(_){ setWsState('error'); if(!reconnectTimer) reconnectTimer=setInterval(connect, 3000); }
+    }
 
-      connect();
-    </script>
-  </body>
-  </html>
+    // UI events
+    el('btnCom1Tower').addEventListener('click', ()=>{
+      if(!lastFrame) return; const v=lastFrame.variables||{}; const av = lastFrame.all_variables||null; const lat=toDeg(valByNameOrIndex(v,av,'Aircraft.Latitude',Index.Aircraft.Latitude)); const lon=toDeg(valByNameOrIndex(v,av,'Aircraft.Longitude',Index.Aircraft.Longitude));
+      const ctx = renderAirport(lat, lon); if(ctx && ctx.airport) tuneCom(1, ctx.airport.tower);
+    });
+    el('btnCom2Ground').addEventListener('click', ()=>{
+      if(!lastFrame) return; const v=lastFrame.variables||{}; const av = lastFrame.all_variables||null; const lat=toDeg(valByNameOrIndex(v,av,'Aircraft.Latitude',Index.Aircraft.Latitude)); const lon=toDeg(valByNameOrIndex(v,av,'Aircraft.Longitude',Index.Aircraft.Longitude));
+      const ctx = renderAirport(lat, lon); if(ctx && ctx.airport) tuneCom(2, ctx.airport.ground);
+    });
+    el('btnNav1Nearest').addEventListener('click', ()=>{
+      if(!lastFrame) return; const v=lastFrame.variables||{}; const av = lastFrame.all_variables||null; const lat=toDeg(valByNameOrIndex(v,av,'Aircraft.Latitude',Index.Aircraft.Latitude)); const lon=toDeg(valByNameOrIndex(v,av,'Aircraft.Longitude',Index.Aircraft.Longitude));
+      const near = nearbyNavaids(lat, lon); if(near.length) tuneNav(1, near[0].n.freq);
+    });
+    el('btnNav2Nearest').addEventListener('click', ()=>{
+      if(!lastFrame) return; const v=lastFrame.variables||{}; const av = lastFrame.all_variables||null; const lat=toDeg(valByNameOrIndex(v,av,'Aircraft.Latitude',Index.Aircraft.Latitude)); const lon=toDeg(valByNameOrIndex(v,av,'Aircraft.Longitude',Index.Aircraft.Longitude));
+      const near = nearbyNavaids(lat, lon); if(near.length) tuneNav(2, near[0].n.freq);
+    });
+
+    log('App loaded. Index commands enabled by default.');
+    connect();
+  </script>
+</body>
+</html>
+
 ```
 
 ## Step 2: Run it
