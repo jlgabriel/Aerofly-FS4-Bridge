@@ -1,6 +1,6 @@
 # Simple Tutorial #7: Co‑Pilot Checklist Dashboard (WebSocket)
 
-> What we'll build: A browser dashboard that connects to the Bridge via WebSocket and displays comprehensive takeoff/landing checklist items using canonical variables. No build tools or frameworks—just one HTML file with detailed explanations.
+> What we'll build: A browser dashboard that connects to the Bridge via WebSocket and displays comprehensive takeoff/landing checklist items using canonical variables. Features real-time flight data display, intelligent checklist validation, and detailed explanations of each criterion. No build tools or frameworks—just one HTML file with educational content.
 
 ## Prerequisites
 - Aerofly FS4 with AeroflyBridge.dll installed
@@ -10,9 +10,11 @@
 ## What You'll Learn
 - Connect to the WebSocket data stream (`ws://localhost:8765`)
 - Read canonical variables from `data.variables`
-- Convert units (m/s to knots, radians to degrees) for display
+- Convert units (m/s to knots, radians to degrees, m to feet) for display
 - Implement a comprehensive rule engine for flight phase checklists
-- Display real-time flight data with proper formatting
+- Display real-time flight data with proper formatting in organized rows
+- Create educational content that explains the reasoning behind each checklist item
+- Handle compass heading conversion from mathematical to aviation format
 
 ## Step 1: Create the HTML file
 
@@ -152,7 +154,7 @@ Create a file called `copilot_checklist.html` with the following content:
       const hdgSrc = (v['Aircraft.MagneticHeading'] ?? v['Aircraft.TrueHeading'] ?? 0);
       const heading = compassHeadingFromCanonical(hdgSrc);
 
-      // Flight data - cada variable en su propia fila
+      // Flight data - each variable in its own row
       flightData.innerHTML = `
         <div class="data-row">
           <span>Heading</span><span>${heading.toFixed(0)}°</span>
@@ -187,7 +189,7 @@ Create a file called `copilot_checklist.html` with the following content:
 
       // Landing checklist
       landingList.innerHTML = '';
-      const stableDescent = (vs < 0 && Math.abs(vs) < 2000); // Descendiendo y < 2000 fpm
+      const stableDescent = (vs < 0 && Math.abs(vs) < 2000); // Descending and < 2000 fpm
       const flapsLanding = flaps >= 0.15;
       const landingPitch = (pitch > 2 && pitch < 8);
       const powerReduced = (throttle < 0.5);
@@ -233,33 +235,54 @@ Create a file called `copilot_checklist.html` with the following content:
 The dashboard connects to `ws://localhost:8765` and displays real-time flight data along with intelligent checklists:
 
 ### Flight Data Display
-- **Heading**: Converted from mathematical radians to compass degrees (0°=North, CW)
-- **IAS**: Indicated Airspeed converted from m/s to knots
-- **Altitude**: Converted from meters to feet
-- **Vertical Speed**: Converted from m/s to feet per minute (fpm)
-- **Pitch**: Aircraft nose attitude in degrees (+ = nose up, - = nose down)
-- **Flaps**: Extension percentage (0-100%)
-- **Throttle**: Power setting percentage (0-100%)
+The left panel shows organized flight data in clean rows:
+- **Heading**: Converted from mathematical radians to compass degrees (0°=North, CW) using the `compassHeadingFromCanonical()` function
+- **IAS**: Indicated Airspeed converted from m/s to knots (×1.943844492)
+- **Altitude**: Converted from meters to feet (×3.280839895)
+- **Vertical Speed**: Converted from m/s to feet per minute (×196.850394) with + for climbs
+- **Pitch**: Aircraft nose attitude in degrees (+ = nose up, - = nose down) with decimal precision
+- **Flaps**: Extension percentage (0-100%) converted from decimal format
+- **Throttle**: Power setting percentage (0-100%) converted from decimal format
 
-### Takeoff Checklist (5 items)
-- **Flaps configured**: Verifies any flap extension (universal for all aircraft types)
-- **Throttle > 60%**: Ensures adequate power for acceleration and rotation
-- **IAS alive > 30 kt**: Confirms airspeed indicator is functioning and sufficient for control authority
-- **Positive pitch (+5° to +15°)**: Checks proper climb attitude after rotation
-- **Low altitude (< 1000 ft)**: Confirms aircraft is still in takeoff phase
+### Checklist Logic (Right Panel)
+The right panel contains two intelligent checklists with detailed explanations:
 
-### Landing Checklist (6 items)
-- **Stable descent (< 2000 fpm)**: Ensures controlled descent rate, not dangerously steep
-- **Flaps set for landing (≥ 15%)**: Verifies approach configuration for increased lift/drag
-- **IAS below 120 kt**: Confirms appropriate approach speed for most aircraft
-- **Landing pitch (+2° to +8°)**: Checks proper nose-up attitude for landing flare
-- **Power reduced (< 50%)**: Ensures reduced thrust for controlled descent
-- **Descent rate ≤ 1000 fpm**: Confirms safe vertical speed for final approach
+**Takeoff Checklist (5 items)**
+- **Flaps configured**: Any flap extension (> 0%) - universal for all aircraft types
+- **Throttle > 60%**: Adequate power for acceleration and rotation
+- **IAS alive > 30 kt**: Airspeed indicator functioning, sufficient speed for controls
+- **Positive pitch (+5° to +15°)**: Nose up attitude for climb after rotation
+- **Low altitude (< 1000 ft)**: Still in takeoff phase, not yet in cruise
+
+**Landing Checklist (6 items)**
+- **Stable descent (< 2000 fpm)**: Controlled descent rate, not too steep (checks `vs < 0` and `Math.abs(vs) < 2000`)
+- **Flaps set for landing (≥ 15%)**: Increased lift and drag for approach (`flaps >= 0.15`)
+- **IAS below 120 kt**: Appropriate approach speed for most aircraft
+- **Landing pitch (+2° to +8°)**: Slight nose-up attitude for proper flare (`pitch > 2 && pitch < 8`)
+- **Power reduced (< 50%)**: Reduced thrust for controlled descent (`throttle < 0.5`)
+- **Descent rate ≤ 1000 fpm**: Safe vertical speed for landing approach (`Math.abs(vs) <= 1000`)
 
 ### Status Indicators
 - 🟢 **Green (OK)**: Parameter within safe/normal range
 - 🟡 **Yellow (WARN)**: Parameter outside recommended range but not critical
 - 🔴 **Red (BAD)**: Parameter in dangerous range requiring immediate attention
+
+### Educational Features
+The dashboard includes a comprehensive information panel below the checklists that explains:
+
+**Takeoff Checklist Criteria:**
+- Detailed explanation of why each parameter matters during takeoff
+- Specific thresholds and their aviation safety reasoning
+- Universal criteria that work across different aircraft types
+
+**Landing Checklist Criteria:**
+- Breakdown of approach and landing phase requirements
+- Safety margins and why each check is critical
+- Professional pilot procedures adapted for simulation
+
+**Variable Reference:**
+- Lists all canonical variables used: `Aircraft.Flaps`, `Aircraft.Throttle`, `Aircraft.IndicatedAirspeed`, `Aircraft.Altitude`, `Aircraft.VerticalSpeed`, `Aircraft.Pitch`, `Aircraft.MagneticHeading`/`Aircraft.TrueHeading`
+- Helps users understand what data the Bridge provides
 
 ## Customize for Your Aircraft
 
@@ -287,10 +310,21 @@ The dashboard includes detailed explanations of each checklist item, making it v
 - **Some checks always yellow**: Normal for certain aircraft types; adjust thresholds as needed
 
 ## Technical Notes
-- Uses only reliable, universal variables available across all aircraft types
-- Avoids aircraft-specific variables like `Aircraft.OnGround` or `Aircraft.ParkingBrake`
-- Implements robust unit conversion and error handling
-- Designed for educational transparency with clear explanations
+
+### Key Implementation Details
+- **Unit Conversions**: Precise conversion constants for aviation units
+  - `M_TO_FT = 3.280839895` (meters to feet)
+  - `MPS_TO_KT = 1.943844492` (m/s to knots)  
+  - `RAD_TO_DEG = 180 / Math.PI` (radians to degrees)
+  - Custom vertical speed conversion: `× 196.850394` (m/s to fpm)
+
+- **Compass Heading Logic**: The `compassHeadingFromCanonical()` function handles the conversion from mathematical heading (where 0° = East, CCW) to aviation compass heading (0° = North, CW)
+
+- **Robust Variable Access**: Uses fallback logic `v['Aircraft.MagneticHeading'] ?? v['Aircraft.TrueHeading'] ?? 0` to handle different aircraft configurations
+
+- **Educational Design**: Combines functional checklist with detailed explanations, making it valuable for flight training and understanding aviation procedures
+
+- **Universal Compatibility**: Uses only reliable, universal variables available across all aircraft types, avoiding aircraft-specific variables like `Aircraft.OnGround` or `Aircraft.ParkingBrake`
 
 ---
 
