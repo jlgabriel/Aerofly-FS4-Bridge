@@ -49,37 +49,6 @@ Create `web/radio_navigator.html` with the following content (already added to t
     .log { font-family: Consolas, Menlo, monospace; font-size:12px; height:160px; overflow:auto; background:#0b1322; border-radius:8px; padding:8px; white-space: pre-wrap; }
     code { background:#0b1322; color:#b7cffb; padding:2px 6px; border-radius:6px; }
   </style>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Smart Radio Navigator</title>
-  <style>
-    :root {
-      --bg:#0e1420; --fg:#e6f0ff; --muted:#7f8da3; --card:#152038;
-      --ok:#00d26a; --warn:#ffaa00; --bad:#ff3b3b;
-    }
-    body { margin:0; padding:20px; background: radial-gradient(1200px 800px at 70% -10%, #1b2a4a, var(--bg)); color:var(--fg); font-family: system-ui, Segoe UI, Roboto, Arial, sans-serif; }
-    h1 { font-size:20px; margin:0 0 10px 0; letter-spacing:.4px; }
-    .status { font-size:12px; color:var(--muted); margin-bottom:12px; }
-    .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:16px; }
-    .card { background:var(--card); border-radius:12px; padding:16px; box-shadow:0 8px 24px rgba(0,0,0,.25); }
-    .kv { display:grid; grid-template-columns: 1fr auto; gap:6px; font-family: Consolas, Menlo, monospace; font-size:13px; }
-    .kv div { padding:6px 0; border-bottom: 1px dashed rgba(255,255,255,0.08); }
-    .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; }
-    .ok { color:var(--ok); } .warn { color:var(--warn); } .err { color:var(--bad); }
-    .pill.ok { background: rgba(0,210,106,0.15); border:1px solid rgba(0,210,106,0.35); }
-    .pill.err { background: rgba(255,59,59,0.15); border:1px solid rgba(255,59,59,0.35); }
-    .btn { appearance:none; border:1px solid rgba(255,255,255,0.15); color:var(--fg); background:rgba(255,255,255,0.04); padding:8px 10px; border-radius:8px; font-size:13px; cursor:pointer; }
-    .btn:hover { background:rgba(255,255,255,0.08); }
-    .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-    .table { width:100%; border-collapse: collapse; font-family: Consolas, Menlo, monospace; font-size:13px; }
-    .table th, .table td { padding:6px 8px; border-bottom: 1px dashed rgba(255,255,255,0.08); text-align:left; }
-    .muted { color:var(--muted); }
-    .log { font-family: Consolas, Menlo, monospace; font-size:12px; height:160px; overflow:auto; background:#0b1322; border-radius:8px; padding:8px; white-space: pre-wrap; }
-    code { background:#0b1322; color:#b7cffb; padding:2px 6px; border-radius:6px; }
-  </style>
 </head>
 <body>
   <h1>Smart Radio Navigator</h1>
