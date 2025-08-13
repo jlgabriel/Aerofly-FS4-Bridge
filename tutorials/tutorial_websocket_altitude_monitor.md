@@ -1,4 +1,4 @@
-# Simple Tutorial #1: Real-time Altitude Monitor (WebSocket)
+# Websocket Tutorial: Real-time Altitude Monitor
 
 > **What we'll build**: A real-time web-based altitude monitor that displays your aircraft's current altitude with visual warnings when flying too low or too high.
 

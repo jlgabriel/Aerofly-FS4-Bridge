@@ -1,4 +1,4 @@
-# Simple Tutorial #8: Airspeed Envelope Tape (WebSocket)
+# Websocket Tutorial: Airspeed Envelope Tape
 
 > What we'll build: A web instrument that shows a live airspeed tape with performance envelopes (white/green/yellow/red arcs) using canonical variables from the Bridge. Single HTML file, no frameworks.
 

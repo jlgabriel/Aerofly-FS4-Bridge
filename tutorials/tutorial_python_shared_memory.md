@@ -1,4 +1,4 @@
-# Simple Tutorial #3: Engine Monitor Dashboard (Python + Shared Memory)
+# Python Tutorial: Engine Monitor Dashboard (Python + Shared Memory)
 
 > **What we'll build**: A high-performance engine monitoring dashboard that reads individual variables directly from shared memory, providing ultra-fast updates for critical engine parameters with visual gauges.
 

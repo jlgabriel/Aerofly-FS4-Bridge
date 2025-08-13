@@ -1,4 +1,4 @@
-# Simple Tutorial #2: Flight Data Logger (Python + JSON)
+# Python Tutorial: Flight Data Logger (Python + JSON)
 
 > **What we'll build**: A Python application that connects to the TCP interface, logs complete flight data to CSV files, and generates a real-time flight summary report.
 

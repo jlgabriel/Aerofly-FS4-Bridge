@@ -1,4 +1,4 @@
-# Simple Tutorial #5: Smart Radio Navigator (TCP Commands + GUI)
+# Python Tutorial: Smart Radio Navigator (TCP Commands + GUI)
 
 > **What we'll build**: A desktop application using Python Tkinter that automatically tunes navigation radios based on your location, provides airport information, and manages communication frequencies with a professional pilot interface.
 
