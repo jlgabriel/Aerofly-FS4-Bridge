@@ -1,4 +1,4 @@
-# Simple Tutorial #4: Virtual Autopilot Controller (WebSocket Commands)
+# Websocket Tutorial: Virtual Autopilot Controller (WebSocket Commands)
 
 > **What we'll build**: A web-based autopilot controller that can both read flight data AND send commands to control the aircraft, featuring altitude hold, heading hold, and speed control with a touch-friendly interface.
 

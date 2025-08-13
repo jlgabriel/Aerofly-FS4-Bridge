@@ -1,4 +1,4 @@
-# Simple Tutorial #7: Co‑Pilot Checklist Dashboard (WebSocket)
+# Websocket Tutorial: Co‑Pilot Checklist Dashboard
 
 > What we'll build: A browser dashboard that connects to the Bridge via WebSocket and displays comprehensive takeoff/landing checklist items using canonical variables. Features real-time flight data display, intelligent checklist validation, and detailed explanations of each criterion. No build tools or frameworks—just one HTML file with educational content.
 

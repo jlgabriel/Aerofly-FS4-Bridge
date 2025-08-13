@@ -1,4 +1,4 @@
-# Simple Tutorial #6: Flight Performance Analyzer (Multi-Interface + Data Science)
+# Intermediate Tutorial: Flight Performance Analyzer (Multi-Interface + Data Science)
 
 > **What we'll build**: A comprehensive flight performance analysis tool that combines all three AeroflyBridge interfaces (shared memory, TCP, WebSocket) with data science capabilities to analyze flight efficiency, generate performance reports, and create beautiful visualizations.
 

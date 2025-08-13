@@ -1,4 +1,4 @@
-# Simple Tutorial #6: Smart Radio Navigator (WebSocket)
+# Websocket Tutorial: Smart Radio Navigator
 
 > What we'll build: A single‑page web app that auto‑tunes COM/NAV radios based on your location, shows nearby navaids, and lets you manually tune key frequencies — all over the WebSocket interface.
 
