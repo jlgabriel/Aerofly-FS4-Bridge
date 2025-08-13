@@ -282,20 +282,28 @@ See `CHANGELOG.md` for release notes and version history.
 
 ---
 
-## 📚 Index
+## 📚 Documentation Index
 
-- `docs/installation_guide.md`: Installation and build instructions for users and developers.
-- `docs/api_reference.md`: Detailed usage of each interface, message formats, and commands.
-- `docs/variables_reference.md`: Full list of variables exposed by the bridge with names and types.
-- `docs/architecture_deep_dive.md`: Deep dive into the multi-interface architecture and data flow.
-- `docs/thread_safety_tutorial.md`: Threading model and safe concurrent access patterns.
-- `docs/network_programming_tutorial.md`: TCP/WebSocket implementations and design patterns.
-- `docs/performance_optimization_tutorial.md`: Performance budgets, profiling, and optimization techniques.
-- `docs/web_app_tutorial.md`: Build a browser dashboard using WebSocket.
-- `docs/python_app_tutorial.md`: Read telemetry via Shared Memory and TCP.
-- `reference/json_schema.json`: JSON schema reference for telemetry/broadcast payloads.
+### Core Reference
+- **`api_reference.md`** - Complete interface documentation (Shared Memory, TCP, WebSocket)
+- **`variables_reference.md`** - All 339+ available variables with canonical names
+- **`installation_guide.md`** - Step-by-step setup and build instructions
 
-Short descriptions are embedded above for quick orientation. Use the relative paths in this repository (no external links) to avoid 404 issues.
+### Architecture & Development
+- **`architecture_deep_dive.md`** - Multi-interface architecture and data flow internals
+- **`dll_basics_tutorial.md`** - Create Aerofly DLLs from scratch
+- **`thread_safety_tutorial.md`** - Threading model and safe concurrent access patterns
+- **`network_programming_tutorial.md`** - TCP/WebSocket implementations and design patterns
+- **`performance_optimization_tutorial.md`** - Performance budgets, profiling, and optimization
+
+### Application Development
+- **`web_app_tutorial.md`** - Build a browser dashboard using WebSocket
+- **`python_app_tutorial.md`** - Read telemetry via Shared Memory and TCP
+
+### Project Management
+- **`release_guide.md`** - How to build the DLL and publish a GitHub Release
+
+All paths are relative to this repository. See `../reference/json_schema.json` for the JSON schema reference.
 
 ---
 
