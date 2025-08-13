@@ -6,10 +6,12 @@ Prerequisites
 - Start Aerofly FS4 and ensure the Bridge is running
 - Enable WebSocket interface: set `AEROFLY_BRIDGE_WS_ENABLE=1` (default port `8765`)
 
-Included
-- `altitude_monitor.html`: Minimal altitude display with color‑coded cautions (500/1000 ft thresholds).
-- `copilot_checklist.html`: Co‑Pilot checklist dashboard that lights items based on canonical variables (flaps, throttle, IAS, vertical speed, on‑ground, heading).
-- `airspeed_envelope.html`: Horizontal airspeed tape with performance arcs (VS0/VFE/VNO/VNE) and VAPP marker, rendered in `<canvas>`.
+## Files Index
+
+- **`airspeed_envelope.html`**: Horizontal airspeed tape with performance arcs (VS0/VFE/VNO/VNE) and VAPP marker, rendered in `<canvas>`.
+- **`altitude_monitor.html`**: Minimal altitude display with color‑coded cautions (500/1000 ft thresholds).
+- **`copilot_checklist.html`**: Co‑Pilot checklist dashboard that lights items based on canonical variables (flaps, throttle, IAS, vertical speed, pitch, heading).
+- **`radio_navigator.html`**: Smart radio navigation dashboard with VOR/ILS guidance, course deviation indicators, and frequency management.
 
 Tips
 - If values look wrong, confirm canonical variables are enabled and you are in an active flight
