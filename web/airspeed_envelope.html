@@ -138,13 +138,18 @@
 
     function updateFromFrame(frame) {
       const v = frame?.variables || {};
-      latest.iasKt = Number(v['Aircraft.IndicatedAirspeed'] || 0) * MPS_TO_KT;
-      const toKt = (mps) => (Number(mps) || 0) * MPS_TO_KT;
-      latest.VS0 = toKt(v['Performance.Speed.VS0']);
-      latest.VFE = toKt(v['Performance.Speed.VFE']);
-      latest.VNO = toKt(v['Performance.Speed.VNO']);
-      latest.VNE = toKt(v['Performance.Speed.VNE']);
-      latest.VAPP = toKt(v['Performance.Speed.VAPP']);
+      const av = Array.isArray(frame?.all_variables) ? frame.all_variables : null;
+      latest.iasKt = Number(v['Aircraft.IndicatedAirspeed'] ?? (av ? av[5] : 0)) * MPS_TO_KT;
+      const toKt = (mps) => {
+        const n = Number(mps);
+        return Number.isFinite(n) ? n * MPS_TO_KT : NaN;
+      };
+      // Prefer canonical names; fallback to indices if missing
+      latest.VS0 = toKt(v['Performance.Speed.VS0']); if (!isFinite(latest.VS0) && av) latest.VS0 = toKt(av[95]);
+      latest.VFE = toKt(v['Performance.Speed.VFE']); if (!isFinite(latest.VFE) && av) latest.VFE = toKt(av[97]);
+      latest.VNO = toKt(v['Performance.Speed.VNO']); if (!isFinite(latest.VNO) && av) latest.VNO = toKt(av[98]);
+      latest.VNE = toKt(v['Performance.Speed.VNE']); if (!isFinite(latest.VNE) && av) latest.VNE = toKt(av[99]);
+      latest.VAPP = toKt(v['Performance.Speed.VAPP']); if (!isFinite(latest.VAPP) && av) latest.VAPP = toKt(av[100]);
       for (const k of Object.keys(latest)) { if (!isFinite(latest[k])) latest[k] = NaN; }
       drawTape();
       renderText();
