@@ -9,7 +9,7 @@
 
 ## What You'll Learn
 - Consume Bridge data via WebSocket `ws://localhost:8765`
-- Use canonical variables: `Aircraft.IndicatedAirspeed` and `Performance.Speed.*`
+- Prefer canonical variables: `Aircraft.IndicatedAirspeed` and `Performance.Speed.*`, with index fallback when a canonical key is missing
 - Convert units and render a simple instrument with `<canvas>`
 
 ## Step 1: Create the HTML file
@@ -170,14 +170,21 @@ Create a file named `airspeed_envelope.html`:
 
     function updateFromFrame(frame) {
       const v = frame?.variables || {};
-      latest.iasKt = Number(v['Aircraft.IndicatedAirspeed'] || 0) * MPS_TO_KT;
-      // Performance speeds are canonical in m/s → kt
-      const toKt = (mps) => (Number(mps) || 0) * MPS_TO_KT;
-      latest.VS0 = toKt(v['Performance.Speed.VS0']);
-      latest.VFE = toKt(v['Performance.Speed.VFE']);
-      latest.VNO = toKt(v['Performance.Speed.VNO']);
-      latest.VNE = toKt(v['Performance.Speed.VNE']);
-      latest.VAPP = toKt(v['Performance.Speed.VAPP']);
+      const av = Array.isArray(frame?.all_variables) ? frame.all_variables : null; // index fallback
+      // IAS: prefer canonical; fallback to index 5
+      latest.iasKt = Number(v['Aircraft.IndicatedAirspeed'] ?? (av ? av[5] : 0)) * MPS_TO_KT;
+      // m/s → kt conversion helper (robust NaN handling)
+      const toKt = (mps) => {
+        const n = Number(mps);
+        return Number.isFinite(n) ? n * MPS_TO_KT : NaN;
+      };
+      // Performance speeds: prefer canonical; fallback to indices when missing
+      // Indices: VS0=95, VFE=97, VNO=98, VNE=99, VAPP=100
+      latest.VS0 = toKt(v['Performance.Speed.VS0']); if (!isFinite(latest.VS0) && av) latest.VS0 = toKt(av[95]);
+      latest.VFE = toKt(v['Performance.Speed.VFE']); if (!isFinite(latest.VFE) && av) latest.VFE = toKt(av[97]);
+      latest.VNO = toKt(v['Performance.Speed.VNO']); if (!isFinite(latest.VNO) && av) latest.VNO = toKt(av[98]);
+      latest.VNE = toKt(v['Performance.Speed.VNE']); if (!isFinite(latest.VNE) && av) latest.VNE = toKt(av[99]);
+      latest.VAPP = toKt(v['Performance.Speed.VAPP']); if (!isFinite(latest.VAPP) && av) latest.VAPP = toKt(av[100]);
       // sanitize NaNs
       for (const k of Object.keys(latest)) { if (!isFinite(latest[k])) latest[k] = NaN; }
       drawTape();
@@ -210,7 +217,7 @@ Create a file named `airspeed_envelope.html`:
 
 ## How It Works
 - Receives JSON frames over WebSocket from the Bridge.
-- Reads `Aircraft.IndicatedAirspeed` and the performance speeds under `Performance.Speed.*`.
+- Prefers canonical keys in `variables{}` (e.g., `Performance.Speed.*`). When a given canonical key is not present for an aircraft, falls back to the raw index in `all_variables[]`.
 - Converts m/s → knots and draws a simple horizontal tape with colored arcs:
   - White: VS0..VFE (flap operating range)
   - Green: VFE..VNO (normal ops)
@@ -219,7 +226,7 @@ Create a file named `airspeed_envelope.html`:
 - Shows VAPP as a dashed marker.
 
 ## Tips and Variations
-- If some `Performance.Speed.*` values are missing in your aircraft, the tape still scales around IAS; arcs just won’t render for unknown speeds.
+- If some `Performance.Speed.*` values are missing in your aircraft, the index fallback (VS0=95, VFE=97, VNO=98, VNE=99, VAPP=100) keeps the tape functional. If both are absent, the tape scales around IAS and omits that arc.
 - Change the canvas size to fit your layout; the scale adapts.
 - Add aural alerts when IAS enters yellow/red zones.
 
