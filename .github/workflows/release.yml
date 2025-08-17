@@ -20,7 +20,8 @@ jobs:
       - name: Verify Aerofly SDK header
         shell: pwsh
         run: |
-          if (Test-Path 'tm_external_message.h' -or Test-Path 'src/tm_external_message.h') {
+          $headerExists = (Test-Path 'tm_external_message.h') -or (Test-Path 'src/tm_external_message.h')
+          if ($headerExists) {
             Write-Host '✅ Found tm_external_message.h in repository.'
           } else {
             Write-Host '⚠️  SDK header not found - this is expected in CI/CD environment'
