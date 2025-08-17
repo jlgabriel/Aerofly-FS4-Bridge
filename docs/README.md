@@ -96,21 +96,15 @@ Highlights in `tutorials/`:
 - `tutorial_websocket_altitude_monitor.md` — Real-time altitude monitor in the browser using canonical variable `Aircraft.Altitude` with simple low-altitude warnings.
 - `tutorial_websocket_copilot_checklist.md` — Co‑Pilot checklist dashboard that evaluates takeoff/landing rules from canonical variables (parking brake, flaps, throttle, IAS, vertical speed, headings).
 - `tutorial_websocket_airspeed_envelope.md` — Airspeed tape that visualizes performance envelopes from `Performance.Speed.*` (VS0, VFE, VNO, VNE, VAPP).
-- `tutorial_radio_navigator.md` — Python GUI that auto‑tunes NAV/COM by position using the TCP command channel.
-- `tutorial_python_shared_memory.md` — Reading variables directly from the memory‑mapped region.
 - `tutorial_python_flight_logger.md` — Logging complete JSON frames to CSV with basic flight statistics.
+- `tutorial_python_maps_bridge.md` — Maps integration and position tracking.
 
 #### Tutorials index (one‑liners)
 - `tutorial_websocket_altitude_monitor.md`: Build a minimal web altitude monitor that warns below 1000/500 ft.
 - `tutorial_websocket_copilot_checklist.md`: Implement a browser checklist that turns items green/yellow/red from canonical variables.
 - `tutorial_websocket_airspeed_envelope.md`: Draw an airspeed tape with VS0/VFE/VNO/VNE arcs and VAPP marker in `<canvas>`.
-- `tutorial_radio_navigator.md`: Create a Python Tk GUI that auto‑tunes COM/NAV based on nearest airport and VORs.
-- `tutorial_python_shared_memory.md`: Access the `AeroflyBridgeData` mapping and read variables by name/index from offsets JSON.
 - `tutorial_python_flight_logger.md`: Consume TCP JSON frames, log to CSV, and compute flight stats (time, distance, maxima).
-- `tutorial_autopilot_controller.md`: Explore simple autopilot logic patterns using canonical variables and command outputs.
-- `tutorial_flight_analyzer.md`: Analyze captured telemetry snapshots and derive insights for post‑flight review.
-- `python/aerofly_realtime_monitor.py` — Tk desktop monitor that reads shared memory and groups variables.
-- `python/master_control_panel.py` — Demuestra el envío de comandos por el puerto de comandos TCP.
+- `tutorial_python_maps_bridge.md`: Maps integration and position tracking.
 
 Standalone browser demos in `web/` (no build tools):
 - `altitude_monitor.html` — Drop‑in altitude display with color‑coded cautions.
@@ -135,9 +129,9 @@ Notes for running the examples:
   ```bash
   python python/aerofly_fs4_maps_bridge.py
   ```
-- Flight analyzer (local analysis utility):
+- Flight logger (TCP data to CSV):
   ```bash
-  python python/flight_analyzer.py
+  python python/flight_logger.py
   ```
 
 Run examples (Python):

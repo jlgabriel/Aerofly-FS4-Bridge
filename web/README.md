@@ -11,7 +11,6 @@ Prerequisites
 - **`airspeed_envelope.html`**: Horizontal airspeed tape with performance arcs (VS0/VFE/VNO/VNE) and VAPP marker, rendered in `<canvas>`.
 - **`altitude_monitor.html`**: Minimal altitude display with color‑coded cautions (500/1000 ft thresholds).
 - **`copilot_checklist.html`**: Co‑Pilot checklist dashboard that lights items based on canonical variables (flaps, throttle, IAS, vertical speed, pitch, heading).
-- **`radio_navigator.html`**: Smart radio navigation dashboard with VOR/ILS guidance, course deviation indicators, and frequency management.
 
 Tips
 - If values look wrong, confirm canonical variables are enabled and you are in an active flight

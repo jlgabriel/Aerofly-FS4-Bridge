@@ -34,9 +34,9 @@ A multi-interface bridge (Shared Memory, TCP, WebSocket) between Aerofly FS4 and
 
 ### Directories
 - **`docs/`** - Complete documentation and guides (12 files)
-- **`tutorials/`** - Step-by-step tutorial guides (10 files)
-- **`python/`** - Python example applications (5 files)
-- **`web/`** - Standalone HTML demos for WebSocket (4 files)
+- **`tutorials/`** - Step-by-step tutorial guides (5 files)
+- **`python/`** - Python example applications (4 files)
+- **`web/`** - Standalone HTML demos for WebSocket (3 files)
 - **`scripts/`** - Build and release scripts (2 files)
 - **`reference/`** - JSON schema and specifications (1 file)
 - **`dist/`** - Local build outputs (gitignored)
@@ -50,26 +50,19 @@ See `docs/README.md` for full documentation and index.
 - **`airspeed_envelope.html`** - Horizontal airspeed tape with performance arcs
 - **`altitude_monitor.html`** - Minimal altitude display with color-coded cautions
 - **`copilot_checklist.html`** - Co-Pilot checklist dashboard
-- **`radio_navigator.html`** - Smart radio navigation dashboard
 
 ### Python Applications (`python/` folder)
 - **`aerofly_fs4_maps_bridge.py`** - Position tracker using TCP data stream
 - **`aerofly_realtime_monitor.py`** - Tk desktop monitor (shared memory)
-- **`flight_analyzer.py`** - Flight data analysis utility
 - **`flight_logger.py`** - Comprehensive flight data logger with CSV export
 - **`master_control_panel.py`** - Command/control panel (TCP commands)
 
 ### Tutorial Guides (`tutorials/` folder)
-- **`tutorial_autopilot_controller.md`** - Autopilot logic patterns
-- **`tutorial_flight_analyzer.md`** - Telemetry analysis and post-flight review
 - **`tutorial_python_flight_logger.md`** - Flight logger to CSV
 - **`tutorial_python_maps_bridge.md`** - Maps integration and position tracking
-- **`tutorial_python_shared_memory.md`** - Read shared memory in Python
-- **`tutorial_radio_navigator.md`** - Smart radio navigator (Python GUI)
 - **`tutorial_websocket_airspeed_envelope.md`** - Airspeed tape with VS0/VFE/VNO/VNE
 - **`tutorial_websocket_altitude_monitor.md`** - Minimal altitude monitor (web)
 - **`tutorial_websocket_copilot_checklist.md`** - Co-Pilot checklist (web)
-- **`tutorial_websocket_radio_navigator.md`** - WebSocket radio navigator
 
 Examples quick start:
 - Python: `python/python/aerofly_realtime_monitor.py AeroflyBridge_offsets.json`
