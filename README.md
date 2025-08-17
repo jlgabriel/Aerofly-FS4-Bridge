@@ -9,7 +9,15 @@ A multi-interface bridge (Shared Memory, TCP, WebSocket) between Aerofly FS4 and
 3. Start Aerofly FS4 and load a flight.
 
 ## Build from source (developers)
-- Requirement: Download `tm_external_message.h` from `https://www.aerofly.com/developers/` (section "External DLL"). Place it in the project root or in `src/`.
+
+### 📋 **Prerequisites**
+⚠️ **Important**: You must download the Aerofly SDK header before compiling:
+
+1. **Download** `tm_external_message.h` from [IPACS Developer Site](https://www.aerofly.com/developers/) (section "External DLL")
+2. **Place** the file in the project root directory
+3. **Note**: This file is not included in the repository due to IPACS licensing restrictions
+
+### 🔨 **Build Steps**
 - Build (Windows, VS2022):
   ```cmd
   scripts\compile.bat

@@ -41,7 +41,12 @@ cl.exe /LD /EHsc /O2 /DNDEBUG /std:c++17 /DWIN32 /D_WINDOWS /D_USRDLL aerofly_br
 
 For detailed setup, see the Installation Guide in this docs folder: `installation_guide.md`.
 
-Note: To build from source you must download `tm_external_message.h` from `https://www.aerofly.com/developers/` (section "External DLL") and place it in the project root or in `src/`.
+### 📋 **Prerequisites for Building**
+⚠️ **Important**: To build from source, you must download the Aerofly SDK header:
+
+1. **Download** `tm_external_message.h` from [IPACS Developer Site](https://www.aerofly.com/developers/) (section "External DLL")
+2. **Place** the file in the project root directory
+3. **Note**: This file is not included in the repository due to IPACS licensing restrictions
 
 ## ✨ Features
 

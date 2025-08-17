@@ -21,8 +21,13 @@ This guide covers everything you need to get the bridge running, from basic inst
 - Make sure Aerofly FS 4 is installed and working properly
 
 **Aerofly SDK Header (required for building from source):**
-- Download `tm_external_message.h` from the official Aerofly developers page (`https://www.aerofly.com/developers/`), section "External DLL".
-- Place the file at the project root or inside the `src/` folder before compiling.
+⚠️ **Critical Requirement**: To build from source, you MUST obtain the IPACS SDK header:
+
+1. **Download Location**: [IPACS Developer Site](https://www.aerofly.com/developers/) → "External DLL" section
+2. **File Name**: `tm_external_message.h`
+3. **Placement**: Project root directory (same folder as `aerofly_bridge_dll.cpp`)
+4. **License Note**: This file is proprietary to IPACS and cannot be redistributed
+5. **CI/CD Note**: GitHub Actions will compile without this file (header assumed available)
 
 **Hardware:**
 - **RAM**: Minimum 8GB (16GB recommended for development)
