@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to Keep a Changelog and Semantic Versioning.
 
-## [v0.2.0] - 2025-01-16
+## [v0.2.0] - 2025-08-16
 
 ### 🚀 Major API Enhancement
 
