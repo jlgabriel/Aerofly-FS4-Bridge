@@ -1,4 +1,4 @@
-name: Build and Release DLL
+name: Validate and Release Source Code
 
 on:
   push:
@@ -7,59 +7,99 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    name: Build AeroflyBridge.dll
+  validate:
+    name: Validate Project Structure
     runs-on: windows-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup MSVC dev cmd
-        uses: ilammy/msvc-dev-cmd@v1
-
-      - name: Verify Aerofly SDK header
+      - name: Validate project structure
         shell: pwsh
         run: |
-          $headerExists = (Test-Path 'tm_external_message.h') -or (Test-Path 'src/tm_external_message.h')
-          if ($headerExists) {
-            Write-Host '✅ Found tm_external_message.h in repository.'
+          Write-Host '🔍 Validating Aerofly FS4 Bridge project structure...'
+          
+          # Check main source file
+          if (Test-Path 'aerofly_bridge_dll.cpp') {
+            Write-Host '✅ Main source file found: aerofly_bridge_dll.cpp'
           } else {
-            Write-Host '⚠️  SDK header not found - this is expected in CI/CD environment'
-            Write-Host '📋 Users must download tm_external_message.h from IPACS Developer Site'
-            Write-Host '🔗 Download from: https://www.aerofly.com/developers/'
-            Write-Host '📁 Place in project root before local compilation'
-            Write-Host '🚀 CI will proceed with compilation assuming header availability'
+            Write-Error '❌ Missing main source file: aerofly_bridge_dll.cpp'
+          }
+          
+          # Check documentation
+          if (Test-Path 'docs/') {
+            $docFiles = Get-ChildItem 'docs/' -Filter '*.md' | Measure-Object
+            Write-Host "✅ Documentation folder found with $($docFiles.Count) markdown files"
+          } else {
+            Write-Error '❌ Missing documentation folder'
+          }
+          
+          # Check build scripts
+          if (Test-Path 'scripts/compile.bat') {
+            Write-Host '✅ Build script found: scripts/compile.bat'
+          } else {
+            Write-Error '❌ Missing build script: scripts/compile.bat'
           }
 
-      - name: Compile DLL
+      - name: SDK Header Information
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force -Path dist | Out-Null
-          cl.exe /LD /EHsc /O2 /DNDEBUG /std:c++17 /DWIN32 /D_WINDOWS /D_USRDLL `
-            aerofly_bridge_dll.cpp `
-            /Fe:dist\AeroflyBridge.dll `
-            /link ws2_32.lib kernel32.lib user32.lib
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: AeroflyBridge-dll
-          path: dist/AeroflyBridge.dll
+          Write-Host '📋 Aerofly SDK Header Information:'
+          Write-Host '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
+          
+          $headerExists = (Test-Path 'tm_external_message.h') -or (Test-Path 'src/tm_external_message.h')
+          if ($headerExists) {
+            Write-Host '✅ Found tm_external_message.h in repository'
+            Write-Host '🚀 Local compilation can proceed'
+          } else {
+            Write-Host '⚠️  SDK header not found - this is EXPECTED in CI/CD environment'
+            Write-Host ''
+            Write-Host '📋 For local compilation, users must:'
+            Write-Host '   1. Download tm_external_message.h from IPACS Developer Site'
+            Write-Host '   2. URL: https://www.aerofly.com/developers/ (External DLL section)'
+            Write-Host '   3. Place file in project root directory'
+            Write-Host '   4. Run: scripts\compile.bat'
+            Write-Host ''
+            Write-Host '🔒 Note: SDK header cannot be distributed due to IPACS licensing'
+            Write-Host '✅ CI validation completed - source code structure is valid'
+          }
 
   release:
-    name: Attach DLL to GitHub Release
+    name: Create GitHub Release
     runs-on: windows-latest
-    needs: build
+    needs: validate
     if: startsWith(github.ref, 'refs/tags/')
     steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: AeroflyBridge-dll
-          path: dist
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Create GitHub Release and upload asset
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/AeroflyBridge.dll
+          generate_release_notes: true
+          body: |
+            ## 🚀 Aerofly FS4 Bridge Release
+            
+            **📁 Source Code Release**: This release contains the complete source code and documentation.
+            
+            ### 🔨 **To Compile Locally:**
+            1. **Download SDK Header**: Get `tm_external_message.h` from [IPACS Developer Site](https://www.aerofly.com/developers/) (External DLL section)
+            2. **Place in Root**: Copy the header file to the project root directory
+            3. **Compile**: Run `scripts\compile.bat` (requires Visual Studio 2022)
+            4. **Install**: Copy `dist\AeroflyBridge.dll` to your Aerofly FS 4 external_dll folder
+            
+            ### 📋 **What's Included:**
+            - ✅ Complete C++ source code (`aerofly_bridge_dll.cpp`)
+            - ✅ Build scripts (`scripts/compile.bat`)
+            - ✅ Comprehensive documentation (`docs/` folder)
+            - ✅ Example applications (`python/` folder)
+            - ✅ Web demos (`web/` folder)
+            - ✅ Tutorials and guides
+            
+            ### ⚠️ **Important Notes:**
+            - **SDK Header Required**: The IPACS SDK header (`tm_external_message.h`) is required for compilation but cannot be distributed due to licensing restrictions
+            - **Local Compilation Only**: Users must compile the DLL locally after obtaining the SDK header
+            - **Windows Only**: Requires Visual Studio 2022 and Windows 10/11
+            
+            See `CHANGELOG.md` for detailed release notes and migration information.
 
