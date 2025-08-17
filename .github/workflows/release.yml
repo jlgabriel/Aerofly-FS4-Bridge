@@ -1,9 +1,10 @@
-name: Validate and Release Source Code
+name: Validate Project Structure
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -40,6 +41,13 @@ jobs:
           } else {
             Write-Error '❌ Missing build script: scripts/compile.bat'
           }
+          
+          # Check CHANGELOG
+          if (Test-Path 'CHANGELOG.md') {
+            Write-Host '✅ CHANGELOG.md found'
+          } else {
+            Write-Error '❌ Missing CHANGELOG.md'
+          }
 
       - name: SDK Header Information
         shell: pwsh
@@ -62,44 +70,7 @@ jobs:
             Write-Host ''
             Write-Host '🔒 Note: SDK header cannot be distributed due to IPACS licensing'
             Write-Host '✅ CI validation completed - source code structure is valid'
+            Write-Host ''
+            Write-Host '📦 Releases are created manually by maintainer with compiled DLL'
           }
-
-  release:
-    name: Create GitHub Release
-    runs-on: windows-latest
-    needs: validate
-    if: startsWith(github.ref, 'refs/tags/')
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          generate_release_notes: true
-          body: |
-            ## 🚀 Aerofly FS4 Bridge Release
-            
-            **📁 Source Code Release**: This release contains the complete source code and documentation.
-            
-            ### 🔨 **To Compile Locally:**
-            1. **Download SDK Header**: Get `tm_external_message.h` from [IPACS Developer Site](https://www.aerofly.com/developers/) (External DLL section)
-            2. **Place in Root**: Copy the header file to the project root directory
-            3. **Compile**: Run `scripts\compile.bat` (requires Visual Studio 2022)
-            4. **Install**: Copy `dist\AeroflyBridge.dll` to your Aerofly FS 4 external_dll folder
-            
-            ### 📋 **What's Included:**
-            - ✅ Complete C++ source code (`aerofly_bridge_dll.cpp`)
-            - ✅ Build scripts (`scripts/compile.bat`)
-            - ✅ Comprehensive documentation (`docs/` folder)
-            - ✅ Example applications (`python/` folder)
-            - ✅ Web demos (`web/` folder)
-            - ✅ Tutorials and guides
-            
-            ### ⚠️ **Important Notes:**
-            - **SDK Header Required**: The IPACS SDK header (`tm_external_message.h`) is required for compilation but cannot be distributed due to licensing restrictions
-            - **Local Compilation Only**: Users must compile the DLL locally after obtaining the SDK header
-            - **Windows Only**: Requires Visual Studio 2022 and Windows 10/11
-            
-            See `CHANGELOG.md` for detailed release notes and migration information.
 
