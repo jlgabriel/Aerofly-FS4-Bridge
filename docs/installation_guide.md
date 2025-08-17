@@ -159,8 +159,7 @@ Once installed, verify that the bridge is working:
      "variables": {
        "Aircraft.Altitude": 1000.0,
        "Aircraft.IndicatedAirspeed": 120.5
-     },
-     "all_variables": [ ... ]
+     }
    }
    ```
 

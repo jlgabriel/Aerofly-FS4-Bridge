@@ -1,6 +1,6 @@
 # Variables Reference
 
-**Complete reference of all 339+ variables available through Aerofly FS4 Bridge**
+**Complete reference of all 361 variables available through Aerofly FS4 Bridge**
 
 Copyright (c) 2025 Juan Luis Gabriel
 
@@ -26,7 +26,7 @@ This document provides comprehensive information about every variable accessible
 | **[Simulation](#-simulation-296-315)** | 20 variables | Sim environment controls |
 | **[Cessna 172](#-cessna-172-specific-316-338)** | 23 variables | C172-specific systems |
 
-**Total: 339+ variables**
+**Total: 361 variables**
 
 ---
 
@@ -130,12 +130,12 @@ const altitude_m = data.variables["Aircraft.Altitude"];     // meters MSL
 const ias_mps    = data.variables["Aircraft.IndicatedAirspeed"]; // m/s
 const onGround   = data.variables["Aircraft.OnGround"] === 1;
 
-// Or access by index from the raw array
-const throttle = data.all_variables[28]; // Aircraft.Throttle
+// Access additional variables by canonical name
+const throttle = data.variables["Controls.Throttle"];
 
 // Set throttle via command
 {
-  "variable": "Aircraft.Throttle",
+  "variable": "Controls.Throttle",
   "value": 0.75
 }
 ```
@@ -714,14 +714,14 @@ const char* navId = pData->navigation_nav1_identifier;
 ```javascript
 const altitude_m = data.variables["Aircraft.Altitude"];
 const onGround = (data.variables["Aircraft.OnGround"] === 1);
-const throttle = data.all_variables[28];
+const throttle = data.variables["Controls.Throttle"];
 ```
 
 **Python via offsets:**
 ```python
 altitude = bridge.get_variable('Aircraft.Altitude')
 onGround = bridge.get_variable('Aircraft.OnGround') == 1
-throttle = bridge.get_variable_by_index(28)
+throttle = bridge.get_variable('Controls.Throttle')
 ```
 
 ---
@@ -748,42 +748,43 @@ throttle = bridge.get_variable_by_index(28)
 **Most commonly used variables:**
 
 ```javascript
-// Essential flight data (by index)
+// Essential flight data (by canonical name - recommended)
 const essentials = {
-  altitude: data.all_variables[1],      // Aircraft.Altitude
-  airspeed: data.all_variables[5],      // Aircraft.IndicatedAirspeed  
-  heading: data.all_variables[9],       // Aircraft.TrueHeading
-  pitch: data.all_variables[3],         // Aircraft.Pitch
-  bank: data.all_variables[4],          // Aircraft.Bank
-  throttle: data.all_variables[28],     // Aircraft.Throttle
-  flaps: data.all_variables[26],        // Aircraft.Flaps
-  gear: data.all_variables[25],         // Aircraft.Gear
-  onGround: data.all_variables[52],     // Aircraft.OnGround
-};
-```
-
-Equivalent via canonical names:
-```javascript
-const essentialsByName = {
   altitude: data.variables["Aircraft.Altitude"],
   airspeed: data.variables["Aircraft.IndicatedAirspeed"],
   heading: data.variables["Aircraft.TrueHeading"],
   pitch: data.variables["Aircraft.Pitch"],
   bank: data.variables["Aircraft.Bank"],
-  throttle: data.variables["Aircraft.Throttle"],
+  throttle: data.variables["Controls.Throttle"],
   flaps: data.variables["Aircraft.Flaps"],
   gear: data.variables["Aircraft.Gear"],
   onGround: data.variables["Aircraft.OnGround"],
 };
 ```
 
+**Alternative access by variable name:**
+```python
+# Python example using canonical names
+essentials = {
+    'altitude': bridge.get_variable('Aircraft.Altitude'),
+    'airspeed': bridge.get_variable('Aircraft.IndicatedAirspeed'),
+    'heading': bridge.get_variable('Aircraft.TrueHeading'),
+    'pitch': bridge.get_variable('Aircraft.Pitch'),
+    'bank': bridge.get_variable('Aircraft.Bank'),
+    'throttle': bridge.get_variable('Controls.Throttle'),
+    'flaps': bridge.get_variable('Aircraft.Flaps'),
+    'gear': bridge.get_variable('Aircraft.Gear'),
+    'onGround': bridge.get_variable('Aircraft.OnGround'),
+}
+```
+
 **Most commonly controlled variables:**
-- `Aircraft.Throttle` (28)
-- `Controls.Pitch.Input` (192)
-- `Controls.Roll.Input` (193)
-- `Controls.Yaw.Input` (194)
-- `Aircraft.Flaps` (26)
-- `Aircraft.Gear` (25)
+- `Controls.Throttle` - Primary throttle control
+- `Controls.Pitch.Input` - Elevator input
+- `Controls.Roll.Input` - Aileron input
+- `Controls.Yaw.Input` - Rudder input
+- `Aircraft.Flaps` - Flap position
+- `Aircraft.Gear` - Landing gear position
 
 ---
 

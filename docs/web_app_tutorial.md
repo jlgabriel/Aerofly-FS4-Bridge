@@ -32,13 +32,12 @@ Each message from the bridge is JSON with:
     "Aircraft.Altitude": 1066.8,
     "Aircraft.IndicatedAirspeed": 61.8,
     "Aircraft.TrueHeading": 1.57
-  },
-  "all_variables": [ 0.0, 1066.8, 0.76 ]
+  }
 }
 ```
 
-- Use `variables["Canonical.Name"]` for readability
-- Use `all_variables[index]` when you need maximum speed
+- Use `variables["Canonical.Name"]` for readability and maintainability
+- All 361 variables are accessible with descriptive names
 
 ## Minimal HTML dashboard
 

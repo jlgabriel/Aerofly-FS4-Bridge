@@ -20,6 +20,7 @@
 #include <vector>
 #include <mutex>
 #include <unordered_map>
+#include <unordered_set>
 #include <string>
 #include <sstream>
 #include <cmath>
@@ -4520,128 +4521,463 @@ public:
 // ================================================================================================
 static std::string BuildDataJSON(const AeroflyBridgeData* data) {
     if (!data) return std::string("{}\n");
-        std::ostringstream json;
-        json.setf(std::ios::fixed);
-        json.precision(6);
-        json.seekp(0);
-        json << "{";
-        // JSON schema identifiers for consumers
-        json << "\"schema\":\"aerofly-bridge-telemetry\",";
-        json << "\"schema_version\":1,";
-        json << "\"timestamp\":" << data->timestamp_us << ",";
-        json << "\"timestamp_unit\":\"microseconds\",";
-        json << "\"data_valid\":" << data->data_valid << ",";
-        json << "\"update_counter\":" << data->update_counter << ",";
-        // Broadcast cadence hint
-        json << "\"broadcast_rate_hz\":";
-        {
-            // Mirror same env logic as servers to expose configured cadence
-            static double cached_rate = [](){
-                char buf[32] = {0};
-                DWORD n = GetEnvironmentVariableA("AEROFLY_BRIDGE_BROADCAST_MS", buf, sizeof(buf));
-                int ms = (n > 0) ? atoi(buf) : 20; if (ms < 5) ms = 5;
-                return 1000.0 / (double)ms;
-            }();
-            json << cached_rate << ",";
-        }
-        
-        // Note: simplified grouped sections removed to standardize on canonical names
-        
-        // Canonical SDK-name variables mirror (pre-release additive change)
-        // Emits a compact object keyed by Aerofly SDK names to minimize name variants
-        json << "\"variables\":{";
-        // Aircraft core (matches fields above)
-        json << "\"Aircraft.Latitude\":" << data->aircraft_latitude << ",";
-        json << "\"Aircraft.Longitude\":" << data->aircraft_longitude << ",";
-        json << "\"Aircraft.Altitude\":" << data->aircraft_altitude << ",";
-        json << "\"Aircraft.Pitch\":" << data->aircraft_pitch << ",";
-        json << "\"Aircraft.Bank\":" << data->aircraft_bank << ",";
-        json << "\"Aircraft.TrueHeading\":" << data->aircraft_true_heading << ",";
-        json << "\"Aircraft.IndicatedAirspeed\":" << data->aircraft_indicated_airspeed << ",";
-        json << "\"Aircraft.GroundSpeed\":" << data->aircraft_ground_speed << ",";
-        json << "\"Aircraft.VerticalSpeed\":" << data->aircraft_vertical_speed << ",";
-        json << "\"Aircraft.AngleOfAttack\":" << data->aircraft_angle_of_attack << ",";
-        json << "\"Aircraft.OnGround\":" << data->aircraft_on_ground << ",";
-
-        // Controls (inputs)
-        json << "\"Controls.Pitch.Input\":" << data->controls_pitch_input << ",";
-        json << "\"Controls.Roll.Input\":" << data->controls_roll_input << ",";
-        json << "\"Controls.Yaw.Input\":" << data->controls_yaw_input << ",";
-
-        // Aircraft configuration (levers)
-        json << "\"Aircraft.Throttle\":" << data->aircraft_throttle << ",";
-        json << "\"Aircraft.Flaps\":" << data->aircraft_flaps << ",";
-        json << "\"Aircraft.Gear\":" << data->aircraft_gear << ",";
-
-        // Communication/Navigation (subset)
-        json << "\"Communication.COM1Frequency\":" << data->communication_com1_frequency << ",";
-        json << "\"Communication.COM1StandbyFrequency\":" << data->communication_com1_standby_frequency << ",";
-        json << "\"Navigation.NAV1Frequency\":" << data->navigation_nav1_frequency << ",";
-        json << "\"Navigation.SelectedCourse1\":" << data->navigation_selected_course_1 << ",";
-
-        // Autopilot (selected values)
-        json << "\"Autopilot.Engaged\":" << data->autopilot_engaged << ",";
-        json << "\"Autopilot.SelectedAirspeed\":" << data->autopilot_selected_airspeed << ",";
-        json << "\"Autopilot.SelectedHeading\":" << data->autopilot_selected_heading << ",";
-        json << "\"Autopilot.SelectedAltitude\":" << data->autopilot_selected_altitude << ",";
-
-        // Aircraft dynamics extras
-        json << "\"Aircraft.MagneticHeading\":" << data->aircraft_magnetic_heading << ",";
-        json << "\"Aircraft.MachNumber\":" << data->aircraft_mach_number << ",";
-        json << "\"Aircraft.RateOfTurn\":" << data->aircraft_rate_of_turn << ",";
-        json << "\"Aircraft.RadarAltitude\":" << data->aircraft_radar_altitude << ",";
-        json << "\"Aircraft.IndicatedAirspeedTrend\":" << data->aircraft_indicated_airspeed_trend << ",";
-        json << "\"Aircraft.OnRunway\":" << data->aircraft_on_runway << ",";
-        json << "\"Aircraft.Height\":" << data->aircraft_height << ",";
-
-        // Flattened vector components (Velocity, AngularVelocity, Acceleration, Wind)
-        json << "\"Aircraft.Velocity.X\":" << data->aircraft_velocity.x << ",";
-        json << "\"Aircraft.Velocity.Y\":" << data->aircraft_velocity.y << ",";
-        json << "\"Aircraft.Velocity.Z\":" << data->aircraft_velocity.z << ",";
-        json << "\"Aircraft.AngularVelocity.X\":" << data->aircraft_angular_velocity.x << ",";
-        json << "\"Aircraft.AngularVelocity.Y\":" << data->aircraft_angular_velocity.y << ",";
-        json << "\"Aircraft.AngularVelocity.Z\":" << data->aircraft_angular_velocity.z << ",";
-        json << "\"Aircraft.Acceleration.X\":" << data->aircraft_acceleration.x << ",";
-        json << "\"Aircraft.Acceleration.Y\":" << data->aircraft_acceleration.y << ",";
-        json << "\"Aircraft.Acceleration.Z\":" << data->aircraft_acceleration.z << ",";
-        json << "\"Aircraft.Wind.X\":" << data->aircraft_wind.x << ",";
-        json << "\"Aircraft.Wind.Y\":" << data->aircraft_wind.y << ",";
-        json << "\"Aircraft.Wind.Z\":" << data->aircraft_wind.z << ",";
-
-        // Additional Controls
-        json << "\"Controls.AirBrake\":" << data->controls_airbrake << ",";
-        json << "\"Controls.WheelBrake.Left\":" << data->controls_brake_left << ",";
-        json << "\"Controls.WheelBrake.Right\":" << data->controls_brake_right << ",";
-
-        // Additional Autopilot
-        json << "\"Autopilot.SelectedVerticalSpeed\":" << data->autopilot_selected_vertical_speed << ",";
-        json << "\"Autopilot.SelectedAltitudeScale\":" << data->autopilot_selected_altitude_scale << ",";
-        json << "\"Autopilot.UseMachNumber\":" << data->autopilot_use_mach_number << ",";
-        json << "\"Autopilot.SpeedManaged\":" << data->autopilot_speed_managed << ",";
-        json << "\"Autopilot.TargetAirspeed\":" << data->autopilot_target_airspeed << ",";
-        json << "\"Autopilot.ThrottleEngaged\":" << data->autopilot_throttle_engaged << ",";
-
-        // Additional Communication/Navigation
-        json << "\"Communication.COM2Frequency\":" << data->communication_com2_frequency << ",";
-        json << "\"Communication.COM2StandbyFrequency\":" << data->communication_com2_standby_frequency << ",";
-        json << "\"Navigation.NAV2Frequency\":" << data->navigation_nav2_frequency << ",";
-        json << "\"Navigation.DME1Distance\":" << data->navigation_dme1_distance << ",";
-        json << "\"Navigation.DME1Time\":" << data->navigation_dme1_time << ",";
-        json << "\"Navigation.DME1Speed\":" << data->navigation_dme1_speed << ",";
-        json << "\"Navigation.ILS1Course\":" << data->navigation_ils1_course;
-        json << "},";
-
-        // All variables array (for direct access by index)
-        json << "\"all_variables\":[";
-        for (int i = 0; i < (int)VariableIndex::COUNT; ++i) {
-            if (i > 0) json << ",";
-            json << data->all_variables[i];
-        }
-        json << "]";
-        
-        json << "}\n";
-        return json.str();
+    
+    std::ostringstream json;
+    json.setf(std::ios::fixed);
+    json.precision(6);
+    json.seekp(0);
+    
+    json << "{";
+    
+    // JSON schema identifiers for consumers
+    json << "\"schema\":\"aerofly-bridge-telemetry\",";
+    json << "\"schema_version\":1,";
+    json << "\"timestamp\":" << data->timestamp_us << ",";
+    json << "\"timestamp_unit\":\"microseconds\",";
+    json << "\"data_valid\":" << data->data_valid << ",";
+    json << "\"update_counter\":" << data->update_counter << ",";
+    
+    // Broadcast cadence hint
+    json << "\"broadcast_rate_hz\":";
+    {
+        // Mirror same env logic as servers to expose configured cadence
+        static double cached_rate = [](){
+            char buf[32] = {0};
+            DWORD n = GetEnvironmentVariableA("AEROFLY_BRIDGE_BROADCAST_MS", buf, sizeof(buf));
+            int ms = (n > 0) ? atoi(buf) : 20; 
+            if (ms < 5) ms = 5;
+            return 1000.0 / (double)ms;
+        }();
+        json << cached_rate << ",";
     }
+    
+    // VARIABLES SECTION - ALL 339+ VARIABLES WITH DESCRIPTIVE NAMES
+    json << "\"variables\":{";
+    
+    // === AIRCRAFT VARIABLES (0-94) FROM all_variables[] ===
+    json << "\"Aircraft.UniversalTime\":" << data->all_variables[0];
+    json << ",\"Aircraft.Altitude\":" << data->all_variables[1];
+    json << ",\"Aircraft.VerticalSpeed\":" << data->all_variables[2];
+    json << ",\"Aircraft.Pitch\":" << data->all_variables[3];
+    json << ",\"Aircraft.Bank\":" << data->all_variables[4];
+    json << ",\"Aircraft.IndicatedAirspeed\":" << data->all_variables[5];
+    json << ",\"Aircraft.IndicatedAirspeedTrend\":" << data->all_variables[6];
+    json << ",\"Aircraft.GroundSpeed\":" << data->all_variables[7];
+    json << ",\"Aircraft.MagneticHeading\":" << data->all_variables[8];
+    json << ",\"Aircraft.TrueHeading\":" << data->all_variables[9];
+    json << ",\"Aircraft.Latitude\":" << data->all_variables[10];
+    json << ",\"Aircraft.Longitude\":" << data->all_variables[11];
+    json << ",\"Aircraft.Height\":" << data->all_variables[12];
+    // Note: Aircraft.Position (13) is Vector3d - handled separately
+    json << ",\"Aircraft.Orientation\":" << data->all_variables[14];
+    // Note: Aircraft.Velocity (15) is Vector3d - handled separately
+    // Note: Aircraft.AngularVelocity (16) is Vector3d - handled separately  
+    // Note: Aircraft.Acceleration (17) is Vector3d - handled separately
+    // Note: Aircraft.Gravity (18) is Vector3d - handled separately
+    // Note: Aircraft.Wind (19) is Vector3d - handled separately
+    json << ",\"Aircraft.RateOfTurn\":" << data->all_variables[20];
+    json << ",\"Aircraft.MachNumber\":" << data->all_variables[21];
+    json << ",\"Aircraft.AngleOfAttack\":" << data->all_variables[22];
+    json << ",\"Aircraft.AngleOfAttackLimit\":" << data->all_variables[23];
+    json << ",\"Aircraft.AccelerationLimit\":" << data->all_variables[24];
+    json << ",\"Aircraft.Gear\":" << data->all_variables[25];
+    json << ",\"Aircraft.Flaps\":" << data->all_variables[26];
+    json << ",\"Aircraft.Slats\":" << data->all_variables[27];
+    json << ",\"Aircraft.Throttle\":" << data->all_variables[28];
+    json << ",\"Aircraft.AirBrake\":" << data->all_variables[29];
+    json << ",\"Aircraft.GroundSpoilersArmed\":" << data->all_variables[30];
+    json << ",\"Aircraft.GroundSpoilersExtended\":" << data->all_variables[31];
+    json << ",\"Aircraft.ParkingBrake\":" << data->all_variables[32];
+    json << ",\"Aircraft.AutoBrakeSetting\":" << data->all_variables[33];
+    json << ",\"Aircraft.AutoBrakeEngaged\":" << data->all_variables[34];
+    json << ",\"Aircraft.AutoBrakeRejectedTakeOff\":" << data->all_variables[35];
+    json << ",\"Aircraft.RadarAltitude\":" << data->all_variables[36];
+    // Note: Aircraft.Name (37) is String - handled separately
+    // Note: Aircraft.NearestAirportIdentifier (38) is String - handled separately
+    // Note: Aircraft.NearestAirportName (39) is String - handled separately
+    // Note: Aircraft.NearestAirportLocation (40) is Vector2d - handled separately
+    json << ",\"Aircraft.NearestAirportElevation\":" << data->all_variables[41];
+    // Note: Aircraft.BestAirportIdentifier (42) is String - handled separately
+    // Note: Aircraft.BestAirportName (43) is String - handled separately
+    // Note: Aircraft.BestAirportLocation (44) is Vector2d - handled separately
+    json << ",\"Aircraft.BestAirportElevation\":" << data->all_variables[45];
+    // Note: Aircraft.BestRunwayIdentifier (46) is String - handled separately
+    json << ",\"Aircraft.BestRunwayElevation\":" << data->all_variables[47];
+    // Note: Aircraft.BestRunwayThreshold (48) is Vector3d - handled separately
+    // Note: Aircraft.BestRunwayEnd (49) is Vector3d - handled separately
+    json << ",\"Aircraft.Category.Jet\":" << data->all_variables[50];
+    json << ",\"Aircraft.Category.Glider\":" << data->all_variables[51];
+    json << ",\"Aircraft.OnGround\":" << data->all_variables[52];
+    json << ",\"Aircraft.OnRunway\":" << data->all_variables[53];
+    json << ",\"Aircraft.Crashed\":" << data->all_variables[54];
+    json << ",\"Aircraft.Power\":" << data->all_variables[55];
+    json << ",\"Aircraft.NormalizedPower\":" << data->all_variables[56];
+    json << ",\"Aircraft.NormalizedPowerTarget\":" << data->all_variables[57];
+    json << ",\"Aircraft.Trim\":" << data->all_variables[58];
+    json << ",\"Aircraft.PitchTrim\":" << data->all_variables[59];
+    json << ",\"Aircraft.PitchTrimScaling\":" << data->all_variables[60];
+    json << ",\"Aircraft.RudderTrim\":" << data->all_variables[61];
+    json << ",\"Aircraft.AileronTrim\":" << data->all_variables[62];
+    json << ",\"Aircraft.YawDamperEnabled\":" << data->all_variables[63];
+    json << ",\"Aircraft.AutoPitchTrim\":" << data->all_variables[64];
+    
+    // === ENGINE VARIABLES (65-94) ===
+    json << ",\"Aircraft.EngineMaster1\":" << data->all_variables[65];
+    json << ",\"Aircraft.EngineMaster2\":" << data->all_variables[66];
+    json << ",\"Aircraft.EngineMaster3\":" << data->all_variables[67];
+    json << ",\"Aircraft.EngineMaster4\":" << data->all_variables[68];
+    json << ",\"Aircraft.Starter1\":" << data->all_variables[69];
+    json << ",\"Aircraft.Starter2\":" << data->all_variables[70];
+    json << ",\"Aircraft.Starter3\":" << data->all_variables[71];
+    json << ",\"Aircraft.Starter4\":" << data->all_variables[72];
+    json << ",\"Aircraft.Ignition1\":" << data->all_variables[73];
+    json << ",\"Aircraft.Ignition2\":" << data->all_variables[74];
+    json << ",\"Aircraft.Ignition3\":" << data->all_variables[75];
+    json << ",\"Aircraft.Ignition4\":" << data->all_variables[76];
+    json << ",\"Aircraft.EngineRotationSpeed1\":" << data->all_variables[77];
+    json << ",\"Aircraft.EngineRotationSpeed2\":" << data->all_variables[78];
+    json << ",\"Aircraft.EngineRotationSpeed3\":" << data->all_variables[79];
+    json << ",\"Aircraft.EngineRotationSpeed4\":" << data->all_variables[80];
+    json << ",\"Aircraft.EngineRunning1\":" << data->all_variables[81];
+    json << ",\"Aircraft.EngineRunning2\":" << data->all_variables[82];
+    json << ",\"Aircraft.EngineRunning3\":" << data->all_variables[83];
+    json << ",\"Aircraft.EngineRunning4\":" << data->all_variables[84];
+    json << ",\"Aircraft.ThrottleLimit\":" << data->all_variables[85];
+    json << ",\"Aircraft.APUAvailable\":" << data->all_variables[86];
+    json << ",\"Aircraft.APURunning\":" << data->all_variables[87];
+    json << ",\"Aircraft.APUGeneratorPowered\":" << data->all_variables[88];
+    json << ",\"Aircraft.APUBleedAirValve\":" << data->all_variables[89];
+    json << ",\"Aircraft.GPUAvailable\":" << data->all_variables[90];
+    json << ",\"Aircraft.GPUPowered\":" << data->all_variables[91];
+    json << ",\"Aircraft.ExternalAirPowered\":" << data->all_variables[92];
+    json << ",\"Aircraft.Generator1\":" << data->all_variables[93];
+    json << ",\"Aircraft.Generator2\":" << data->all_variables[94];
+    
+    // === PERFORMANCE SPEEDS (95-104) ===
+    json << ",\"Performance.Speed.VS0\":" << data->all_variables[95];
+    json << ",\"Performance.Speed.VS1\":" << data->all_variables[96];
+    json << ",\"Performance.Speed.VFE\":" << data->all_variables[97];
+    json << ",\"Performance.Speed.VNO\":" << data->all_variables[98];
+    json << ",\"Performance.Speed.VNE\":" << data->all_variables[99];
+    json << ",\"Performance.Speed.VAPP\":" << data->all_variables[100];
+    json << ",\"Performance.Speed.Minimum\":" << data->all_variables[101];
+    json << ",\"Performance.Speed.Maximum\":" << data->all_variables[102];
+    json << ",\"Performance.Speed.MinimumFlapRetraction\":" << data->all_variables[103];
+    json << ",\"Performance.Speed.MaximumFlapExtension\":" << data->all_variables[104];
+    
+    // === CONFIGURATION (105-106) ===
+    json << ",\"Configuration.SelectedTakeOffFlaps\":" << data->all_variables[105];
+    json << ",\"Configuration.SelectedLandingFlaps\":" << data->all_variables[106];
+    
+    // === FMS (107) - String handled separately ===
+    // FlightManagementSystem.FlightNumber (107) is String
+    
+    // === NAVIGATION (108-141) ===
+    json << ",\"Navigation.SelectedCourse1\":" << data->all_variables[108];
+    json << ",\"Navigation.SelectedCourse2\":" << data->all_variables[109];
+    // Navigation.NAV1Identifier (110) is String - handled separately
+    json << ",\"Navigation.NAV1Frequency\":" << data->all_variables[111];
+    json << ",\"Navigation.NAV1StandbyFrequency\":" << data->all_variables[112];
+    json << ",\"Navigation.NAV1FrequencySwap\":" << data->all_variables[113];
+    // Navigation.NAV2Identifier (114) is String - handled separately
+    json << ",\"Navigation.NAV2Frequency\":" << data->all_variables[115];
+    json << ",\"Navigation.NAV2StandbyFrequency\":" << data->all_variables[116];
+    json << ",\"Navigation.NAV2FrequencySwap\":" << data->all_variables[117];
+    json << ",\"Navigation.DME1Frequency\":" << data->all_variables[118];
+    json << ",\"Navigation.DME1Distance\":" << data->all_variables[119];
+    json << ",\"Navigation.DME1Time\":" << data->all_variables[120];
+    json << ",\"Navigation.DME1Speed\":" << data->all_variables[121];
+    json << ",\"Navigation.DME2Frequency\":" << data->all_variables[122];
+    json << ",\"Navigation.DME2Distance\":" << data->all_variables[123];
+    json << ",\"Navigation.DME2Time\":" << data->all_variables[124];
+    json << ",\"Navigation.DME2Speed\":" << data->all_variables[125];
+    // Navigation.ILS1Identifier (126) is String - handled separately
+    json << ",\"Navigation.ILS1Course\":" << data->all_variables[127];
+    json << ",\"Navigation.ILS1Frequency\":" << data->all_variables[128];
+    json << ",\"Navigation.ILS1StandbyFrequency\":" << data->all_variables[129];
+    json << ",\"Navigation.ILS1FrequencySwap\":" << data->all_variables[130];
+    // Navigation.ILS2Identifier (131) is String - handled separately
+    json << ",\"Navigation.ILS2Course\":" << data->all_variables[132];
+    json << ",\"Navigation.ILS2Frequency\":" << data->all_variables[133];
+    json << ",\"Navigation.ILS2StandbyFrequency\":" << data->all_variables[134];
+    json << ",\"Navigation.ILS2FrequencySwap\":" << data->all_variables[135];
+    json << ",\"Navigation.ADF1Frequency\":" << data->all_variables[136];
+    json << ",\"Navigation.ADF1StandbyFrequency\":" << data->all_variables[137];
+    json << ",\"Navigation.ADF1FrequencySwap\":" << data->all_variables[138];
+    json << ",\"Navigation.ADF2Frequency\":" << data->all_variables[139];
+    json << ",\"Navigation.ADF2StandbyFrequency\":" << data->all_variables[140];
+    json << ",\"Navigation.ADF2FrequencySwap\":" << data->all_variables[141];
+    
+    // === COMMUNICATION (142-151) ===
+    json << ",\"Communication.COM1Frequency\":" << data->all_variables[142];
+    json << ",\"Communication.COM1StandbyFrequency\":" << data->all_variables[143];
+    json << ",\"Communication.COM1FrequencySwap\":" << data->all_variables[144];
+    json << ",\"Communication.COM2Frequency\":" << data->all_variables[145];
+    json << ",\"Communication.COM2StandbyFrequency\":" << data->all_variables[146];
+    json << ",\"Communication.COM2FrequencySwap\":" << data->all_variables[147];
+    json << ",\"Communication.TransponderCode\":" << data->all_variables[148];
+    json << ",\"Communication.TransponderCursor\":" << data->all_variables[149];
+    json << ",\"Communication.TransponderIdent\":" << data->all_variables[150];
+    json << ",\"Communication.TransponderAltitude\":" << data->all_variables[151];
+    
+    // === AUTOPILOT (152-184) ===
+    json << ",\"Autopilot.Master\":" << data->all_variables[152];
+    json << ",\"Autopilot.Engaged\":" << data->all_variables[153];
+    json << ",\"Autopilot.Disengage\":" << data->all_variables[154];
+    json << ",\"Autopilot.Heading\":" << data->all_variables[155];
+    json << ",\"Autopilot.VerticalSpeed\":" << data->all_variables[156];
+    json << ",\"Autopilot.Altitude\":" << data->all_variables[157];
+    json << ",\"Autopilot.Airspeed\":" << data->all_variables[158];
+    json << ",\"Autopilot.Approach\":" << data->all_variables[159];
+    json << ",\"Autopilot.Navigation\":" << data->all_variables[160];
+    json << ",\"Autopilot.SelectedAirspeed\":" << data->all_variables[161];
+    json << ",\"Autopilot.SelectedHeading\":" << data->all_variables[162];
+    json << ",\"Autopilot.SelectedAltitude\":" << data->all_variables[163];
+    json << ",\"Autopilot.SelectedVerticalSpeed\":" << data->all_variables[164];
+    json << ",\"Autopilot.SelectedAltitudeScale\":" << data->all_variables[165];
+    json << ",\"Autopilot.UseMachNumber\":" << data->all_variables[166];
+    json << ",\"Autopilot.SpeedManaged\":" << data->all_variables[167];
+    json << ",\"Autopilot.TargetAirspeed\":" << data->all_variables[168];
+    json << ",\"Autopilot.ThrottleEngaged\":" << data->all_variables[169];
+    // === CONTROLS SECTION - FLIGHT CONTROLS (185-230) ===
+    json << ",\"Controls.Yoke\":" << data->all_variables[185];
+    json << ",\"Controls.Rudder\":" << data->all_variables[186];
+    json << ",\"Controls.Collective\":" << data->all_variables[187];
+    json << ",\"Controls.Throttle1\":" << data->all_variables[188];
+    json << ",\"Controls.Throttle2\":" << data->all_variables[189];
+    json << ",\"Controls.Throttle3\":" << data->all_variables[190];
+    json << ",\"Controls.Throttle4\":" << data->all_variables[191];
+    json << ",\"Controls.Propeller1\":" << data->all_variables[192];
+    json << ",\"Controls.Propeller2\":" << data->all_variables[193];
+    json << ",\"Controls.Propeller3\":" << data->all_variables[194];
+    json << ",\"Controls.Propeller4\":" << data->all_variables[195];
+    json << ",\"Controls.Mixture1\":" << data->all_variables[196];
+    json << ",\"Controls.Mixture2\":" << data->all_variables[197];
+    json << ",\"Controls.Mixture3\":" << data->all_variables[198];
+    json << ",\"Controls.Mixture4\":" << data->all_variables[199];
+    json << ",\"Controls.CowlFlaps1\":" << data->all_variables[200];
+    json << ",\"Controls.CowlFlaps2\":" << data->all_variables[201];
+    json << ",\"Controls.CowlFlaps3\":" << data->all_variables[202];
+    json << ",\"Controls.CowlFlaps4\":" << data->all_variables[203];
+    json << ",\"Controls.Carburator1\":" << data->all_variables[204];
+    json << ",\"Controls.Carburator2\":" << data->all_variables[205];
+    json << ",\"Controls.Carburator3\":" << data->all_variables[206];
+    json << ",\"Controls.Carburator4\":" << data->all_variables[207];
+    json << ",\"Controls.Magnetos1\":" << data->all_variables[208];
+    json << ",\"Controls.Magnetos2\":" << data->all_variables[209];
+    json << ",\"Controls.Magnetos3\":" << data->all_variables[210];
+    json << ",\"Controls.Magnetos4\":" << data->all_variables[211];
+    json << ",\"Controls.Starter1\":" << data->all_variables[212];
+    json << ",\"Controls.Starter2\":" << data->all_variables[213];
+    json << ",\"Controls.Starter3\":" << data->all_variables[214];
+    json << ",\"Controls.Starter4\":" << data->all_variables[215];
+    json << ",\"Controls.Fuel1\":" << data->all_variables[216];
+    json << ",\"Controls.Fuel2\":" << data->all_variables[217];
+    json << ",\"Controls.Fuel3\":" << data->all_variables[218];
+    json << ",\"Controls.Fuel4\":" << data->all_variables[219];
+    json << ",\"Controls.Ignition1\":" << data->all_variables[220];
+    json << ",\"Controls.Ignition2\":" << data->all_variables[221];
+    json << ",\"Controls.Ignition3\":" << data->all_variables[222];
+    json << ",\"Controls.Ignition4\":" << data->all_variables[223];
+    json << ",\"Controls.Master1\":" << data->all_variables[224];
+    json << ",\"Controls.Master2\":" << data->all_variables[225];
+    json << ",\"Controls.Master3\":" << data->all_variables[226];
+    json << ",\"Controls.Master4\":" << data->all_variables[227];
+    json << ",\"Controls.Flaps\":" << data->all_variables[228];
+    json << ",\"Controls.Slats\":" << data->all_variables[229];
+    json << ",\"Controls.AirBrake\":" << data->all_variables[230];
+
+    // === CONTROLS SECTION - LANDING GEAR & BRAKES (231-240) ===
+    json << ",\"Controls.Gear\":" << data->all_variables[231];
+    json << ",\"Controls.WheelBrake\":" << data->all_variables[232];
+    json << ",\"Controls.LeftBrake\":" << data->all_variables[233];
+    json << ",\"Controls.RightBrake\":" << data->all_variables[234];
+    json << ",\"Controls.ParkingBrake\":" << data->all_variables[235];
+    json << ",\"Controls.ToeLeftBrake\":" << data->all_variables[236];
+    json << ",\"Controls.ToeRightBrake\":" << data->all_variables[237];
+    json << ",\"Controls.TailWheel\":" << data->all_variables[238];
+    json << ",\"Controls.NoseWheelSteering\":" << data->all_variables[239];
+    json << ",\"Controls.RudderPedal\":" << data->all_variables[240];
+
+    // === CONTROLS SECTION - ELECTRICAL & LIGHTS (241-260) ===
+    json << ",\"Controls.Generator1\":" << data->all_variables[241];
+    json << ",\"Controls.Generator2\":" << data->all_variables[242];
+    json << ",\"Controls.Generator3\":" << data->all_variables[243];
+    json << ",\"Controls.Generator4\":" << data->all_variables[244];
+    json << ",\"Controls.BatteryMaster\":" << data->all_variables[245];
+    json << ",\"Controls.Avionics\":" << data->all_variables[246];
+    json << ",\"Controls.FuelPump1\":" << data->all_variables[247];
+    json << ",\"Controls.FuelPump2\":" << data->all_variables[248];
+    json << ",\"Controls.FuelPump3\":" << data->all_variables[249];
+    json << ",\"Controls.FuelPump4\":" << data->all_variables[250];
+    json << ",\"Controls.Navigation\":" << data->all_variables[251];
+    json << ",\"Controls.Strobe\":" << data->all_variables[252];
+    json << ",\"Controls.Beacon\":" << data->all_variables[253];
+    json << ",\"Controls.Landing\":" << data->all_variables[254];
+    json << ",\"Controls.Taxi\":" << data->all_variables[255];
+    json << ",\"Controls.Formation\":" << data->all_variables[256];
+    json << ",\"Controls.AntiCollision\":" << data->all_variables[257];
+    json << ",\"Controls.Wing\":" << data->all_variables[258];
+    json << ",\"Controls.Logo\":" << data->all_variables[259];
+    json << ",\"Controls.Recognition\":" << data->all_variables[260];
+
+    // === CONTROLS SECTION - ENVIRONMENTAL SYSTEMS (261-280) ===
+    json << ",\"Controls.PitotHeat1\":" << data->all_variables[261];
+    json << ",\"Controls.PitotHeat2\":" << data->all_variables[262];
+    json << ",\"Controls.PropellerDeIce1\":" << data->all_variables[263];
+    json << ",\"Controls.PropellerDeIce2\":" << data->all_variables[264];
+    json << ",\"Controls.PropellerDeIce3\":" << data->all_variables[265];
+    json << ",\"Controls.PropellerDeIce4\":" << data->all_variables[266];
+    json << ",\"Controls.StructuralDeIce\":" << data->all_variables[267];
+    json << ",\"Controls.APUMaster\":" << data->all_variables[268];
+    json << ",\"Controls.APUStart\":" << data->all_variables[269];
+    json << ",\"Controls.APUGenerator\":" << data->all_variables[270];
+    json << ",\"Controls.APUBleedAir\":" << data->all_variables[271];
+    json << ",\"Controls.Cabin\":" << data->all_variables[272];
+    json << ",\"Controls.PressureRelief\":" << data->all_variables[273];
+    json << ",\"Controls.DumpValve\":" << data->all_variables[274];
+    json << ",\"Controls.ExternalAir\":" << data->all_variables[275];
+    json << ",\"Controls.GPUPower\":" << data->all_variables[276];
+    json << ",\"Controls.GPU\":" << data->all_variables[277];
+    json << ",\"Controls.ExternalPower\":" << data->all_variables[278];
+    json << ",\"Controls.AuxiliaryPower\":" << data->all_variables[279];
+    json << ",\"Controls.CabinAir\":" << data->all_variables[280];
+
+    // === CONTROLS SECTION - TRIM & PILOT CONTROLS (281-300) ===
+    json << ",\"Controls.PitchTrim\":" << data->all_variables[281];
+    json << ",\"Controls.RudderTrim\":" << data->all_variables[282];
+    json << ",\"Controls.AileronTrim\":" << data->all_variables[283];
+    json << ",\"Controls.YawDamper\":" << data->all_variables[284];
+    json << ",\"Controls.AutoPilot\":" << data->all_variables[285];
+    json << ",\"Controls.FlightDirector\":" << data->all_variables[286];
+    json << ",\"Controls.BackCourse\":" << data->all_variables[287];
+    json << ",\"Controls.Localizer\":" << data->all_variables[288];
+    json << ",\"Controls.GlideSlope\":" << data->all_variables[289];
+    json << ",\"Controls.Marker\":" << data->all_variables[290];
+    json << ",\"Controls.DME\":" << data->all_variables[291];
+    json << ",\"Controls.GPS\":" << data->all_variables[292];
+    json << ",\"Controls.FMS\":" << data->all_variables[293];
+    json << ",\"Controls.Approach\":" << data->all_variables[294];
+    json << ",\"Controls.VNAV\":" << data->all_variables[295];
+    json << ",\"Controls.AutoThrottle\":" << data->all_variables[296];
+    json << ",\"Controls.FADEC1\":" << data->all_variables[297];
+    json << ",\"Controls.FADEC2\":" << data->all_variables[298];
+    json << ",\"Controls.FADEC3\":" << data->all_variables[299];
+    json << ",\"Controls.FADEC4\":" << data->all_variables[300];
+
+    // === CONTROLS SECTION - AIRCRAFT SPECIFIC (301-330) ===
+    json << ",\"Controls.Hook\":" << data->all_variables[301];
+    json << ",\"Controls.Arrestor\":" << data->all_variables[302];
+    json << ",\"Controls.Catapult\":" << data->all_variables[303];
+    json << ",\"Controls.LaunchBar\":" << data->all_variables[304];
+    json << ",\"Controls.Wingfold\":" << data->all_variables[305];
+    json << ",\"Controls.Canopy\":" << data->all_variables[306];
+    json << ",\"Controls.Ejection\":" << data->all_variables[307];
+    json << ",\"Controls.FireExtinguisher1\":" << data->all_variables[308];
+    json << ",\"Controls.FireExtinguisher2\":" << data->all_variables[309];
+    json << ",\"Controls.FireExtinguisher3\":" << data->all_variables[310];
+    json << ",\"Controls.FireExtinguisher4\":" << data->all_variables[311];
+    json << ",\"Controls.EmergencyExit\":" << data->all_variables[312];
+    json << ",\"Controls.Evacuation\":" << data->all_variables[313];
+    json << ",\"Controls.LifeRaft\":" << data->all_variables[314];
+    json << ",\"Controls.Passenger\":" << data->all_variables[315];
+    json << ",\"Controls.Cargo\":" << data->all_variables[316];
+    json << ",\"Controls.Door1\":" << data->all_variables[317];
+    json << ",\"Controls.Door2\":" << data->all_variables[318];
+    json << ",\"Controls.Door3\":" << data->all_variables[319];
+    json << ",\"Controls.Door4\":" << data->all_variables[320];
+    json << ",\"Controls.Window1\":" << data->all_variables[321];
+    json << ",\"Controls.Window2\":" << data->all_variables[322];
+    json << ",\"Controls.Window3\":" << data->all_variables[323];
+    json << ",\"Controls.Window4\":" << data->all_variables[324];
+    json << ",\"Controls.Emergency\":" << data->all_variables[325];
+    json << ",\"Controls.Auxiliary\":" << data->all_variables[326];
+    json << ",\"Controls.Reserve\":" << data->all_variables[327];
+    json << ",\"Controls.Backup\":" << data->all_variables[328];
+    json << ",\"Controls.Override\":" << data->all_variables[329];
+    json << ",\"Controls.Manual\":" << data->all_variables[330];
+
+    // === CONTROLS SECTION - INTERNAL/RESERVED (331-339) ===
+    json << ",\"Controls.Speed\":" << data->all_variables[331];
+    json << ",\"FlightManagementSystem.Data0\":" << data->all_variables[332];
+    json << ",\"FlightManagementSystem.Data1\":" << data->all_variables[333];
+    json << ",\"Navigation.NAV1Data\":" << data->all_variables[334];
+    json << ",\"Navigation.NAV2Data\":" << data->all_variables[335];
+    json << ",\"Navigation.NAV3Data\":" << data->all_variables[336];
+    json << ",\"Navigation.ILS1Data\":" << data->all_variables[337];
+    json << ",\"Navigation.ILS2Data\":" << data->all_variables[338];
+    
+    // === CESSNA 172 SPECIFIC CONTROLS (340-357) ===
+    json << ",\"Controls.FuelSelector\":" << data->all_variables[340];
+    json << ",\"Controls.FuelShutOff\":" << data->all_variables[341];
+    json << ",\"Controls.HideYoke.Left\":" << data->all_variables[342];
+    json << ",\"Controls.HideYoke.Right\":" << data->all_variables[343];
+    json << ",\"Controls.LeftSunBlocker\":" << data->all_variables[344];
+    json << ",\"Controls.RightSunBlocker\":" << data->all_variables[345];
+    json << ",\"Controls.Lighting.LeftCabinOverheadLight\":" << data->all_variables[346];
+    json << ",\"Controls.Lighting.RightCabinOverheadLight\":" << data->all_variables[347];
+    json << ",\"Controls.Magnetos1\":" << data->all_variables[348];
+    json << ",\"Controls.ParkingBrake\":" << data->all_variables[349];
+    json << ",\"Controls.Trim\":" << data->all_variables[350];
+    json << ",\"LeftYoke.Button\":" << data->all_variables[351];
+    json << ",\"Doors.Left\":" << data->all_variables[352];
+    json << ",\"Doors.LeftHandle\":" << data->all_variables[353];
+    json << ",\"Doors.Right\":" << data->all_variables[354];
+    json << ",\"Doors.RightHandle\":" << data->all_variables[355];
+    json << ",\"Windows.Left\":" << data->all_variables[356];
+    json << ",\"Windows.Right\":" << data->all_variables[357];
+    
+    // === STRING VARIABLES ===
+    json << ",\"Aircraft.Name\":\"" << data->aircraft_name << "\"";
+    json << ",\"Aircraft.NearestAirportIdentifier\":\"" << data->aircraft_nearest_airport_id << "\"";
+    json << ",\"Aircraft.NearestAirportName\":\"" << data->aircraft_nearest_airport_name << "\"";
+    json << ",\"Aircraft.BestAirportIdentifier\":\"" << data->aircraft_best_airport_id << "\"";
+    json << ",\"Aircraft.BestAirportName\":\"" << data->aircraft_best_airport_name << "\"";
+    json << ",\"Aircraft.BestRunwayIdentifier\":\"" << data->aircraft_best_runway_id << "\"";
+    json << ",\"Navigation.NAV1Identifier\":\"" << data->navigation_nav1_identifier << "\"";
+    json << ",\"Navigation.NAV2Identifier\":\"" << data->navigation_nav2_identifier << "\"";
+    json << ",\"Navigation.ILS1Identifier\":\"" << data->navigation_ils1_identifier << "\"";
+    json << ",\"Navigation.ILS2Identifier\":\"" << data->navigation_ils2_identifier << "\"";
+    json << ",\"Autopilot.Type\":\"" << data->autopilot_type << "\"";
+    json << ",\"Autopilot.ActiveLateralMode\":\"" << data->autopilot_active_lateral_mode << "\"";
+    json << ",\"Autopilot.ArmedLateralMode\":\"" << data->autopilot_armed_lateral_mode << "\"";
+    json << ",\"Autopilot.ActiveVerticalMode\":\"" << data->autopilot_active_vertical_mode << "\"";
+    json << ",\"Autopilot.ArmedVerticalMode\":\"" << data->autopilot_armed_vertical_mode << "\"";
+    json << ",\"Autopilot.ArmedApproachMode\":\"" << data->autopilot_armed_approach_mode << "\"";
+    json << ",\"Autopilot.ActiveAutoThrottleMode\":\"" << data->autopilot_active_autothrottle_mode << "\"";
+    json << ",\"Autopilot.ActiveCollectiveMode\":\"" << data->autopilot_active_collective_mode << "\"";
+    json << ",\"Autopilot.ArmedCollectiveMode\":\"" << data->autopilot_armed_collective_mode << "\"";
+    json << ",\"FlightManagementSystem.FlightNumber\":\"" << data->fms_flight_number << "\"";
+    
+    // === VECTOR VARIABLES (expanded to X, Y, Z components) ===
+    json << ",\"Aircraft.Velocity.X\":" << data->aircraft_velocity.x;
+    json << ",\"Aircraft.Velocity.Y\":" << data->aircraft_velocity.y;
+    json << ",\"Aircraft.Velocity.Z\":" << data->aircraft_velocity.z;
+    json << ",\"Aircraft.AngularVelocity.X\":" << data->aircraft_angular_velocity.x;
+    json << ",\"Aircraft.AngularVelocity.Y\":" << data->aircraft_angular_velocity.y;
+    json << ",\"Aircraft.AngularVelocity.Z\":" << data->aircraft_angular_velocity.z;
+    json << ",\"Aircraft.Acceleration.X\":" << data->aircraft_acceleration.x;
+    json << ",\"Aircraft.Acceleration.Y\":" << data->aircraft_acceleration.y;
+    json << ",\"Aircraft.Acceleration.Z\":" << data->aircraft_acceleration.z;
+    json << ",\"Aircraft.Wind.X\":" << data->aircraft_wind.x;
+    json << ",\"Aircraft.Wind.Y\":" << data->aircraft_wind.y;
+    json << ",\"Aircraft.Wind.Z\":" << data->aircraft_wind.z;
+    json << ",\"Aircraft.NearestAirportLocation.X\":" << data->aircraft_nearest_airport_location.x;
+    json << ",\"Aircraft.NearestAirportLocation.Y\":" << data->aircraft_nearest_airport_location.y;
+    json << ",\"Aircraft.BestAirportLocation.X\":" << data->aircraft_best_airport_location.x;
+    json << ",\"Aircraft.BestAirportLocation.Y\":" << data->aircraft_best_airport_location.y;
+    json << ",\"Aircraft.BestRunwayThreshold.X\":" << data->aircraft_best_runway_threshold.x;
+    json << ",\"Aircraft.BestRunwayThreshold.Y\":" << data->aircraft_best_runway_threshold.y;
+    json << ",\"Aircraft.BestRunwayThreshold.Z\":" << data->aircraft_best_runway_threshold.z;
+    json << ",\"Aircraft.BestRunwayEnd.X\":" << data->aircraft_best_runway_end.x;
+    json << ",\"Aircraft.BestRunwayEnd.Y\":" << data->aircraft_best_runway_end.y;
+    json << ",\"Aircraft.BestRunwayEnd.Z\":" << data->aircraft_best_runway_end.z;
+    
+    json << "}"; // Close variables section
+    json << "}\n"; // Close main JSON
+    
+    return json.str();
+}
     
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // WEBSOCKET SERVER (SIMPLE, NO EXTERNAL DEPENDENCIES)

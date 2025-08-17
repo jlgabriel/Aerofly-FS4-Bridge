@@ -505,7 +505,7 @@ static std::string BuildDataJSON(const AeroflyBridgeData* data) {
          << "\"Aircraft.Altitude\":" << data->aircraft_altitude << ","
          << "\"Aircraft.IndicatedAirspeed\":" << data->aircraft_indicated_airspeed
          << "}"
-         // Note: `all_variables` array omitted here for brevity
+         // Note: Additional variables omitted here for brevity - 361 total
          << "}";
 
     return json.str();
@@ -570,8 +570,8 @@ struct AeroflyBridgeData {
     char aircraft_name[256];           // String data at end
     char airport_names[512];
     
-    // === DIRECT ACCESS ARRAY ===
-    double all_variables[400];         // For indexed access
+    // === ALL VARIABLES ACCESSIBLE BY NAME ===
+    // No separate array needed - use struct members directly
 };
 
 static_assert(sizeof(AeroflyBridgeData) < 8192, "Keep under 8KB for cache efficiency");

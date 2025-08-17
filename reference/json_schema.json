@@ -12,8 +12,7 @@
     "timestamp_unit",
     "data_valid",
     "update_counter",
-    "variables",
-    "all_variables"
+    "variables"
   ],
   "properties": {
     "schema": {
@@ -49,15 +48,10 @@
     },
     "variables": {
       "type": "object",
-      "description": "Canonical Aerofly SDK variable map (name → numeric value)",
+      "description": "Canonical Aerofly SDK variable map (name → numeric value) - 361 variables total",
       "additionalProperties": {
         "type": "number"
       }
-    },
-    "all_variables": {
-      "type": "array",
-      "description": "Raw values by logical index (see VariableIndex order)",
-      "items": { "type": "number" }
     }
   },
   "examples": [
@@ -70,10 +64,12 @@
       "update_counter": 12345,
       "broadcast_rate_hz": 50.0,
       "variables": {
+        "Aircraft.UniversalTime": 43200.0,
         "Aircraft.Altitude": 1066.8,
-        "Aircraft.IndicatedAirspeed": 61.8
-      },
-      "all_variables": [0.0, 1066.8, 0.76]
+        "Aircraft.IndicatedAirspeed": 61.8,
+        "Controls.Throttle": 0.75,
+        "Navigation.NAV1Frequency": 108500000.0
+      }
     }
   ]
 }

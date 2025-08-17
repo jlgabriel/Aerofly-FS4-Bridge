@@ -83,8 +83,8 @@ if (pData == nullptr) {
 double altitude = pData->aircraft_altitude;
 double airspeed = pData->aircraft_indicated_airspeed;
 
-// Direct array access for any variable by index
-double throttle = pData->all_variables[28]; // AIRCRAFT_THROTTLE = 28
+// Access variables by canonical name (recommended)
+double throttle = pData->aircraft_throttle; // Direct struct access
 
 // Check data validity
 if (pData->data_valid == 1) {
@@ -108,9 +108,9 @@ This file is created in the same directory as the DLL and provides memory layout
 ```json
 {
   "layout_version": 1,
-  "array_base_offset": 16,        // Bytes from start to all_variables[]
+  "array_base_offset": 16,        // Bytes from start to variables array
   "stride_bytes": 8,              // sizeof(double) = 8 bytes per variable
-  "count": 339,                   // Total number of variables
+  "count": 361,                   // Total number of variables
   "variables": [
     {
       "index": 0,
@@ -126,7 +126,7 @@ This file is created in the same directory as the DLL and provides memory layout
       "alias": "aircraft_altitude",
       "offset": 24
     }
-    // ... continues for all 339+ variables
+    // ... continues for all 361 variables
   ]
 }
 ```
@@ -186,8 +186,8 @@ if bridge.is_data_valid():
     altitude = bridge.get_variable('Aircraft.Altitude')
     airspeed = bridge.get_variable('Aircraft.IndicatedAirspeed')
     
-    # Faster access by index
-    throttle = bridge.get_variable_by_index(28)  # AIRCRAFT_THROTTLE
+    # Access by canonical name (recommended)
+    throttle = bridge.get_variable('Controls.Throttle')
     
     print(f"ALT: {altitude:.0f} ft, IAS: {airspeed:.1f} kts, THR: {throttle:.2f}")
 ```
@@ -295,10 +295,10 @@ struct AeroflyBridgeData {
     double aircraft_longitude;          // Degrees
     double aircraft_pitch;              // Degrees
     double aircraft_bank;               // Degrees
-    // ... 339+ variables total
+    // ... 361 variables total
     
-    // Direct access array (400 elements)
-    double all_variables[400];     // Indexed access to all vars
+    // All variables accessible by canonical names
+    // No separate array needed - use struct members directly
     
     // String fields (null-terminated)
     char aircraft_name[256];
@@ -321,7 +321,7 @@ enum class VariableIndex : int {
 
 // Safe indexed access
 if (index < (int)VariableIndex::COUNT) {
-    double value = pData->all_variables[index];
+    double value = pData->aircraft_altitude; // Use named member access
 }
 ```
 
@@ -368,13 +368,13 @@ while True:
     altitude_m = telemetry['variables']['Aircraft.Altitude']
     ias_mps = telemetry['variables']['Aircraft.IndicatedAirspeed']
 
-    # Access by index (raw array mirrors VariableIndex order)
-    throttle = telemetry['all_variables'][28]
+    # Access additional variables by canonical name
+    throttle = telemetry['variables']['Controls.Throttle']
 
     # Check data validity
     if telemetry['data_valid'] == 1:
         ts_us = telemetry['timestamp']  # microseconds
-        print(f"ALT: {altitude_m:.1f} m  IAS: {ias_mps:.2f} m/s  TS(us): {ts_us}")
+        print(f"ALT: {altitude_m:.1f} m  IAS: {ias_mps:.2f} m/s  THR: {throttle:.2f}")
 
 sock.close()
 ```
@@ -423,15 +423,11 @@ cmd_sock.close()  # One command per connection
     "Aircraft.GroundSpeed": 59.90,
     "Aircraft.VerticalSpeed": 0.76,
     "Aircraft.AngleOfAttack": 0.0733,
-    "Aircraft.OnGround": 0
-    // ... many more variables keyed by Aerofly SDK canonical names
-  },
-  "all_variables": [
-    0.0,
-    1066.8,
-    0.76
-    // ... mirrors VariableIndex order, length = COUNT
-  ]
+    "Aircraft.OnGround": 0,
+    "Controls.Throttle": 0.75,
+    "Navigation.NAV1Frequency": 108500000.0
+    // ... all 361 variables with descriptive canonical names
+  }
 }
 ```
 
@@ -504,8 +500,8 @@ ws.onmessage = function(event) {
     updateAirspeedIndicator(data.variables["Aircraft.IndicatedAirspeed"]);
     updateHeadingIndicator(data.variables["Aircraft.TrueHeading"]);
 
-    // Access by index if needed
-    const throttle = data.all_variables[28];
+    // Access additional variables by canonical name
+    const throttle = data.variables["Controls.Throttle"];
     updateThrottleDisplay(throttle);
 };
 
@@ -552,7 +548,8 @@ async def aerofly_client():
                 # Process telemetry
                 altitude_m = data['variables']['Aircraft.Altitude']
                 ias_mps = data['variables']['Aircraft.IndicatedAirspeed']
-                print(f"ALT: {altitude_m:8.1f} m  IAS: {ias_mps:6.2f} m/s")
+                throttle = data['variables']['Controls.Throttle']
+                print(f"ALT: {altitude_m:8.1f} m  IAS: {ias_mps:6.2f} m/s  THR: {throttle:.2f}")
                 
                 # Send commands conditionally
                 if altitude < 1000:  # Increase throttle at low altitude
@@ -604,6 +601,7 @@ const AeroflyTelemetry = () => {
         <View>
             <Text>Altitude: {flightData?.variables?.["Aircraft.Altitude"] ?? 0} m</Text>
             <Text>Airspeed: {flightData?.variables?.["Aircraft.IndicatedAirspeed"] ?? 0} m/s</Text>
+            <Text>Throttle: {flightData?.variables?.["Controls.Throttle"] ?? 0}</Text>
             
             <Button 
                 title="Set Flaps 10°" 
@@ -841,8 +839,9 @@ while (true) {
         ws.onmessage = (e) => {
             const data = JSON.parse(e.data);
             document.getElementById('data').innerHTML = 
-                `ALT: ${data.aircraft.altitude} ft<br>
-                 IAS: ${data.aircraft.airspeed} kts`;
+                `ALT: ${data.variables["Aircraft.Altitude"]} m<br>
+                 IAS: ${data.variables["Aircraft.IndicatedAirspeed"]} m/s<br>
+                 THR: ${data.variables["Controls.Throttle"]}`;
         };
     </script>
 </body>
