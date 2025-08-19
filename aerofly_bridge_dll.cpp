@@ -2781,8 +2781,587 @@ public:
             pData->all_variables[(int)VariableIndex::AUTOPILOT_THROTTLE_COMMAND] = val;
         };
         
-        // TODO: Add remaining ~217 variables in subsequent steps
+        // === AIRCRAFT PHYSICS (7 variables) ===
+        message_handlers[MessageAircraftGravity.GetID()] = [this](const auto& msg) {
+            const tm_vector3d val = msg.GetVector3d();
+            pData->aircraft_gravity = val;
+        };
+        message_handlers[MessageAircraftWind.GetID()] = [this](const auto& msg) {
+            const tm_vector3d val = msg.GetVector3d();
+            pData->aircraft_wind = val;
+        };
+        message_handlers[MessageAircraftRateOfTurn.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->aircraft_rate_of_turn = val;
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_RATE_OF_TURN] = val;
+        };
+        message_handlers[MessageAircraftMachNumber.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->aircraft_mach_number = val;
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_MACH_NUMBER] = val;
+        };
+        message_handlers[MessageAircraftAngleOfAttack.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->aircraft_angle_of_attack = val;
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_ANGLE_OF_ATTACK] = val;
+        };
+        message_handlers[MessageAircraftAngleOfAttackLimit.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->aircraft_angle_of_attack_limit = val;
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_ANGLE_OF_ATTACK_LIMIT] = val;
+        };
+        message_handlers[MessageAircraftAccelerationLimit.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_ACCELERATION_LIMIT] = val;
+        };
+        
+        // === AIRCRAFT STATE (8 variables) ===
+        message_handlers[MessageAircraftOnGround.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->aircraft_on_ground = val;
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_ON_GROUND] = val;
+        };
+        message_handlers[MessageAircraftOnRunway.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->aircraft_on_runway = val;
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_ON_RUNWAY] = val;
+        };
+        message_handlers[MessageAircraftCrashed.GetID()] = [this](const auto& msg) {
+            // Special handling for Aircraft.Crashed with data type validation
+            try {
+                tm_msg_data_type dataType = msg.GetDataType();
+                if (dataType == tm_msg_data_type::None) {
+                    return; // Skip invalid messages
+                }
+                
+                double value = 0.0;
+                const tm_uint8* raw_data = msg.GetDataPointer();
+                
+                switch (dataType) {
+                    case tm_msg_data_type::Double:
+                        value = *reinterpret_cast<const double*>(raw_data);
+                        break;
+                    case tm_msg_data_type::Int:
+                        value = (double)(*reinterpret_cast<const tm_int64*>(raw_data));
+                        break;
+                    case tm_msg_data_type::Uint8:
+                        value = (double)(*reinterpret_cast<const tm_uint8*>(raw_data));
+                        break;
+                    case tm_msg_data_type::Uint64:
+                        value = (double)(*reinterpret_cast<const tm_uint64*>(raw_data));
+                        break;
+                    case tm_msg_data_type::Float:
+                        value = (double)(*reinterpret_cast<const float*>(raw_data));
+                        break;
+                    default:
+                        value = (double)(raw_data[0] > 0 ? 1.0 : 0.0);
+                        break;
+                }
+                
+                pData->aircraft_crashed = value;
+                pData->all_variables[(int)VariableIndex::AIRCRAFT_CRASHED] = value;
+            }
+            catch (...) {
+                pData->aircraft_crashed = 0.0;
+                pData->all_variables[(int)VariableIndex::AIRCRAFT_CRASHED] = 0.0;
+            }
+        };
+        message_handlers[MessageAircraftGear.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->aircraft_gear = val;
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_GEAR] = val;
+        };
+        message_handlers[MessageAircraftFlaps.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->aircraft_flaps = val;
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_FLAPS] = val;
+        };
+        message_handlers[MessageAircraftSlats.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->aircraft_slats = val;
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_SLATS] = val;
+        };
+        message_handlers[MessageAircraftThrottle.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->aircraft_throttle = val;
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_THROTTLE] = val;
+        };
+        message_handlers[MessageAircraftAirBrake.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->aircraft_air_brake = val;
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_AIR_BRAKE] = val;
+        };
+        
+        // === PERFORMANCE SPEEDS (5 variables) ===
+        message_handlers[MessagePerformanceSpeedVS0.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->performance_speed_vs0 = val;
+            pData->all_variables[(int)VariableIndex::PERFORMANCE_SPEED_VS0] = val;
+        };
+        message_handlers[MessagePerformanceSpeedVS1.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->performance_speed_vs1 = val;
+            pData->all_variables[(int)VariableIndex::PERFORMANCE_SPEED_VS1] = val;
+        };
+        message_handlers[MessagePerformanceSpeedVFE.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->performance_speed_vfe = val;
+            pData->all_variables[(int)VariableIndex::PERFORMANCE_SPEED_VFE] = val;
+        };
+        message_handlers[MessagePerformanceSpeedVNO.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->performance_speed_vno = val;
+            pData->all_variables[(int)VariableIndex::PERFORMANCE_SPEED_VNO] = val;
+        };
+        message_handlers[MessagePerformanceSpeedVNE.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->performance_speed_vne = val;
+            pData->all_variables[(int)VariableIndex::PERFORMANCE_SPEED_VNE] = val;
+        };
+        
+        // === AIRCRAFT STRING VARIABLES (5 variables) ===
+        message_handlers[MessageAircraftNearestAirportIdentifier.GetID()] = [this](const auto& msg) {
+            ProcessStringMessage(msg, pData->aircraft_nearest_airport_id, 
+                                sizeof(pData->aircraft_nearest_airport_id), "", 
+                                "AircraftNearestAirportIdentifier");
+        };
+        message_handlers[MessageAircraftNearestAirportName.GetID()] = [this](const auto& msg) {
+            ProcessStringMessage(msg, pData->aircraft_nearest_airport_name, 
+                                sizeof(pData->aircraft_nearest_airport_name), "", 
+                                "AircraftNearestAirportName");
+        };
+        message_handlers[MessageAircraftBestAirportIdentifier.GetID()] = [this](const auto& msg) {
+            ProcessStringMessage(msg, pData->aircraft_best_airport_id, 
+                                sizeof(pData->aircraft_best_airport_id), "", 
+                                "AircraftBestAirportIdentifier");
+        };
+        message_handlers[MessageAircraftBestAirportName.GetID()] = [this](const auto& msg) {
+            ProcessStringMessage(msg, pData->aircraft_best_airport_name, 
+                                sizeof(pData->aircraft_best_airport_name), "", 
+                                "AircraftBestAirportName");
+        };
+        message_handlers[MessageAircraftBestRunwayIdentifier.GetID()] = [this](const auto& msg) {
+            ProcessStringMessage(msg, pData->aircraft_best_runway_id, 
+                                sizeof(pData->aircraft_best_runway_id), "", 
+                                "AircraftBestRunwayIdentifier");
+        };
+        
+        // === AIRCRAFT ENGINE RUNNING (4 variables) ===
+        message_handlers[MessageAircraftEngineRunning1.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->aircraft_engine_running_1 = val;
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_ENGINE_RUNNING_1] = val;
+        };
+        message_handlers[MessageAircraftEngineRunning2.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->aircraft_engine_running_2 = val;
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_ENGINE_RUNNING_2] = val;
+        };
+        message_handlers[MessageAircraftEngineRunning3.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->aircraft_engine_running_3 = val;
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_ENGINE_RUNNING_3] = val;
+        };
+        message_handlers[MessageAircraftEngineRunning4.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->aircraft_engine_running_4 = val;
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_ENGINE_RUNNING_4] = val;
+        };
+        
+        // === FMS AND SIMULATION (2 variables) ===
+        message_handlers[MessageFMSFlightNumber.GetID()] = [this](const auto& msg) {
+            ProcessStringMessage(msg, pData->fms_flight_number, 
+                                sizeof(pData->fms_flight_number), "", 
+                                "FMSFlightNumber");
+        };
+        message_handlers[MessageSimulationTime.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->all_variables[(int)VariableIndex::SIMULATION_TIME] = val;
+        };
+        
+        // === AUTOPILOT REMAINING NUMERIC (6 variables) ===
+        message_handlers[MessageAutopilotEngaged.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->autopilot_engaged = val;
+            pData->all_variables[(int)VariableIndex::AUTOPILOT_ENGAGED] = val;
+        };
+        message_handlers[MessageAutopilotSelectedAirspeed.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->autopilot_selected_airspeed = val;
+            pData->all_variables[(int)VariableIndex::AUTOPILOT_SELECTED_AIRSPEED] = val;
+        };
+        message_handlers[MessageAutopilotSelectedHeading.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->autopilot_selected_heading = val;
+            pData->all_variables[(int)VariableIndex::AUTOPILOT_SELECTED_HEADING] = val;
+        };
+        message_handlers[MessageAutopilotSelectedAltitude.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->autopilot_selected_altitude = val;
+            pData->all_variables[(int)VariableIndex::AUTOPILOT_SELECTED_ALTITUDE] = val;
+        };
+        message_handlers[MessageAutopilotSelectedVerticalSpeed.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->autopilot_selected_vertical_speed = val;
+            pData->all_variables[(int)VariableIndex::AUTOPILOT_SELECTED_VERTICAL_SPEED] = val;
+        };
+        message_handlers[MessageAutopilotThrottleEngaged.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->autopilot_throttle_engaged = val;
+            pData->all_variables[(int)VariableIndex::AUTOPILOT_THROTTLE_ENGAGED] = val;
+        };
+        
+        // === AUTOPILOT STRING VARIABLES (9 variables) ===
+        message_handlers[MessageAutopilotActiveLateralMode.GetID()] = [this](const auto& msg) {
+            ProcessStringMessage(msg, pData->autopilot_active_lateral_mode, 
+                                sizeof(pData->autopilot_active_lateral_mode), "Manual", 
+                                "AutopilotActiveLateralMode");
+        };
+        message_handlers[MessageAutopilotActiveVerticalMode.GetID()] = [this](const auto& msg) {
+            ProcessStringMessage(msg, pData->autopilot_active_vertical_mode, 
+                                sizeof(pData->autopilot_active_vertical_mode), "Manual", 
+                                "AutopilotActiveVerticalMode");
+        };
+        message_handlers[MessageAutopilotArmedLateralMode.GetID()] = [this](const auto& msg) {
+            ProcessStringMessage(msg, pData->autopilot_armed_lateral_mode, 
+                                sizeof(pData->autopilot_armed_lateral_mode), "None", 
+                                "AutopilotArmedLateralMode");
+        };
+        message_handlers[MessageAutopilotArmedVerticalMode.GetID()] = [this](const auto& msg) {
+            ProcessStringMessage(msg, pData->autopilot_armed_vertical_mode, 
+                                sizeof(pData->autopilot_armed_vertical_mode), "None", 
+                                "AutopilotArmedVerticalMode");
+        };
+        message_handlers[MessageAutopilotArmedApproachMode.GetID()] = [this](const auto& msg) {
+            ProcessStringMessage(msg, pData->autopilot_armed_approach_mode, 
+                                sizeof(pData->autopilot_armed_approach_mode), "None", 
+                                "AutopilotArmedApproachMode");
+        };
+        message_handlers[MessageAutopilotActiveAutoThrottleMode.GetID()] = [this](const auto& msg) {
+            ProcessStringMessage(msg, pData->autopilot_active_autothrottle_mode, 
+                                sizeof(pData->autopilot_active_autothrottle_mode), "None", 
+                                "AutopilotActiveAutoThrottleMode");
+        };
+        message_handlers[MessageAutopilotActiveCollectiveMode.GetID()] = [this](const auto& msg) {
+            ProcessStringMessage(msg, pData->autopilot_active_collective_mode, 
+                                sizeof(pData->autopilot_active_collective_mode), "None", 
+                                "AutopilotActiveCollectiveMode");
+        };
+        message_handlers[MessageAutopilotArmedCollectiveMode.GetID()] = [this](const auto& msg) {
+            ProcessStringMessage(msg, pData->autopilot_armed_collective_mode, 
+                                sizeof(pData->autopilot_armed_collective_mode), "None", 
+                                "AutopilotArmedCollectiveMode");
+        };
+        message_handlers[MessageAutopilotType.GetID()] = [this](const auto& msg) {
+            ProcessStringMessage(msg, pData->autopilot_type, 
+                                sizeof(pData->autopilot_type), "Unknown", 
+                                "AutopilotType");
+        };
+        
+        // === CONTROLS REMAINING (9 variables) ===
+        message_handlers[MessageControlsWheelBrakeLeft.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->all_variables[(int)VariableIndex::CONTROLS_WHEEL_BRAKE_LEFT] = val;
+        };
+        message_handlers[MessageControlsWheelBrakeRight.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->all_variables[(int)VariableIndex::CONTROLS_WHEEL_BRAKE_RIGHT] = val;
+        };
+        message_handlers[MessageControlsAirBrake.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->all_variables[(int)VariableIndex::CONTROLS_AIR_BRAKE] = val;
+        };
+        message_handlers[MessageControlsAirBrakeArm.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->all_variables[(int)VariableIndex::CONTROLS_AIR_BRAKE_ARM] = val;
+        };
+        message_handlers[MessageControlsPropellerSpeed1.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->all_variables[(int)VariableIndex::CONTROLS_PROPELLER_SPEED_1] = val;
+        };
+        message_handlers[MessageControlsPropellerSpeed2.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->all_variables[(int)VariableIndex::CONTROLS_PROPELLER_SPEED_2] = val;
+        };
+        message_handlers[MessageControlsPropellerSpeed3.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->all_variables[(int)VariableIndex::CONTROLS_PROPELLER_SPEED_3] = val;
+        };
+        message_handlers[MessageControlsPropellerSpeed4.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->all_variables[(int)VariableIndex::CONTROLS_PROPELLER_SPEED_4] = val;
+        };
+        message_handlers[MessageControlsGliderAirBrake.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->all_variables[(int)VariableIndex::CONTROLS_GLIDER_AIR_BRAKE] = val;
+        };
+        message_handlers[MessageControlsRotorBrake.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->all_variables[(int)VariableIndex::CONTROLS_ROTOR_BRAKE] = val;
+        };
+        
+        // === AIRCRAFT SYSTEM VARIABLES (6 variables) ===
+        message_handlers[MessageAircraftGroundSpoilersArmed.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_GROUND_SPOILERS_ARMED] = val;
+        };
+        message_handlers[MessageAircraftGroundSpoilersExtended.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_GROUND_SPOILERS_EXTENDED] = val;
+        };
+        message_handlers[MessageAircraftParkingBrake.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_PARKING_BRAKE] = val;
+        };
+        message_handlers[MessageAircraftAutoBrakeSetting.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_AUTO_BRAKE_SETTING] = val;
+        };
+        message_handlers[MessageAircraftAutoBrakeEngaged.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_AUTO_BRAKE_ENGAGED] = val;
+        };
+        message_handlers[MessageAircraftAutoBrakeRejectedTakeOff.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_AUTO_BRAKE_REJECTED_TAKEOFF] = val;
+        };
+        
+        // === ENGINE SYSTEM VARIABLES (13 variables) ===
+        message_handlers[MessageAircraftStarter.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_STARTER] = val;
+        };
+        message_handlers[MessageAircraftIgnition.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_IGNITION] = val;
+        };
+        message_handlers[MessageAircraftEngineMaster1.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_ENGINE_MASTER_1] = val;
+        };
+        message_handlers[MessageAircraftEngineMaster2.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_ENGINE_MASTER_2] = val;
+        };
+        message_handlers[MessageAircraftEngineMaster3.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_ENGINE_MASTER_3] = val;
+        };
+        message_handlers[MessageAircraftEngineMaster4.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_ENGINE_MASTER_4] = val;
+        };
+        message_handlers[MessageAircraftEngineThrottle1.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_ENGINE_THROTTLE_1] = val;
+        };
+        message_handlers[MessageAircraftEngineThrottle2.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_ENGINE_THROTTLE_2] = val;
+        };
+        message_handlers[MessageAircraftEngineThrottle3.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_ENGINE_THROTTLE_3] = val;
+        };
+        message_handlers[MessageAircraftEngineThrottle4.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_ENGINE_THROTTLE_4] = val;
+        };
+        message_handlers[MessageAircraftEngineRotationSpeed1.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_ENGINE_ROTATION_SPEED_1] = val;
+        };
+        message_handlers[MessageAircraftEngineRotationSpeed2.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_ENGINE_ROTATION_SPEED_2] = val;
+        };
+        message_handlers[MessageAircraftEngineRotationSpeed3.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_ENGINE_ROTATION_SPEED_3] = val;
+        };
+        message_handlers[MessageAircraftEngineRotationSpeed4.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_ENGINE_ROTATION_SPEED_4] = val;
+        };
+        
+        // === WARNINGS VARIABLES (4 variables) ===
+        message_handlers[MessageWarningsMasterWarning.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->warnings_master_warning = (uint32_t)val;
+            pData->all_variables[(int)VariableIndex::WARNINGS_MASTER_WARNING] = val;
+        };
+        message_handlers[MessageWarningsMasterCaution.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->warnings_master_caution = (uint32_t)val;
+            pData->all_variables[(int)VariableIndex::WARNINGS_MASTER_CAUTION] = val;
+        };
+        message_handlers[MessageWarningsLowOilPressure.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->warnings_low_oil_pressure = (uint32_t)val;
+            pData->all_variables[(int)VariableIndex::WARNINGS_LOW_OIL_PRESSURE] = val;
+        };
+        message_handlers[MessageWarningsLowFuelPressure.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->warnings_low_fuel_pressure = (uint32_t)val;
+            pData->all_variables[(int)VariableIndex::WARNINGS_LOW_FUEL_PRESSURE] = val;
+        };
+        
+        // === AIRCRAFT EXTENDED VARIABLES (12 variables) ===
+        message_handlers[MessageAircraftHeight.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->aircraft_height = val;
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_HEIGHT] = val;
+        };
+        message_handlers[MessageAircraftPower.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->aircraft_power = val;
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_POWER] = val;
+        };
+        message_handlers[MessageAircraftNormalizedPower.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->aircraft_normalized_power = val;
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_NORMALIZED_POWER] = val;
+        };
+        message_handlers[MessageAircraftNormalizedPowerTarget.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->aircraft_normalized_power_target = val;
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_NORMALIZED_POWER_TARGET] = val;
+        };
+        message_handlers[MessageAircraftTrim.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->aircraft_trim = val;
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_TRIM] = val;
+        };
+        message_handlers[MessageAircraftPitchTrim.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->aircraft_pitch_trim = val;
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_PITCH_TRIM] = val;
+        };
+        message_handlers[MessageAircraftPitchTrimScaling.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->aircraft_pitch_trim_scaling = val;
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_PITCH_TRIM_SCALING] = val;
+        };
+        message_handlers[MessageAircraftPitchTrimOffset.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->aircraft_pitch_trim_offset = val;
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_PITCH_TRIM_OFFSET] = val;
+        };
+        message_handlers[MessageAircraftRudderTrim.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->aircraft_rudder_trim = val;
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_RUDDER_TRIM] = val;
+        };
+        message_handlers[MessageAircraftAutoPitchTrim.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->aircraft_auto_pitch_trim = (uint32_t)val;
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_AUTO_PITCH_TRIM] = val;
+        };
+        message_handlers[MessageAircraftYawDamperEnabled.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->aircraft_yaw_damper_enabled = (uint32_t)val;
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_YAW_DAMPER_ENABLED] = val;
+        };
+        message_handlers[MessageAircraftRudderPedalsDisconnected.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->aircraft_rudder_pedals_disconnected = (uint32_t)val;
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_RUDDER_PEDALS_DISCONNECTED] = val;
+        };
+        
+        // === AIRCRAFT LOCATION VARIABLES (4 Vector variables - READ-ONLY) ===
+        // NOTE: These are Vector3D/Vector2D types that cannot be stored in all_variables array
+        message_handlers[MessageAircraftNearestAirportLocation.GetID()] = [this](const auto& msg) {
+            const tm_vector3d temp = msg.GetVector3d();  
+            pData->aircraft_nearest_airport_location = tm_vector2d(temp.x, temp.y);
+            // NOTE: Vector2d cannot be stored in all_variables array (double only)
+        };
+        message_handlers[MessageAircraftBestAirportLocation.GetID()] = [this](const auto& msg) {
+            const tm_vector3d temp = msg.GetVector3d();  
+            pData->aircraft_best_airport_location = tm_vector2d(temp.x, temp.y);
+            // NOTE: Vector2d cannot be stored in all_variables array (double only)
+        };
+        message_handlers[MessageAircraftBestRunwayThreshold.GetID()] = [this](const auto& msg) {
+            const tm_vector3d value = msg.GetVector3d();
+            pData->aircraft_best_runway_threshold = value;
+            // NOTE: Vector3d cannot be stored in all_variables array (double only)
+        };
+        message_handlers[MessageAircraftBestRunwayEnd.GetID()] = [this](const auto& msg) {
+            const tm_vector3d value = msg.GetVector3d();
+            pData->aircraft_best_runway_end = value;
+            // NOTE: Vector3d cannot be stored in all_variables array (double only)
+        };
+        
+        // === FINAL ENGINE INDIVIDUAL VARIABLES (8 variables) ===
+        message_handlers[MessageAircraftStarter1.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->aircraft_starter_1 = val;
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_STARTER_1] = val;
+        };
+        message_handlers[MessageAircraftStarter2.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->aircraft_starter_2 = val;
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_STARTER_2] = val;
+        };
+        message_handlers[MessageAircraftStarter3.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->aircraft_starter_3 = val;
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_STARTER_3] = val;
+        };
+        message_handlers[MessageAircraftStarter4.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->aircraft_starter_4 = val;
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_STARTER_4] = val;
+        };
+        message_handlers[MessageAircraftIgnition1.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->aircraft_ignition_1 = val;
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_IGNITION_1] = val;
+        };
+        message_handlers[MessageAircraftIgnition2.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->aircraft_ignition_2 = val;
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_IGNITION_2] = val;
+        };
+        message_handlers[MessageAircraftIgnition3.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->aircraft_ignition_3 = val;
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_IGNITION_3] = val;
+        };
+        message_handlers[MessageAircraftIgnition4.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->aircraft_ignition_4 = val;
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_IGNITION_4] = val;
+        };
+        
+        // === FINAL AIRCRAFT CONTROL VARIABLES (2 variables) ===
+        message_handlers[MessageAircraftThrottleLimit.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->aircraft_throttle_limit = val;
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_THROTTLE_LIMIT] = val;
+        };
+        message_handlers[MessageAircraftReverse.GetID()] = [this](const auto& msg) {
+            const double val = msg.GetDouble();
+            pData->aircraft_reverse = (uint32_t)val;
+            pData->all_variables[(int)VariableIndex::AIRCRAFT_REVERSE] = val;
+        };
+        
+        // 🎉 MIGRATION COMPLETE! All major variables migrated to hash maps! 🎉
         // PASO 3 Progress: +75 Navigation+Communication+Engine+Autopilot variables migrated (Total: ~118)
+        // PASO 4 Progress: +7 Aircraft Physics variables migrated (Total: ~125)
+        // PASO 5 Progress: +8 Aircraft State variables migrated (Total: ~133)
+        // PASO 6 Progress: +5 Performance Speed variables migrated (Total: ~138)
+        // PASO 7 Progress: +5 Aircraft String variables migrated (Total: ~143)
+        // PASO 8 Progress: +4 Aircraft Engine Running variables migrated (Total: ~147)
+        // PASO 9 Progress: +2 FMS and Simulation variables migrated (Total: ~149)
+        // PASO 10 Progress: +6 Autopilot Remaining Numeric variables migrated (Total: ~155)
+        // PASO 11 Progress: +9 Autopilot String variables migrated (Total: ~164)
+        // PASO 12 Progress: +9 Controls Remaining variables migrated (Total: ~173)
+        // PASO 13 Progress: +6 Aircraft System variables migrated (Total: ~179)
+        // PASO 14 Progress: +13 Engine System variables migrated (Total: ~192)
+        // PASO 15 Progress: +4 Warnings variables migrated (Total: ~196)
+        // PASO 16 Progress: +12 Aircraft Extended variables migrated (Total: ~208)
+        // PASO 17 Progress: +4 Aircraft Location variables migrated (Total: ~212)
+        // PASO 18 Progress: +10 Final Engine+Control variables migrated (Total: ~222) 🏆
     }
     
     /**
@@ -2925,224 +3504,33 @@ public:
             // MIGRATED TO HASH MAP: MessageAircraftPosition
             // MIGRATED TO HASH MAP: MessageAircraftVelocity
             // CLEANED UP: Aircraft Acceleration and AngularVelocity now use hash map O(1) lookup
-            if (hash == MessageAircraftGravity.GetID()) {
-                const tm_vector3d value = message.GetVector3d();
-                pData->aircraft_gravity = value;
-                return;
-            }
-            if (hash == MessageAircraftWind.GetID()) {
-                const tm_vector3d value = message.GetVector3d();
-                pData->aircraft_wind = value;
-                return;
-            }
-            if (hash == MessageAircraftRateOfTurn.GetID()) {
-                const double value = message.GetDouble();
-                pData->aircraft_rate_of_turn = value;
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_RATE_OF_TURN] = value;
-                return;
-            }
-            if (hash == MessageAircraftMachNumber.GetID()) {
-                const double value = message.GetDouble();
-                pData->aircraft_mach_number = value;
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_MACH_NUMBER] = value;
-                return;
-            }
-            if (hash == MessageAircraftAngleOfAttack.GetID()) {
-                const double value = message.GetDouble();
-                pData->aircraft_angle_of_attack = value;
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_ANGLE_OF_ATTACK] = value;
-                return;
-            }
-            if (hash == MessageAircraftAngleOfAttackLimit.GetID()) {
-                const double value = message.GetDouble();
-                pData->aircraft_angle_of_attack_limit = value;
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_ANGLE_OF_ATTACK_LIMIT] = value;
-                return;
-            }
-            if (hash == MessageAircraftAccelerationLimit.GetID()) {
-                const double value = message.GetDouble();
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_ACCELERATION_LIMIT] = value;
-                return;
-            }
+            // MIGRATED TO HASH MAP: MessageAircraftGravity
+            // MIGRATED TO HASH MAP: MessageAircraftWind
+            // MIGRATED TO HASH MAP: MessageAircraftRateOfTurn
+            // MIGRATED TO HASH MAP: MessageAircraftMachNumber
+            // MIGRATED TO HASH MAP: MessageAircraftAngleOfAttack
+            // MIGRATED TO HASH MAP: MessageAircraftAngleOfAttackLimit
+            // MIGRATED TO HASH MAP: MessageAircraftAccelerationLimit
 
             // === AIRCRAFT STRING HANDLERS (6 handlers) ===
             // MIGRATED TO HASH MAP: MessageAircraftName
 
-            if (hash == MessageAircraftNearestAirportIdentifier.GetID()) {
-                ProcessStringMessage(message, pData->aircraft_nearest_airport_id, 
-                                    sizeof(pData->aircraft_nearest_airport_id), "", 
-                                    "AircraftNearestAirportIdentifier");
-                return;
-            }
-
-            if (hash == MessageAircraftNearestAirportName.GetID()) {
-                ProcessStringMessage(message, pData->aircraft_nearest_airport_name, 
-                                    sizeof(pData->aircraft_nearest_airport_name), "", 
-                                    "AircraftNearestAirportName");
-                return;
-            }
-
-            if (hash == MessageAircraftBestAirportIdentifier.GetID()) {
-                ProcessStringMessage(message, pData->aircraft_best_airport_id, 
-                                    sizeof(pData->aircraft_best_airport_id), "", 
-                                    "AircraftBestAirportIdentifier");
-                return;
-            }
-
-            if (hash == MessageAircraftBestAirportName.GetID()) {
-                ProcessStringMessage(message, pData->aircraft_best_airport_name, 
-                                    sizeof(pData->aircraft_best_airport_name), "", 
-                                    "AircraftBestAirportName");
-                return;
-            }
-
-            if (hash == MessageAircraftBestRunwayIdentifier.GetID()) {
-                ProcessStringMessage(message, pData->aircraft_best_runway_id, 
-                                    sizeof(pData->aircraft_best_runway_id), "", 
-                                    "AircraftBestRunwayIdentifier");
-                return;
-            }
+            // MIGRATED TO HASH MAP: MessageAircraftNearestAirportIdentifier
+            // MIGRATED TO HASH MAP: MessageAircraftNearestAirportName
+            // MIGRATED TO HASH MAP: MessageAircraftBestAirportIdentifier
+            // MIGRATED TO HASH MAP: MessageAircraftBestAirportName
+            // MIGRATED TO HASH MAP: MessageAircraftBestRunwayIdentifier
             
             // === AIRCRAFT STATE ===
-            if (hash == MessageAircraftOnGround.GetID()) {
-                const double value = message.GetDouble();
-                pData->aircraft_on_ground = value;
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_ON_GROUND] = value;
-                return;
-            }
-            if (hash == MessageAircraftOnRunway.GetID()) {
-                const double value = message.GetDouble();
-                pData->aircraft_on_runway = value;
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_ON_RUNWAY] = value;
-                return;
-            }
+            // MIGRATED TO HASH MAP: MessageAircraftOnGround
+            // MIGRATED TO HASH MAP: MessageAircraftOnRunway
             
-            if (hash == MessageAircraftCrashed.GetID()) {
-                try {
-                    // Get the actual data type
-                    tm_msg_data_type dataType = message.GetDataType();
-                    
-                    // IGNORE INVALID MESSAGES (DataType = 0 = None)
-                    if (dataType == tm_msg_data_type::None) {
-                        // Invalid/corrupted message - ignore silently
-                        static int invalid_count = 0;
-                        if (invalid_count == 0) {
-                            DBG("INFO: Aircraft.Crashed receiving invalid messages (DataType=None), ignoring\n");
-                        }
-                        invalid_count++;
-                        return; // Skip processing entirely
-                    }
-                    
-                    double value = 0.0;
-                    
-                    // Extract data directly from the raw pointer
-                    const tm_uint8* raw_data = message.GetDataPointer();
-                    
-                    switch (dataType) {
-                        case tm_msg_data_type::Double:
-                            value = *reinterpret_cast<const double*>(raw_data);
-                            break;
-                            
-                        case tm_msg_data_type::Int:
-                            value = (double)(*reinterpret_cast<const tm_int64*>(raw_data));
-                            break;
-                            
-                        case tm_msg_data_type::Uint8:
-                            value = (double)(*reinterpret_cast<const tm_uint8*>(raw_data));
-                            break;
-                            
-                        case tm_msg_data_type::Uint64:
-                            value = (double)(*reinterpret_cast<const tm_uint64*>(raw_data));
-                            break;
-                            
-                        case tm_msg_data_type::Float:
-                            value = (double)(*reinterpret_cast<const float*>(raw_data));
-                            break;
-                            
-                        default:
-                            // For unknown but valid types, read first byte as boolean
-                            value = (double)(raw_data[0] > 0 ? 1.0 : 0.0);
-                            break;
-                    }
-                    
-                    // Update the data
-                    pData->aircraft_crashed = value;
-                    pData->all_variables[(int)VariableIndex::AIRCRAFT_CRASHED] = value;
-                    
-                    // Log crash state changes only (reduce spam)
-                    static double last_crash_state = -1.0;
-                    static int log_throttle = 0;
-                    
-                    if (last_crash_state != value) {
-                        if (value > 0.0) {
-                            DBG("AIRCRAFT CRASHED!\n");
-                        } else {
-                            DBG("Aircraft recovered/reset\n");
-                        }
-                        last_crash_state = value;
-                        log_throttle = 0; // Reset throttle on state change
-                    } else {
-                        // Same state - throttle logging
-                        log_throttle++;
-                        if (log_throttle > 10) {
-                            // After 10 identical messages, ignore until state changes
-                            return;
-                        }
-                    }
-                    
-                }
-                catch (const std::exception& e) {
-                    pData->aircraft_crashed = 0.0;
-                    pData->all_variables[(int)VariableIndex::AIRCRAFT_CRASHED] = 0.0;
-                    static bool error_logged = false;
-                    if (!error_logged) {
-                        OutputDebugStringA("ERROR: Aircraft.Crashed exception (logged once)\n");
-                        error_logged = true;
-                    }
-                }
-                catch (...) {
-                    pData->aircraft_crashed = 0.0;
-                    pData->all_variables[(int)VariableIndex::AIRCRAFT_CRASHED] = 0.0;
-                    static bool error_logged = false;
-                    if (!error_logged) {
-                        OutputDebugStringA("ERROR: Aircraft.Crashed unknown error (logged once)\n");
-                        error_logged = true;
-                    }
-                }
-                return;
-            }
-
-
-            if (hash == MessageAircraftGear.GetID()) {
-                const double value = message.GetDouble();
-                pData->aircraft_gear = value;
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_GEAR] = value;
-                return;
-            }
-            if (hash == MessageAircraftFlaps.GetID()) {
-                const double value = message.GetDouble();
-                pData->aircraft_flaps = value;
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_FLAPS] = value;
-                return;
-            }
-            if (hash == MessageAircraftSlats.GetID()) {
-                const double value = message.GetDouble();
-                pData->aircraft_slats = value;
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_SLATS] = value;
-                return;
-            }
-            if (hash == MessageAircraftThrottle.GetID()) {
-                const double value = message.GetDouble();
-                pData->aircraft_throttle = value;
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_THROTTLE] = value;
-                return;
-            }
-            if (hash == MessageAircraftAirBrake.GetID()) {
-                const double value = message.GetDouble();
-                pData->aircraft_air_brake = value;
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_AIR_BRAKE] = value;
-                return;
-            }
+            // MIGRATED TO HASH MAP: MessageAircraftCrashed (with special data type handling)
+            // MIGRATED TO HASH MAP: MessageAircraftGear
+            // MIGRATED TO HASH MAP: MessageAircraftFlaps
+            // MIGRATED TO HASH MAP: MessageAircraftSlats
+            // MIGRATED TO HASH MAP: MessageAircraftThrottle
+            // MIGRATED TO HASH MAP: MessageAircraftAirBrake
             
             // === ENGINE DATA ===
             // CLEANED UP: Engine variables now use hash map O(1) lookup
@@ -3150,62 +3538,17 @@ public:
 
 
 
-            if (hash == MessageAircraftEngineRunning1.GetID()) {
-                const double value = message.GetDouble();
-                pData->aircraft_engine_running_1 = value;
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_ENGINE_RUNNING_1] = value;
-                return;
-            }
-            if (hash == MessageAircraftEngineRunning2.GetID()) {
-                const double value = message.GetDouble();
-                pData->aircraft_engine_running_2 = value;
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_ENGINE_RUNNING_2] = value;
-                return;
-            }
-            if (hash == MessageAircraftEngineRunning3.GetID()) {
-                const double value = message.GetDouble();
-                pData->aircraft_engine_running_3 = value;
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_ENGINE_RUNNING_3] = value;
-                return;
-            }
-            if (hash == MessageAircraftEngineRunning4.GetID()) {
-                const double value = message.GetDouble();
-                pData->aircraft_engine_running_4 = value;
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_ENGINE_RUNNING_4] = value;
-                return;
-            }
+            // MIGRATED TO HASH MAP: MessageAircraftEngineRunning1
+            // MIGRATED TO HASH MAP: MessageAircraftEngineRunning2
+            // MIGRATED TO HASH MAP: MessageAircraftEngineRunning3
+            // MIGRATED TO HASH MAP: MessageAircraftEngineRunning4
             
             // === PERFORMANCE SPEEDS ===
-            if (hash == MessagePerformanceSpeedVS0.GetID()) {
-                const double value = message.GetDouble();
-                pData->performance_speed_vs0 = value;
-                pData->all_variables[(int)VariableIndex::PERFORMANCE_SPEED_VS0] = value;
-                return;
-            }
-            if (hash == MessagePerformanceSpeedVS1.GetID()) {
-                const double value = message.GetDouble();
-                pData->performance_speed_vs1 = value;
-                pData->all_variables[(int)VariableIndex::PERFORMANCE_SPEED_VS1] = value;
-                return;
-            }
-            if (hash == MessagePerformanceSpeedVFE.GetID()) {
-                const double value = message.GetDouble();
-                pData->performance_speed_vfe = value;
-                pData->all_variables[(int)VariableIndex::PERFORMANCE_SPEED_VFE] = value;
-                return;
-            }
-            if (hash == MessagePerformanceSpeedVNO.GetID()) {
-                const double value = message.GetDouble();
-                pData->performance_speed_vno = value;
-                pData->all_variables[(int)VariableIndex::PERFORMANCE_SPEED_VNO] = value;
-                return;
-            }
-            if (hash == MessagePerformanceSpeedVNE.GetID()) {
-                const double value = message.GetDouble();
-                pData->performance_speed_vne = value;
-                pData->all_variables[(int)VariableIndex::PERFORMANCE_SPEED_VNE] = value;
-                return;
-            }
+            // MIGRATED TO HASH MAP: MessagePerformanceSpeedVS0
+            // MIGRATED TO HASH MAP: MessagePerformanceSpeedVS1
+            // MIGRATED TO HASH MAP: MessagePerformanceSpeedVFE
+            // MIGRATED TO HASH MAP: MessagePerformanceSpeedVNO
+            // MIGRATED TO HASH MAP: MessagePerformanceSpeedVNE
             
             // === NAVIGATION ===
             // CLEANED UP: Navigation variables now use hash map O(1) lookup
@@ -3217,117 +3560,27 @@ public:
             // CLEANED UP: Communication variables now use hash map O(1) lookup
 
             // === FMS STRING HANDLERS (1 handler) ===
-            if (hash == MessageFMSFlightNumber.GetID()) {
-                ProcessStringMessage(message, pData->fms_flight_number, 
-                                    sizeof(pData->fms_flight_number), "", 
-                                    "FMSFlightNumber");
-                return;
-            }
+            // MIGRATED TO HASH MAP: MessageFMSFlightNumber
 
             // === SIMULATION ===
-            if (hash == MessageSimulationTime.GetID()) {
-                const double value = message.GetDouble();
-                pData->all_variables[(int)VariableIndex::SIMULATION_TIME] = value;
-                return;
-            }
+            // MIGRATED TO HASH MAP: MessageSimulationTime
             
             // === AUTOPILOT ===
-            if (hash == MessageAutopilotEngaged.GetID()) {
-                const double value = message.GetDouble();
-                pData->autopilot_engaged = value;
-                pData->all_variables[(int)VariableIndex::AUTOPILOT_ENGAGED] = value;
-                return;
-            }
-            if (hash == MessageAutopilotSelectedAirspeed.GetID()) {
-                const double value = message.GetDouble();
-                pData->autopilot_selected_airspeed = value;
-                pData->all_variables[(int)VariableIndex::AUTOPILOT_SELECTED_AIRSPEED] = value;
-                return;
-            }
-            if (hash == MessageAutopilotSelectedHeading.GetID()) {
-                const double value = message.GetDouble();
-                pData->autopilot_selected_heading = value;
-                pData->all_variables[(int)VariableIndex::AUTOPILOT_SELECTED_HEADING] = value;
-                return;
-            }
-            if (hash == MessageAutopilotSelectedAltitude.GetID()) {
-                const double value = message.GetDouble();
-                pData->autopilot_selected_altitude = value;
-                pData->all_variables[(int)VariableIndex::AUTOPILOT_SELECTED_ALTITUDE] = value;
-                return;
-            }
-            if (hash == MessageAutopilotSelectedVerticalSpeed.GetID()) {
-                const double value = message.GetDouble();
-                pData->autopilot_selected_vertical_speed = value;
-                pData->all_variables[(int)VariableIndex::AUTOPILOT_SELECTED_VERTICAL_SPEED] = value;
-                return;
-            }
-            if (hash == MessageAutopilotThrottleEngaged.GetID()) {
-                const double value = message.GetDouble();
-                pData->autopilot_throttle_engaged = value;
-                pData->all_variables[(int)VariableIndex::AUTOPILOT_THROTTLE_ENGAGED] = value;
-                return;
-            }
-            if (hash == MessageAutopilotActiveLateralMode.GetID()) {
-                ProcessStringMessage(message, pData->autopilot_active_lateral_mode, 
-                                    sizeof(pData->autopilot_active_lateral_mode), "Manual", 
-                                    "AutopilotActiveLateralMode");
-                return;
-            }
-            if (hash == MessageAutopilotActiveVerticalMode.GetID()) {
-                ProcessStringMessage(message, pData->autopilot_active_vertical_mode, 
-                                    sizeof(pData->autopilot_active_vertical_mode), "Manual", 
-                                    "AutopilotActiveVerticalMode");
-                return;
-            }
-            if (hash == MessageAutopilotArmedLateralMode.GetID()) {
-                ProcessStringMessage(message, pData->autopilot_armed_lateral_mode, 
-                                    sizeof(pData->autopilot_armed_lateral_mode), "None", 
-                                    "AutopilotArmedLateralMode");
-                return;
-            }
-            
-            if (hash == MessageAutopilotArmedVerticalMode.GetID()) {
-                ProcessStringMessage(message, pData->autopilot_armed_vertical_mode, 
-                                    sizeof(pData->autopilot_armed_vertical_mode), "None", 
-                                    "AutopilotArmedVerticalMode");
-                return;
-            }
-            
-            if (hash == MessageAutopilotArmedApproachMode.GetID()) {
-                ProcessStringMessage(message, pData->autopilot_armed_approach_mode, 
-                                    sizeof(pData->autopilot_armed_approach_mode), "None", 
-                                    "AutopilotArmedApproachMode");
-                return;
-            }
-            
-            if (hash == MessageAutopilotActiveAutoThrottleMode.GetID()) {
-                ProcessStringMessage(message, pData->autopilot_active_autothrottle_mode, 
-                                    sizeof(pData->autopilot_active_autothrottle_mode), "None", 
-                                    "AutopilotActiveAutoThrottleMode");
-                return;
-            }
-            
-            if (hash == MessageAutopilotActiveCollectiveMode.GetID()) {
-                ProcessStringMessage(message, pData->autopilot_active_collective_mode, 
-                                    sizeof(pData->autopilot_active_collective_mode), "None", 
-                                    "AutopilotActiveCollectiveMode");
-                return;
-            }
-            
-            if (hash == MessageAutopilotArmedCollectiveMode.GetID()) {
-                ProcessStringMessage(message, pData->autopilot_armed_collective_mode, 
-                                    sizeof(pData->autopilot_armed_collective_mode), "None", 
-                                    "AutopilotArmedCollectiveMode");
-                return;
-            }
-            
-            if (hash == MessageAutopilotType.GetID()) {
-                ProcessStringMessage(message, pData->autopilot_type, 
-                                    sizeof(pData->autopilot_type), "Unknown", 
-                                    "AutopilotType");
-                return;
-            }
+            // MIGRATED TO HASH MAP: MessageAutopilotEngaged
+            // MIGRATED TO HASH MAP: MessageAutopilotSelectedAirspeed
+            // MIGRATED TO HASH MAP: MessageAutopilotSelectedHeading
+            // MIGRATED TO HASH MAP: MessageAutopilotSelectedAltitude
+            // MIGRATED TO HASH MAP: MessageAutopilotSelectedVerticalSpeed
+            // MIGRATED TO HASH MAP: MessageAutopilotThrottleEngaged
+            // MIGRATED TO HASH MAP: MessageAutopilotActiveLateralMode
+            // MIGRATED TO HASH MAP: MessageAutopilotActiveVerticalMode
+            // MIGRATED TO HASH MAP: MessageAutopilotArmedLateralMode
+            // MIGRATED TO HASH MAP: MessageAutopilotArmedVerticalMode
+            // MIGRATED TO HASH MAP: MessageAutopilotArmedApproachMode
+            // MIGRATED TO HASH MAP: MessageAutopilotActiveAutoThrottleMode
+            // MIGRATED TO HASH MAP: MessageAutopilotActiveCollectiveMode
+            // MIGRATED TO HASH MAP: MessageAutopilotArmedCollectiveMode
+            // MIGRATED TO HASH MAP: MessageAutopilotType
             
             // === CONTROLS ===
             // MIGRATED TO HASH MAP: MessageControlsPitchInput
@@ -3338,193 +3591,50 @@ public:
             // MIGRATED TO HASH MAP: MessageControlsFlaps
             
             // === ADDITIONAL CONTROL VARIABLES ===
-            if (hash == MessageControlsWheelBrakeLeft.GetID()) {
-                const double value = message.GetDouble();
-                pData->all_variables[(int)VariableIndex::CONTROLS_WHEEL_BRAKE_LEFT] = value;
-                return;
-            }
-            if (hash == MessageControlsWheelBrakeRight.GetID()) {
-                const double value = message.GetDouble();
-                pData->all_variables[(int)VariableIndex::CONTROLS_WHEEL_BRAKE_RIGHT] = value;
-                return;
-            }
-            if (hash == MessageControlsAirBrake.GetID()) {
-                const double value = message.GetDouble();
-                pData->all_variables[(int)VariableIndex::CONTROLS_AIR_BRAKE] = value;
-                return;
-            }
-            if (hash == MessageControlsAirBrakeArm.GetID()) {
-                const double value = message.GetDouble();
-                pData->all_variables[(int)VariableIndex::CONTROLS_AIR_BRAKE_ARM] = value;
-                return;
-            }
-            if (hash == MessageControlsPropellerSpeed1.GetID()) {
-                const double value = message.GetDouble();
-                pData->all_variables[(int)VariableIndex::CONTROLS_PROPELLER_SPEED_1] = value;
-                return;
-            }
-            if (hash == MessageControlsPropellerSpeed2.GetID()) {
-                const double value = message.GetDouble();
-                pData->all_variables[(int)VariableIndex::CONTROLS_PROPELLER_SPEED_2] = value;
-                return;
-            }
-            if (hash == MessageControlsPropellerSpeed3.GetID()) {
-                const double value = message.GetDouble();
-                pData->all_variables[(int)VariableIndex::CONTROLS_PROPELLER_SPEED_3] = value;
-                return;
-            }
-            if (hash == MessageControlsPropellerSpeed4.GetID()) {
-                const double value = message.GetDouble();
-                pData->all_variables[(int)VariableIndex::CONTROLS_PROPELLER_SPEED_4] = value;
-                return;
-            }
-            if (hash == MessageControlsGliderAirBrake.GetID()) {
-                const double value = message.GetDouble();
-                pData->all_variables[(int)VariableIndex::CONTROLS_GLIDER_AIR_BRAKE] = value;
-                return;
-            }
-            if (hash == MessageControlsRotorBrake.GetID()) {
-                const double value = message.GetDouble();
-                pData->all_variables[(int)VariableIndex::CONTROLS_ROTOR_BRAKE] = value;
-                return;
-            }
+            // MIGRATED TO HASH MAP: MessageControlsWheelBrakeLeft
+            // MIGRATED TO HASH MAP: MessageControlsWheelBrakeRight
+            // MIGRATED TO HASH MAP: MessageControlsAirBrake
+            // MIGRATED TO HASH MAP: MessageControlsAirBrakeArm
+            // MIGRATED TO HASH MAP: MessageControlsPropellerSpeed1
+            // MIGRATED TO HASH MAP: MessageControlsPropellerSpeed2
+            // MIGRATED TO HASH MAP: MessageControlsPropellerSpeed3
+            // MIGRATED TO HASH MAP: MessageControlsPropellerSpeed4
+            // MIGRATED TO HASH MAP: MessageControlsGliderAirBrake
+            // MIGRATED TO HASH MAP: MessageControlsRotorBrake
             
             // === AIRCRAFT SYSTEM VARIABLES ===
-            if (hash == MessageAircraftGroundSpoilersArmed.GetID()) {
-                const double value = message.GetDouble();
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_GROUND_SPOILERS_ARMED] = value;
-                return;
-            }
-            if (hash == MessageAircraftGroundSpoilersExtended.GetID()) {
-                const double value = message.GetDouble();
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_GROUND_SPOILERS_EXTENDED] = value;
-                return;
-            }
-            if (hash == MessageAircraftParkingBrake.GetID()) {
-                const double value = message.GetDouble();
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_PARKING_BRAKE] = value;
-                return;
-            }
-            if (hash == MessageAircraftAutoBrakeSetting.GetID()) {
-                const double value = message.GetDouble();
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_AUTO_BRAKE_SETTING] = value;
-                return;
-            }
-            if (hash == MessageAircraftAutoBrakeEngaged.GetID()) {
-                const double value = message.GetDouble();
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_AUTO_BRAKE_ENGAGED] = value;
-                return;
-            }
-            if (hash == MessageAircraftAutoBrakeRejectedTakeOff.GetID()) {
-                const double value = message.GetDouble();
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_AUTO_BRAKE_REJECTED_TAKEOFF] = value;
-                return;
-            }
+            // MIGRATED TO HASH MAP: MessageAircraftGroundSpoilersArmed
+            // MIGRATED TO HASH MAP: MessageAircraftGroundSpoilersExtended
+            // MIGRATED TO HASH MAP: MessageAircraftParkingBrake
+            // MIGRATED TO HASH MAP: MessageAircraftAutoBrakeSetting
+            // MIGRATED TO HASH MAP: MessageAircraftAutoBrakeEngaged
+            // MIGRATED TO HASH MAP: MessageAircraftAutoBrakeRejectedTakeOff
             
             // === ENGINE SYSTEM VARIABLES ===
-            if (hash == MessageAircraftStarter.GetID()) {
-                const double value = message.GetDouble();
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_STARTER] = value;
-                return;
-            }
-            if (hash == MessageAircraftStarter1.GetID()) {
-                const double value = message.GetDouble();
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_STARTER_1] = value;
-                return;
-            }
-            if (hash == MessageAircraftStarter2.GetID()) {
-                const double value = message.GetDouble();
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_STARTER_2] = value;
-                return;
-            }
-            if (hash == MessageAircraftStarter3.GetID()) {
-                const double value = message.GetDouble();
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_STARTER_3] = value;
-                return;
-            }
-            if (hash == MessageAircraftStarter4.GetID()) {
-                const double value = message.GetDouble();
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_STARTER_4] = value;
-                return;
-            }
-            if (hash == MessageAircraftIgnition.GetID()) {
-                const double value = message.GetDouble();
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_IGNITION] = value;
-                return;
-            }
-            if (hash == MessageAircraftIgnition1.GetID()) {
-                const double value = message.GetDouble();
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_IGNITION_1] = value;
-                return;
-            }
-            if (hash == MessageAircraftIgnition2.GetID()) {
-                const double value = message.GetDouble();
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_IGNITION_2] = value;
-                return;
-            }
-            if (hash == MessageAircraftIgnition3.GetID()) {
-                const double value = message.GetDouble();
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_IGNITION_3] = value;
-                return;
-            }
-            if (hash == MessageAircraftIgnition4.GetID()) {
-                const double value = message.GetDouble();
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_IGNITION_4] = value;
-                return;
-            }
-            if (hash == MessageAircraftEngineMaster1.GetID()) {
-                const double value = message.GetDouble();
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_ENGINE_MASTER_1] = value;
-                return;
-            }
-            if (hash == MessageAircraftEngineMaster2.GetID()) {
-                const double value = message.GetDouble();
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_ENGINE_MASTER_2] = value;
-                return;
-            }
-            if (hash == MessageAircraftEngineMaster3.GetID()) {
-                const double value = message.GetDouble();
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_ENGINE_MASTER_3] = value;
-                return;
-            }
-            if (hash == MessageAircraftEngineMaster4.GetID()) {
-                const double value = message.GetDouble();
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_ENGINE_MASTER_4] = value;
-                return;
-            }
+            // MIGRATED TO HASH MAP: MessageAircraftStarter
+            // MIGRATED TO HASH MAP: MessageAircraftStarter1
+            // MIGRATED TO HASH MAP: MessageAircraftStarter2
+            // MIGRATED TO HASH MAP: MessageAircraftStarter3
+            // MIGRATED TO HASH MAP: MessageAircraftStarter4
+            // MIGRATED TO HASH MAP: MessageAircraftIgnition
+            // MIGRATED TO HASH MAP: MessageAircraftIgnition1
+            // MIGRATED TO HASH MAP: MessageAircraftIgnition2
+            // MIGRATED TO HASH MAP: MessageAircraftIgnition3
+            // MIGRATED TO HASH MAP: MessageAircraftIgnition4
+            // MIGRATED TO HASH MAP: MessageAircraftEngineMaster1
+            // MIGRATED TO HASH MAP: MessageAircraftEngineMaster2
+            // MIGRATED TO HASH MAP: MessageAircraftEngineMaster3
+            // MIGRATED TO HASH MAP: MessageAircraftEngineMaster4
             
             // === WARNINGS ===
-            if (hash == MessageWarningsMasterWarning.GetID()) {
-                const double value = message.GetDouble();
-                pData->warnings_master_warning = (uint32_t)value;
-                pData->all_variables[(int)VariableIndex::WARNINGS_MASTER_WARNING] = value;
-                return;
-            }
-            if (hash == MessageWarningsMasterCaution.GetID()) {
-                const double value = message.GetDouble();
-                pData->warnings_master_caution = (uint32_t)value;
-                pData->all_variables[(int)VariableIndex::WARNINGS_MASTER_CAUTION] = value;
-                return;
-            }
-            if (hash == MessageWarningsLowOilPressure.GetID()) {
-                const double value = message.GetDouble();
-                pData->all_variables[(int)VariableIndex::WARNINGS_LOW_OIL_PRESSURE] = value;
-                return;
-            }
-            if (hash == MessageWarningsLowFuelPressure.GetID()) {
-                const double value = message.GetDouble();
-                pData->all_variables[(int)VariableIndex::WARNINGS_LOW_FUEL_PRESSURE] = value;
-                return;
-            }
+            // MIGRATED TO HASH MAP: MessageWarningsMasterWarning
+            // MIGRATED TO HASH MAP: MessageWarningsMasterCaution
+            // MIGRATED TO HASH MAP: MessageWarningsLowOilPressure
+            // MIGRATED TO HASH MAP: MessageWarningsLowFuelPressure
 
             // === AIRCRAFT EXTENDED VARIABLES ===
 
-            if (hash == MessageAircraftHeight.GetID()) {
-                const double value = message.GetDouble();
-                pData->aircraft_height = value;
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_HEIGHT] = value;
-                return;
-            }
+            // MIGRATED TO HASH MAP: MessageAircraftHeight
             // MIGRATED TO HASH MAP: MessageAircraftPosition (duplicate)
             // MIGRATED TO HASH MAP: MessageAircraftOrientation
             // MIGRATED TO HASH MAP: MessageAircraftVelocity (duplicate)
@@ -3552,52 +3662,19 @@ public:
                 // NOTE: Vector3d cannot be stored in all_variables array (double only)
                 return;
             }
-            if (hash == MessageAircraftNearestAirportLocation.GetID()) {
-                const tm_vector3d temp = message.GetVector3d();  
-                pData->aircraft_nearest_airport_location = tm_vector2d(temp.x, temp.y);
-                return;
-            }
-            if (hash == MessageAircraftBestAirportLocation.GetID()) {
-                const tm_vector3d temp = message.GetVector3d();  
-                pData->aircraft_best_airport_location = tm_vector2d(temp.x, temp.y);
-                return;
-            }
-            if (hash == MessageAircraftBestRunwayThreshold.GetID()) {
-                const tm_vector3d value = message.GetVector3d();
-                pData->aircraft_best_runway_threshold = value;
-                // NOTE: Vector3d cannot be stored in all_variables array (double only)
-                return;
-            }
-            if (hash == MessageAircraftBestRunwayEnd.GetID()) {
-                const tm_vector3d value = message.GetVector3d();
-                pData->aircraft_best_runway_end = value;
-                // NOTE: Vector3d cannot be stored in all_variables array (double only)
-                return;
-            }
+            // MIGRATED TO HASH MAP: MessageAircraftNearestAirportLocation (Vector3D→Vector2D)
+            // MIGRATED TO HASH MAP: MessageAircraftBestAirportLocation (Vector3D→Vector2D)
+            // MIGRATED TO HASH MAP: MessageAircraftBestRunwayThreshold (Vector3D)
+            // MIGRATED TO HASH MAP: MessageAircraftBestRunwayEnd (Vector3D)
             if (hash == MessageAircraftOnGround.GetID()) {
                 const double value = message.GetDouble();
                 pData->aircraft_on_ground = (uint32_t)value;
                 pData->all_variables[(int)VariableIndex::AIRCRAFT_ON_GROUND] = value;
                 return;
             }
-            if (hash == MessageAircraftPower.GetID()) {
-                const double value = message.GetDouble();
-                pData->aircraft_power = value;
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_POWER] = value;
-                return;
-            }
-            if (hash == MessageAircraftNormalizedPower.GetID()) {
-                const double value = message.GetDouble();
-                pData->aircraft_normalized_power = value;
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_NORMALIZED_POWER] = value;
-                return;
-            }
-            if (hash == MessageAircraftNormalizedPowerTarget.GetID()) {
-                const double value = message.GetDouble();
-                pData->aircraft_normalized_power_target = value;
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_NORMALIZED_POWER_TARGET] = value;
-                return;
-            }
+            // MIGRATED TO HASH MAP: MessageAircraftPower
+            // MIGRATED TO HASH MAP: MessageAircraftNormalizedPower
+            // MIGRATED TO HASH MAP: MessageAircraftNormalizedPowerTarget
 
             if (hash == MessageAircraftGroundSpoilersExtended.GetID()) {
                 const double value = message.GetDouble();
@@ -3605,54 +3682,14 @@ public:
                 pData->all_variables[(int)VariableIndex::AIRCRAFT_GROUND_SPOILERS_EXTENDED] = value;
                 return;
             }
-            if (hash == MessageAircraftTrim.GetID()) {
-                const double value = message.GetDouble();
-                pData->aircraft_trim = value;
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_TRIM] = value;
-                return;
-            }
-            if (hash == MessageAircraftPitchTrim.GetID()) {
-                const double value = message.GetDouble();
-                pData->aircraft_pitch_trim = value;
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_PITCH_TRIM] = value;
-                return;
-            }
-            if (hash == MessageAircraftPitchTrimScaling.GetID()) {
-                const double value = message.GetDouble();
-                pData->aircraft_pitch_trim_scaling = value;
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_PITCH_TRIM_SCALING] = value;
-                return;
-            }
-            if (hash == MessageAircraftPitchTrimOffset.GetID()) {
-                const double value = message.GetDouble();
-                pData->aircraft_pitch_trim_offset = value;
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_PITCH_TRIM_OFFSET] = value;
-                return;
-            }
-            if (hash == MessageAircraftRudderTrim.GetID()) {
-                const double value = message.GetDouble();
-                pData->aircraft_rudder_trim = value;
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_RUDDER_TRIM] = value;
-                return;
-            }
-            if (hash == MessageAircraftAutoPitchTrim.GetID()) {
-                const double value = message.GetDouble();
-                pData->aircraft_auto_pitch_trim = (uint32_t)value;
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_AUTO_PITCH_TRIM] = value;
-                return;
-            }
-            if (hash == MessageAircraftYawDamperEnabled.GetID()) {
-                const double value = message.GetDouble();
-                pData->aircraft_yaw_damper_enabled = (uint32_t)value;
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_YAW_DAMPER_ENABLED] = value;
-                return;
-            }
-            if (hash == MessageAircraftRudderPedalsDisconnected.GetID()) {
-                const double value = message.GetDouble();
-                pData->aircraft_rudder_pedals_disconnected = (uint32_t)value;
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_RUDDER_PEDALS_DISCONNECTED] = value;
-                return;
-            }
+            // MIGRATED TO HASH MAP: MessageAircraftTrim
+            // MIGRATED TO HASH MAP: MessageAircraftPitchTrim
+            // MIGRATED TO HASH MAP: MessageAircraftPitchTrimScaling
+            // MIGRATED TO HASH MAP: MessageAircraftPitchTrimOffset
+            // MIGRATED TO HASH MAP: MessageAircraftRudderTrim
+            // MIGRATED TO HASH MAP: MessageAircraftAutoPitchTrim
+            // MIGRATED TO HASH MAP: MessageAircraftYawDamperEnabled
+            // MIGRATED TO HASH MAP: MessageAircraftRudderPedalsDisconnected
             if (hash == MessageAircraftParkingBrake.GetID()) {
                 const double value = message.GetDouble();
                 pData->aircraft_parking_brake = (uint32_t)value;
@@ -3677,18 +3714,8 @@ public:
                 pData->all_variables[(int)VariableIndex::AIRCRAFT_AUTO_BRAKE_REJECTED_TAKEOFF] = value;
                 return;
             }
-            if (hash == MessageAircraftThrottleLimit.GetID()) {
-                const double value = message.GetDouble();
-                pData->aircraft_throttle_limit = value;
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_THROTTLE_LIMIT] = value;
-                return;
-            }
-            if (hash == MessageAircraftReverse.GetID()) {
-                const double value = message.GetDouble();
-                pData->aircraft_reverse = (uint32_t)value;
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_REVERSE] = value;
-                return;
-            }
+            // MIGRATED TO HASH MAP: MessageAircraftThrottleLimit
+            // MIGRATED TO HASH MAP: MessageAircraftReverse
 
             // === ENGINE SYSTEM VARIABLES ===
 
@@ -3776,30 +3803,10 @@ public:
                 pData->all_variables[(int)VariableIndex::AIRCRAFT_ENGINE_MASTER_4] = value;
                 return;
             }
-            if (hash == MessageAircraftEngineThrottle1.GetID()) {
-                const double value = message.GetDouble();
-                pData->aircraft_engine_throttle_1 = value;
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_ENGINE_THROTTLE_1] = value;
-                return;
-            }
-            if (hash == MessageAircraftEngineThrottle2.GetID()) {
-                const double value = message.GetDouble();
-                pData->aircraft_engine_throttle_2 = value;
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_ENGINE_THROTTLE_2] = value;
-                return;
-            }
-            if (hash == MessageAircraftEngineThrottle3.GetID()) {
-                const double value = message.GetDouble();
-                pData->aircraft_engine_throttle_3 = value;
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_ENGINE_THROTTLE_3] = value;
-                return;
-            }
-            if (hash == MessageAircraftEngineThrottle4.GetID()) {
-                const double value = message.GetDouble();
-                pData->aircraft_engine_throttle_4 = value;
-                pData->all_variables[(int)VariableIndex::AIRCRAFT_ENGINE_THROTTLE_4] = value;
-                return;
-            }
+            // MIGRATED TO HASH MAP: MessageAircraftEngineThrottle1
+            // MIGRATED TO HASH MAP: MessageAircraftEngineThrottle2
+            // MIGRATED TO HASH MAP: MessageAircraftEngineThrottle3
+            // MIGRATED TO HASH MAP: MessageAircraftEngineThrottle4
 
 
 
@@ -6410,8 +6417,504 @@ public:
             return msg;
         };
         
-        // TODO: Add remaining ~189 variables in subsequent steps
+        // === AIRCRAFT PHYSICS (5 variables - excluding vector types) ===
+        command_handlers["Aircraft.RateOfTurn"] = [](double value) {
+            auto msg = MessageAircraftRateOfTurn;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.MachNumber"] = [](double value) {
+            auto msg = MessageAircraftMachNumber;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.AngleOfAttack"] = [](double value) {
+            auto msg = MessageAircraftAngleOfAttack;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.AngleOfAttackLimit"] = [](double value) {
+            auto msg = MessageAircraftAngleOfAttackLimit;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.AccelerationLimit"] = [](double value) {
+            auto msg = MessageAircraftAccelerationLimit;
+            msg.SetValue(value);
+            return msg;
+        };
+        // Note: Aircraft.Gravity and Aircraft.Wind are Vector3D types, handled separately
+        
+        // === AIRCRAFT STATE (8 variables) ===
+        command_handlers["Aircraft.OnGround"] = [](double value) {
+            auto msg = MessageAircraftOnGround;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.OnRunway"] = [](double value) {
+            auto msg = MessageAircraftOnRunway;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.Crashed"] = [](double value) {
+            auto msg = MessageAircraftCrashed;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.Gear"] = [](double value) {
+            auto msg = MessageAircraftGear;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.Flaps"] = [](double value) {
+            auto msg = MessageAircraftFlaps;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.Slats"] = [](double value) {
+            auto msg = MessageAircraftSlats;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.Throttle"] = [](double value) {
+            auto msg = MessageAircraftThrottle;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.AirBrake"] = [](double value) {
+            auto msg = MessageAircraftAirBrake;
+            msg.SetValue(value);
+            return msg;
+        };
+        
+        // === PERFORMANCE SPEEDS (5 variables) ===
+        command_handlers["Performance.Speed.VS0"] = [](double value) {
+            auto msg = MessagePerformanceSpeedVS0;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Performance.Speed.VS1"] = [](double value) {
+            auto msg = MessagePerformanceSpeedVS1;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Performance.Speed.VFE"] = [](double value) {
+            auto msg = MessagePerformanceSpeedVFE;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Performance.Speed.VNO"] = [](double value) {
+            auto msg = MessagePerformanceSpeedVNO;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Performance.Speed.VNE"] = [](double value) {
+            auto msg = MessagePerformanceSpeedVNE;
+            msg.SetValue(value);
+            return msg;
+        };
+        
+        // === AIRCRAFT STRING VARIABLES (5 variables - read-only, no command handlers) ===
+        // Note: These are read-only variables populated by Aerofly, no command handlers needed:
+        // - Aircraft.NearestAirportIdentifier
+        // - Aircraft.NearestAirportName  
+        // - Aircraft.BestAirportIdentifier
+        // - Aircraft.BestAirportName
+        // - Aircraft.BestRunwayIdentifier
+        
+        // === AIRCRAFT ENGINE RUNNING (4 variables) ===
+        command_handlers["Aircraft.Engine.Running.1"] = [](double value) {
+            auto msg = MessageAircraftEngineRunning1;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.Engine.Running.2"] = [](double value) {
+            auto msg = MessageAircraftEngineRunning2;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.Engine.Running.3"] = [](double value) {
+            auto msg = MessageAircraftEngineRunning3;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.Engine.Running.4"] = [](double value) {
+            auto msg = MessageAircraftEngineRunning4;
+            msg.SetValue(value);
+            return msg;
+        };
+        
+        // === FMS AND SIMULATION (1 variable - 1 read-only) ===
+        command_handlers["Simulation.Time"] = [](double value) {
+            auto msg = MessageSimulationTime;
+            msg.SetValue(value);
+            return msg;
+        };
+        // Note: FMS.FlightNumber is read-only, no command handler needed
+        
+        // === AUTOPILOT REMAINING NUMERIC (6 variables) ===
+        command_handlers["Autopilot.Engaged"] = [](double value) {
+            auto msg = MessageAutopilotEngaged;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Autopilot.SelectedAirspeed"] = [](double value) {
+            auto msg = MessageAutopilotSelectedAirspeed;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Autopilot.SelectedHeading"] = [](double value) {
+            auto msg = MessageAutopilotSelectedHeading;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Autopilot.SelectedAltitude"] = [](double value) {
+            auto msg = MessageAutopilotSelectedAltitude;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Autopilot.SelectedVerticalSpeed"] = [](double value) {
+            auto msg = MessageAutopilotSelectedVerticalSpeed;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Autopilot.ThrottleEngaged"] = [](double value) {
+            auto msg = MessageAutopilotThrottleEngaged;
+            msg.SetValue(value);
+            return msg;
+        };
+        
+        // === AUTOPILOT STRING VARIABLES (9 variables - mostly read-only) ===
+        // Note: These are typically read-only variables controlled by Aerofly autopilot system:
+        // - Autopilot.ActiveLateralMode
+        // - Autopilot.ActiveVerticalMode  
+        // - Autopilot.ArmedLateralMode
+        // - Autopilot.ArmedVerticalMode
+        // - Autopilot.ArmedApproachMode
+        // - Autopilot.ActiveAutoThrottleMode
+        // - Autopilot.ActiveCollectiveMode
+        // - Autopilot.ArmedCollectiveMode
+        // - Autopilot.Type
+        
+        // === CONTROLS REMAINING (9 variables) ===
+        command_handlers["Controls.WheelBrake.Left"] = [](double value) {
+            auto msg = MessageControlsWheelBrakeLeft;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Controls.WheelBrake.Right"] = [](double value) {
+            auto msg = MessageControlsWheelBrakeRight;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Controls.AirBrake"] = [](double value) {
+            auto msg = MessageControlsAirBrake;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Controls.AirBrake.Arm"] = [](double value) {
+            auto msg = MessageControlsAirBrakeArm;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Controls.PropellerSpeed.1"] = [](double value) {
+            auto msg = MessageControlsPropellerSpeed1;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Controls.PropellerSpeed.2"] = [](double value) {
+            auto msg = MessageControlsPropellerSpeed2;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Controls.PropellerSpeed.3"] = [](double value) {
+            auto msg = MessageControlsPropellerSpeed3;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Controls.PropellerSpeed.4"] = [](double value) {
+            auto msg = MessageControlsPropellerSpeed4;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Controls.GliderAirBrake"] = [](double value) {
+            auto msg = MessageControlsGliderAirBrake;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Controls.RotorBrake"] = [](double value) {
+            auto msg = MessageControlsRotorBrake;
+            msg.SetValue(value);
+            return msg;
+        };
+        
+        // === AIRCRAFT SYSTEM VARIABLES (6 variables) ===
+        command_handlers["Aircraft.GroundSpoilersArmed"] = [](double value) {
+            auto msg = MessageAircraftGroundSpoilersArmed;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.GroundSpoilersExtended"] = [](double value) {
+            auto msg = MessageAircraftGroundSpoilersExtended;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.ParkingBrake"] = [](double value) {
+            auto msg = MessageAircraftParkingBrake;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.AutoBrakeSetting"] = [](double value) {
+            auto msg = MessageAircraftAutoBrakeSetting;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.AutoBrakeEngaged"] = [](double value) {
+            auto msg = MessageAircraftAutoBrakeEngaged;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.AutoBrakeRejectedTakeOff"] = [](double value) {
+            auto msg = MessageAircraftAutoBrakeRejectedTakeOff;
+            msg.SetValue(value);
+            return msg;
+        };
+        
+        // === ENGINE SYSTEM VARIABLES (13 variables) ===
+        command_handlers["Aircraft.Starter"] = [](double value) {
+            auto msg = MessageAircraftStarter;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.Ignition"] = [](double value) {
+            auto msg = MessageAircraftIgnition;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.EngineMaster.1"] = [](double value) {
+            auto msg = MessageAircraftEngineMaster1;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.EngineMaster.2"] = [](double value) {
+            auto msg = MessageAircraftEngineMaster2;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.EngineMaster.3"] = [](double value) {
+            auto msg = MessageAircraftEngineMaster3;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.EngineMaster.4"] = [](double value) {
+            auto msg = MessageAircraftEngineMaster4;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.Engine.Throttle.1"] = [](double value) {
+            auto msg = MessageAircraftEngineThrottle1;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.Engine.Throttle.2"] = [](double value) {
+            auto msg = MessageAircraftEngineThrottle2;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.Engine.Throttle.3"] = [](double value) {
+            auto msg = MessageAircraftEngineThrottle3;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.Engine.Throttle.4"] = [](double value) {
+            auto msg = MessageAircraftEngineThrottle4;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.Engine.RotationSpeed.1"] = [](double value) {
+            auto msg = MessageAircraftEngineRotationSpeed1;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.Engine.RotationSpeed.2"] = [](double value) {
+            auto msg = MessageAircraftEngineRotationSpeed2;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.Engine.RotationSpeed.3"] = [](double value) {
+            auto msg = MessageAircraftEngineRotationSpeed3;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.Engine.RotationSpeed.4"] = [](double value) {
+            auto msg = MessageAircraftEngineRotationSpeed4;
+            msg.SetValue(value);
+            return msg;
+        };
+        
+        // === WARNINGS VARIABLES (4 variables) ===
+        command_handlers["Aircraft.MasterWarning"] = [](double value) {
+            auto msg = MessageWarningsMasterWarning;
+            msg.SetValue((tm_int64)value);
+            return msg;
+        };
+        command_handlers["Aircraft.MasterCaution"] = [](double value) {
+            auto msg = MessageWarningsMasterCaution;
+            msg.SetValue((tm_int64)value);
+            return msg;
+        };
+        command_handlers["Aircraft.LowOilPressure"] = [](double value) {
+            auto msg = MessageWarningsLowOilPressure;
+            msg.SetValue((tm_int64)value);
+            return msg;
+        };
+        command_handlers["Aircraft.LowFuelPressure"] = [](double value) {
+            auto msg = MessageWarningsLowFuelPressure;
+            msg.SetValue((tm_int64)value);
+            return msg;
+        };
+        
+        // === AIRCRAFT EXTENDED VARIABLES (12 variables) ===
+        command_handlers["Aircraft.Height"] = [](double value) {
+            auto msg = MessageAircraftHeight;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.Power"] = [](double value) {
+            auto msg = MessageAircraftPower;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.NormalizedPower"] = [](double value) {
+            auto msg = MessageAircraftNormalizedPower;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.NormalizedPowerTarget"] = [](double value) {
+            auto msg = MessageAircraftNormalizedPowerTarget;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.Trim"] = [](double value) {
+            auto msg = MessageAircraftTrim;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.PitchTrim"] = [](double value) {
+            auto msg = MessageAircraftPitchTrim;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.PitchTrimScaling"] = [](double value) {
+            auto msg = MessageAircraftPitchTrimScaling;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.PitchTrimOffset"] = [](double value) {
+            auto msg = MessageAircraftPitchTrimOffset;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.RudderTrim"] = [](double value) {
+            auto msg = MessageAircraftRudderTrim;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.AutoPitchTrim"] = [](double value) {
+            auto msg = MessageAircraftAutoPitchTrim;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.YawDamperEnabled"] = [](double value) {
+            auto msg = MessageAircraftYawDamperEnabled;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.RudderPedalsDisconnected"] = [](double value) {
+            auto msg = MessageAircraftRudderPedalsDisconnected;
+            msg.SetValue(value);
+            return msg;
+        };
+        
+        // === AIRCRAFT LOCATION VARIABLES (4 Vector variables - READ-ONLY) ===
+        // NOTE: These are read-only Vector3D/Vector2D variables from Aerofly
+        // No CommandHandlers needed - they are only updated by the simulator
+        // - Aircraft.NearestAirportLocation (Vector2D)
+        // - Aircraft.BestAirportLocation (Vector2D)  
+        // - Aircraft.BestRunwayThreshold (Vector3D)
+        // - Aircraft.BestRunwayEnd (Vector3D)
+        
+        // === FINAL ENGINE INDIVIDUAL VARIABLES (8 variables) ===
+        command_handlers["Aircraft.Starter1"] = [](double value) {
+            auto msg = MessageAircraftStarter1;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.Starter2"] = [](double value) {
+            auto msg = MessageAircraftStarter2;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.Starter3"] = [](double value) {
+            auto msg = MessageAircraftStarter3;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.Starter4"] = [](double value) {
+            auto msg = MessageAircraftStarter4;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.Ignition1"] = [](double value) {
+            auto msg = MessageAircraftIgnition1;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.Ignition2"] = [](double value) {
+            auto msg = MessageAircraftIgnition2;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.Ignition3"] = [](double value) {
+            auto msg = MessageAircraftIgnition3;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.Ignition4"] = [](double value) {
+            auto msg = MessageAircraftIgnition4;
+            msg.SetValue(value);
+            return msg;
+        };
+        
+        // === FINAL AIRCRAFT CONTROL VARIABLES (2 variables) ===
+        command_handlers["Aircraft.ThrottleLimit"] = [](double value) {
+            auto msg = MessageAircraftThrottleLimit;
+            msg.SetValue(value);
+            return msg;
+        };
+        command_handlers["Aircraft.Reverse"] = [](double value) {
+            auto msg = MessageAircraftReverse;
+            msg.SetValue(value);
+            return msg;
+        };
+        
+        // 🎉 COMMAND MIGRATION COMPLETE! All major variables migrated to hash maps! 🎉
         // PASO 3 Progress: +65 Navigation+Communication+Engine+Autopilot variables migrated (Total: ~108, 4 string identifiers in fallback)
+        // PASO 4 Progress: +5 Aircraft Physics variables migrated (Total: ~113, 2 vector types in fallback)
+        // PASO 5 Progress: +8 Aircraft State variables migrated (Total: ~121, 2 vector types in fallback)
+        // PASO 6 Progress: +5 Performance Speed variables migrated (Total: ~126, 2 vector types in fallback)
+        // PASO 7 Progress: +5 Aircraft String variables migrated (Total: ~131, 2 vector types in fallback)
+        // PASO 8 Progress: +4 Aircraft Engine Running variables migrated (Total: ~135, 2 vector types in fallback)
+        // PASO 9 Progress: +1 FMS and Simulation variables migrated (Total: ~136, 2 vector types, 1 read-only in fallback)
+        // PASO 10 Progress: +6 Autopilot Remaining Numeric variables migrated (Total: ~142, 2 vector types, 1 read-only in fallback)
+        // PASO 11 Progress: +9 Autopilot String variables migrated (Total: ~151, 2 vector types, 10 read-only in fallback)
+        // PASO 12 Progress: +9 Controls Remaining variables migrated (Total: ~160, 2 vector types, 10 read-only in fallback)
+        // PASO 13 Progress: +6 Aircraft System variables migrated (Total: ~166, 2 vector types, 10 read-only in fallback)
+        // PASO 14 Progress: +13 Engine System variables migrated (Total: ~179, 2 vector types, 10 read-only in fallback)
+        // PASO 15 Progress: +4 Warnings variables migrated (Total: ~183, 2 vector types, 10 read-only in fallback)
+        // PASO 16 Progress: +12 Aircraft Extended variables migrated (Total: ~195, 2 vector types, 10 read-only in fallback)
+        // PASO 17 Progress: +4 Aircraft Location variables migrated (Total: ~199, 6 vector types, 14 read-only in fallback)
+        // PASO 18 Progress: +10 Final Engine+Control variables migrated (Total: ~209, 6 vector types, 14 read-only in fallback) 🏆
     }
     
     /**
@@ -6755,32 +7258,11 @@ tm_external_message CommandProcessor::ProcessAircraftVariables(const std::string
         DBG("Creating message Aircraft.Longitude\n");
         return MessageAircraftLongitude;
     }
-    if (var_name == "Aircraft.OnGround") {
-        MessageAircraftOnGround.SetValue(value);
-        DBG("Creating message Aircraft.OnGround\n");
-        return MessageAircraftOnGround;
-    }
-    if (var_name == "Aircraft.OnRunway") {
-        MessageAircraftOnRunway.SetValue(value);
-        DBG("Creating message Aircraft.OnRunway\n");
-        return MessageAircraftOnRunway;
-    }
-
-    if (var_name == "Aircraft.Gear") {
-        MessageAircraftGear.SetValue(value);
-        DBG("Creating message Aircraft.Gear\n");
-        return MessageAircraftGear;
-    }
-    if (var_name == "Aircraft.Flaps") {
-        MessageAircraftFlaps.SetValue(value);
-        DBG("Creating message Aircraft.Flaps\n");
-        return MessageAircraftFlaps;
-    }
-    if (var_name == "Aircraft.Throttle") {
-        MessageAircraftThrottle.SetValue(value);
-        DBG("Creating message Aircraft.Throttle\n");
-        return MessageAircraftThrottle;
-    }
+    // MIGRATED TO HASH MAP: Aircraft.OnGround
+    // MIGRATED TO HASH MAP: Aircraft.OnRunway
+    // MIGRATED TO HASH MAP: Aircraft.Gear
+    // MIGRATED TO HASH MAP: Aircraft.Flaps
+    // MIGRATED TO HASH MAP: Aircraft.Throttle
     if (var_name == "Aircraft.ParkingBrake") {
         MessageAircraftParkingBrake.SetValue(value);
         DBG("Creating message Aircraft.ParkingBrake\n");
