@@ -85,6 +85,10 @@ For detailed setup, see the Installation Guide in this docs folder: `installatio
 - **Web App Tutorial** (`docs/web_app_tutorial.md`): Build a browser dashboard using WebSocket.
 - **Python App Tutorial** (`docs/python_app_tutorial.md`): Read telemetry via Shared Memory and TCP.
 
+### Testing & Development Tools
+- **Testing Guide** (`docs/testing.md`): Automated testing with Catch2, running tests, writing new tests.
+- **Logging Guide** (`docs/logging.md`): Structured logging configuration, log levels, viewing logs.
+
 ### Examples
 
 This repository includes two convenience areas for learning-by-doing:
@@ -302,6 +306,10 @@ See `CHANGELOG.md` for release notes and version history.
 ### Application Development
 - **`web_app_tutorial.md`** - Build a browser dashboard using WebSocket
 - **`python_app_tutorial.md`** - Read telemetry via Shared Memory and TCP
+
+### Testing & Quality Assurance
+- **`testing.md`** - Automated testing guide with Catch2 framework
+- **`logging.md`** - Structured logging system configuration and usage
 
 ### Project Management
 - **`release_guide.md`** - How to build the DLL and publish a GitHub Release
