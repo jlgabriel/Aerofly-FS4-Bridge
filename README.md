@@ -18,11 +18,53 @@ A multi-interface bridge (Shared Memory, TCP, WebSocket) between Aerofly FS4 and
 3. **Note**: This file is not included in the repository due to IPACS licensing restrictions
 
 ### 🔨 **Build Steps**
-- Build (Windows, VS2022):
-  ```cmd
-  scripts\compile.bat
-  ```
-- Output: `dist\AeroflyBridge.dll` (dist/ is gitignored)
+
+#### Option 1: CMake (Recommended)
+
+**Using PowerShell script:**
+```powershell
+# Build Release
+.\scripts\build.ps1
+
+# Build Debug
+.\scripts\build.ps1 -Config Debug
+
+# Build and install
+.\scripts\build.ps1 -Install
+
+# Build and run tests
+.\scripts\build.ps1 -Config Debug -Test
+
+# Clean rebuild
+.\scripts\build.ps1 -Rebuild
+```
+
+**Using CMake directly:**
+```powershell
+# Configure
+cmake -B build -G "Visual Studio 17 2022" -A x64
+
+# Build Release
+cmake --build build --config Release
+
+# Build Debug
+cmake --build build --config Debug
+
+# Run tests
+cmake --build build --config Debug --target run_tests
+
+# Install
+cmake --install build --config Release
+```
+
+Output: `build/Release/AeroflyBridge.dll` or `build/Debug/AeroflyBridge.dll`
+
+#### Option 2: Legacy Batch Script
+
+```cmd
+scripts\compile.bat
+```
+Output: `dist\AeroflyBridge.dll` (dist/ is gitignored)
 
 ## Project Structure
 
@@ -69,8 +111,31 @@ Examples quick start:
 - Python (commands): `python/python/master_control_panel.py`
 - Web: open files in `web/` directly in your browser (require `AEROFLY_BRIDGE_WS_ENABLE=1`)
 
-Release:
-- See `docs/release_guide.md` for building the DLL and publishing a GitHub Release.
+## Testing
+
+Run automated tests:
+```powershell
+.\scripts\build.ps1 -Config Debug -Test
+```
+
+See [docs/testing.md](docs/testing.md) for details.
+
+## Logging
+
+The bridge includes structured logging with spdlog. Logs are written to:
+- Console: Visual Studio Debug Output
+- File: `%USERPROFILE%\Documents\Aerofly FS 4\logs\bridge_YYYYMMDD.log`
+
+Configure via environment variables:
+```powershell
+$env:AEROFLY_BRIDGE_LOG_LEVEL = "debug"  # trace|debug|info|warn|error|critical
+```
+
+See [docs/logging.md](docs/logging.md) for details.
+
+## Release
+
+See `docs/release_guide.md` for building the DLL and publishing a GitHub Release.
 
 ## AI Authorship
 
