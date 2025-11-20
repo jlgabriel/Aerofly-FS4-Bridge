@@ -35,6 +35,10 @@
 
 #pragma comment(lib, "ws2_32.lib")
 
+// Logging system
+#include "logging/logger.h"
+using namespace AeroflyBridge;
+
 // Minimal debug logging macro: disabled in NDEBUG builds
 #if defined(NDEBUG)
 #define DBG(msg) do {} while(0)
@@ -8788,27 +8792,28 @@ public:
     // Performs orderly shutdown of all components. Stops WebSocket and TCP
     // servers, then cleans shared memory. Safe to call multiple times.
     void Shutdown() {
-        DBG("=== AeroflyBridge::Shutdown() STARTED ===\n");
-        
+        LOG_DEBUG("=== AeroflyBridge::Shutdown() STARTED ===");
+
         if (!initialized) {
-            DBG("Bridge already closed\n");
+            LOG_DEBUG("Bridge already closed");
             return;
         }
-        
+
         // Stop WebSocket server first for clean shutdown order
         if (ws_enabled) {
+            LOG_DEBUG("Stopping WebSocket server...");
             ws_server.Stop();
         }
         // Stop TCP server FIRST (most problematic threads)
-        DBG("Stopping TCP server...\n");
+        LOG_DEBUG("Stopping TCP server...");
         tcp_server.Stop();
-        
+
         // Clean shared memory
-        DBG("Cleaning shared memory...\n");
+        LOG_DEBUG("Cleaning shared memory...");
         shared_memory.Cleanup();
-        
+
         initialized = false;
-        DBG("=== AeroflyBridge::Shutdown() COMPLETED ===\n");
+        LOG_INFO("Bridge shutdown completed successfully");
     }
     
     /**
@@ -8837,37 +8842,59 @@ extern "C" {
 
     __declspec(dllexport) bool Aerofly_FS_4_External_DLL_Init(const HINSTANCE Aerofly_FS_4_hInstance) {
         try {
+            // Initialize logging system first
+            Logger::Initialize();
+            LOG_INFO("=== Aerofly FS4 Bridge DLL v0.4.0 Initializing ===");
+
             g_bridge = new AeroflyBridge();
-            return g_bridge->Initialize();
+            bool success = g_bridge->Initialize();
+
+            if (success) {
+                LOG_INFO("Bridge initialized successfully");
+            } else {
+                LOG_ERROR("Bridge initialization failed");
+            }
+
+            return success;
+        }
+        catch (const std::exception& ex) {
+            LOG_CRITICAL("Exception during initialization: {}", ex.what());
+            return false;
         }
         catch (...) {
+            LOG_CRITICAL("Unknown exception during initialization");
             return false;
         }
     }
 
     __declspec(dllexport) void Aerofly_FS_4_External_DLL_Shutdown() {
-        OutputDebugStringA("=== DLL SHUTDOWN STARTED ===\n");
-        
+        LOG_INFO("=== DLL SHUTDOWN STARTED ===");
+
         try {
             if (g_bridge) {
-                OutputDebugStringA("Closing bridge...\n");
-                
+                LOG_INFO("Closing bridge...");
+
                 // Bridge shutdown
                 g_bridge->Shutdown();
-                OutputDebugStringA("Deleting bridge object...\n");
+                LOG_INFO("Deleting bridge object...");
                 delete g_bridge;
                 g_bridge = nullptr;
             }
-            
-            OutputDebugStringA("=== DLL SHUTDOWN COMPLETED SUCCESSFULLY ===\n");
+
+            LOG_INFO("=== DLL SHUTDOWN COMPLETED SUCCESSFULLY ===");
+
+            // Shutdown logging system last (after all logs are written)
+            Logger::Shutdown();
         }
         catch (const std::exception& e) {
-            OutputDebugStringA(("ERROR in shutdown: " + std::string(e.what()) + "\n").c_str());
+            LOG_CRITICAL("ERROR in shutdown: {}", e.what());
+            Logger::Shutdown();
         }
         catch (...) {
-            OutputDebugStringA("Unknown ERROR in shutdown\n");
+            LOG_CRITICAL("Unknown ERROR in shutdown");
+            Logger::Shutdown();
         }
-        
+
         // NEVER throw exceptions from DLL shutdown
     }
 

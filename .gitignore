@@ -2,16 +2,39 @@
 tm_external_message.h
 src/tm_external_message.h
 
-# Build outputs
+# Build outputs (legacy batch script)
 /dist/
 *.dll
 *.pdb
 *.obj
 dist/*.obj
 
+# CMake build directories and outputs
+/build/
+/out/
+/cmake-build-*/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+install_manifest.txt
+*.cmake.user
+CTestTestfile.cmake
+Testing/
+
+# Logs
+*.log
+logs/
+
+# External dependencies (if using git submodules or FetchContent)
+/_deps/
+/external/spdlog/
+/external/catch2/
+
 # OS/editor
 Thumbs.db
 .DS_Store
-*.log
 .idea/
 .vscode/
+*.swp
+*.swo
+*~

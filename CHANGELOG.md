@@ -4,6 +4,118 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to Keep a Changelog and Semantic Versioning.
 
+## [v0.4.0] - 2025-11-20
+
+### 🚀 Major Infrastructure Improvements
+
+#### **NEW: CMake Build System**
+- **Modern build infrastructure** with CMake 3.15+ support
+- **Cross-configuration builds**: Debug and Release builds in same project
+- **Automatic dependency management**: spdlog and Catch2 fetched automatically via FetchContent
+- **Flexible SDK detection**: Searches multiple locations for `tm_external_message.h`
+- **PowerShell build script** (`scripts/build.ps1`) with convenient options:
+  - `-Config Debug|Release`: Build configuration selection
+  - `-Test`: Run tests after building
+  - `-Install`: Install DLL to Aerofly FS4 directory
+  - `-Rebuild`: Clean rebuild from scratch
+- **Visual Studio 2022 and 2019 support** with automatic detection
+- **Legacy compile.bat maintained** for backward compatibility
+
+#### **NEW: Structured Logging System**
+- **spdlog v1.12.0 integration** for high-performance async logging
+- **Six log levels**: TRACE, DEBUG, INFO, WARN, ERROR, CRITICAL
+- **Multiple outputs**:
+  - Console: Visual Studio Debug Output (OutputDebugString)
+  - File: `%USERPROFILE%\Documents\Aerofly FS 4\logs\bridge_YYYYMMDD.log`
+- **Rotating log files**: Max 5MB, keeps 3 files
+- **Configurable via environment variables**:
+  - `AEROFLY_BRIDGE_LOG_LEVEL`: Set minimum log level
+  - `AEROFLY_BRIDGE_LOG_FILE`: Enable/disable file logging
+  - `AEROFLY_BRIDGE_LOG_CONSOLE`: Enable/disable console logging
+- **Format strings**: Python-style formatting with compile-time type checking
+- **Zero overhead**: TRACE/DEBUG compiled out in Release builds
+- **Thread-safe**: Async logging doesn't block critical paths
+
+#### **NEW: Automated Testing Framework**
+- **Catch2 v3.5.0** modern C++ testing framework
+- **Test organization**:
+  - **Unit tests** (3 test suites): Fast, isolated component tests
+    - `test_variable_mapper.cpp`: Hash map O(1) lookup verification
+    - `test_json_builder.cpp`: JSON structure and encoding validation
+    - `test_command_processor.cpp`: Command parsing and validation
+  - **Integration tests** (3 test suites): System-level testing
+    - `test_shared_memory.cpp`: Memory mapping and synchronization
+    - `test_tcp_server.cpp`: Server, connections, broadcasting
+    - `test_websocket_server.cpp`: RFC 6455 compliance, handshake, frames
+- **CTest integration**: Run tests with `ctest` or `cmake --build --target run_tests`
+- **Test helpers**: Common utilities for async testing, float comparison, mock data
+- **Tagged tests**: Filter by `[unit]`, `[integration]`, or specific components
+
+#### **Code Quality Improvements**
+- **Migrated from DBG() macro to structured logging**: All debug output now uses LOG_* macros
+- **Improved error messages**: Contextual information in all log statements
+- **Better exception handling**: Detailed error logging with context
+- **Thread-safe logging**: All threads can log without contention
+
+#### **Documentation Enhancements**
+- **NEW: `docs/testing.md`**: Complete guide to writing and running tests
+- **NEW: `docs/logging.md`**: Logging system configuration and usage
+- **Updated `README.md`**:
+  - CMake build instructions
+  - Testing section
+  - Logging configuration
+- **Improved `CMakeLists.txt`** with inline documentation
+
+#### **Files Added**
+```
+CMakeLists.txt                      # Main CMake configuration
+cmake/CompilerWarnings.cmake        # Compiler warning settings
+scripts/build.ps1                   # PowerShell build wrapper
+include/logging/logger.h            # Logging system header
+src/logging/logger.cpp              # Logging implementation
+tests/CMakeLists.txt                # Test build configuration
+tests/main.cpp                      # Test entry point
+tests/test_helpers.h                # Test utilities
+tests/unit/*.cpp                    # Unit tests (3 files)
+tests/integration/*.cpp             # Integration tests (3 files)
+docs/testing.md                     # Testing guide
+docs/logging.md                     # Logging guide
+```
+
+#### **Updated Files**
+- `aerofly_bridge_dll.cpp`: Logging integration, LOG_* macros
+- `.gitignore`: CMake build directories, logs, dependencies
+- `README.md`: CMake build steps, testing, logging sections
+- `CHANGELOG.md`: This changelog
+
+#### **Technical Details**
+- **Build system**: CMake 3.15+, Visual Studio 2019/2022
+- **Dependencies**: spdlog (header-only), Catch2 v3 (FetchContent)
+- **C++ Standard**: C++17 (unchanged)
+- **Output**: `build/Release/AeroflyBridge.dll` or `build/Debug/AeroflyBridge.dll`
+- **Tests**: 6 test suites, 50+ test cases
+
+#### **Breaking Changes**
+- None - fully backward compatible with v0.3.1
+- Old `compile.bat` still works
+- Existing applications continue to work without changes
+
+#### **Migration Notes**
+- **For developers**: Switch to CMake for better build experience
+  ```powershell
+  .\scripts\build.ps1 -Config Release -Install
+  ```
+- **For users**: No changes needed, download DLL from releases as before
+
+#### **Benefits of v0.4.0**
+- ✅ **Faster development**: Modern build system, instant feedback from tests
+- ✅ **Better debugging**: Structured logs with timestamps, thread IDs, context
+- ✅ **Higher quality**: Automated tests prevent regressions
+- ✅ **Easier contributions**: Clear build process, test framework, logging
+- ✅ **Production ready**: Comprehensive logging for troubleshooting issues
+
+---
+
 ## [v0.3.1] - 2025-08-19
 
 ### 🏆 Complete Hash Map Migration - 100% Optimization
