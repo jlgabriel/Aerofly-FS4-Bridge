@@ -75,13 +75,18 @@ Output: `dist\AeroflyBridge.dll` (dist/ is gitignored)
 - **`CHANGELOG.md`** - Version history and release notes
 
 ### Directories
-- **`docs/`** - Complete documentation and guides (12 files)
+- **`docs/`** - Complete documentation and guides (14 files)
 - **`tutorials/`** - Step-by-step tutorial guides (5 files)
 - **`python/`** - Python example applications (4 files)
 - **`web/`** - Standalone HTML demos for WebSocket (3 files)
-- **`scripts/`** - Build and release scripts (2 files)
+- **`scripts/`** - Build and release scripts (3 files)
 - **`reference/`** - JSON schema and specifications (1 file)
+- **`cmake/`** - CMake configuration modules (1 file)
+- **`include/`** - Header files (logging system)
+- **`src/`** - Source files (logging implementation)
+- **`tests/`** - Unit and integration tests (6 test suites)
 - **`dist/`** - Local build outputs (gitignored)
+- **`build/`** - CMake build outputs (gitignored)
 
 ## Documentation
 See `docs/README.md` for full documentation and index.
