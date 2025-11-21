@@ -505,7 +505,7 @@ static std::string BuildDataJSON(const AeroflyBridgeData* data) {
          << "\"Aircraft.Altitude\":" << data->aircraft_altitude << ","
          << "\"Aircraft.IndicatedAirspeed\":" << data->aircraft_indicated_airspeed
          << "}"
-         // Note: Additional variables omitted here for brevity - 361 total
+         // Note: Additional variables omitted here for brevity - 358 total
          << "}";
 
     return json.str();
