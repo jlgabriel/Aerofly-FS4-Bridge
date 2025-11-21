@@ -110,7 +110,7 @@ This file is created in the same directory as the DLL and provides memory layout
   "layout_version": 1,
   "array_base_offset": 16,        // Bytes from start to variables array
   "stride_bytes": 8,              // sizeof(double) = 8 bytes per variable
-  "count": 361,                   // Total number of variables
+  "count": 358,                   // Total number of variables
   "variables": [
     {
       "index": 0,
@@ -126,7 +126,7 @@ This file is created in the same directory as the DLL and provides memory layout
       "alias": "aircraft_altitude",
       "offset": 24
     }
-    // ... continues for all 361 variables
+    // ... continues for all 358 variables
   ]
 }
 ```
@@ -295,7 +295,7 @@ struct AeroflyBridgeData {
     double aircraft_longitude;          // Degrees
     double aircraft_pitch;              // Degrees
     double aircraft_bank;               // Degrees
-    // ... 361 variables total
+    // ... 358 variables total
     
     // All variables accessible by canonical names
     // No separate array needed - use struct members directly
@@ -426,7 +426,7 @@ cmd_sock.close()  # One command per connection
     "Aircraft.OnGround": 0,
     "Controls.Throttle": 0.75,
     "Navigation.NAV1Frequency": 108500000.0
-    // ... all 361 variables with descriptive canonical names
+    // ... all 358 variables with descriptive canonical names
   }
 }
 ```

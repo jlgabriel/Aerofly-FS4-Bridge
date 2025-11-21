@@ -1,6 +1,6 @@
 # Variables Reference
 
-**Complete reference of all 361 variables available through Aerofly FS4 Bridge**
+**Complete reference of all 358 variables available through Aerofly FS4 Bridge**
 
 Copyright (c) 2025 Juan Luis Gabriel
 
@@ -19,14 +19,16 @@ This document provides comprehensive information about every variable accessible
 | **[Autopilot](#-autopilot-systems-153-180)** | 28 variables | Autopilot and flight director |
 | **[Flight Director](#-flight-director-181-183)** | 3 variables | FD command bars |
 | **[Copilot](#-copilot-184-191)** | 8 variables | Copilot controls |
-| **[Controls](#-flight-controls-192-230)** | 39 variables | Primary flight controls |
-| **[Engines](#-engine-systems-231-265)** | 35 variables | Engine management |
-| **[Warnings](#-warning-systems-266-275)** | 10 variables | Caution and warning systems |
-| **[View/Camera](#-view-camera-276-295)** | 20 variables | Camera and view controls |
-| **[Simulation](#-simulation-296-315)** | 20 variables | Sim environment controls |
-| **[Cessna 172](#-cessna-172-specific-316-338)** | 23 variables | C172-specific systems |
+| **[Controls](#-flight-controls-192-260)** | 69 variables | Primary flight controls |
+| **[Pressurization](#-pressurization-261-262)** | 2 variables | Cabin pressurization |
+| **[Warnings](#-warning-systems-263-272)** | 10 variables | Caution and warning systems |
+| **[View/Camera](#-view-camera-273-302)** | 30 variables | Camera and view controls |
+| **[Simulation](#-simulation-303-320)** | 18 variables | Sim environment controls |
+| **[Command Interface](#-command-321-330)** | 10 variables | Command and control interface |
+| **[Reserved](#-reserved-331-338)** | 8 variables | Reserved for internal use |
+| **[Cessna 172](#-cessna-172-specific-340-357)** | 18 variables | C172-specific systems |
 
-**Total: 361 variables**
+**Total: 358 variables** (indices 0-357, note: index 339 is intentionally skipped)
 
 ---
 

@@ -125,7 +125,7 @@ struct alignas(64) OptimizedFlightData {
     // Subtotal: 64 bytes (third cache line)
     
     // === ARRAY DATA (sequential access) ===
-    double all_variables[361];         // 2888 bytes (46 cache lines)
+    double all_variables[358];         // 2864 bytes (45 cache lines)
     // Optimized for sequential iteration
 };
 
@@ -323,7 +323,7 @@ public:
 
 ### Vectorized Operations with SIMD
 
-**Problem**: Processing 361 variables one by one is slow
+**Problem**: Processing 358 variables one by one is slow
 **Solution**: SIMD operations for bulk processing
 
 ```cpp
@@ -414,7 +414,7 @@ void AeroflyBridge::OptimizedUpdate(const AeroflyBridgeData* data) {
     
     // Calculate integrity checksum
     uint64_t checksum = SIMDOptimizedProcessor::CalculateChecksumAVX2(
-        data->all_variables, 361);
+        data->all_variables, 358);
     
     // Store checksum for clients to verify data integrity
     const_cast<AeroflyBridgeData*>(data)->data_checksum = checksum;

@@ -37,7 +37,7 @@ Each message from the bridge is JSON with:
 ```
 
 - Use `variables["Canonical.Name"]` for readability and maintainability
-- All 361 variables are accessible with descriptive names
+- All 358 variables are accessible with descriptive names
 
 ## Minimal HTML dashboard
 

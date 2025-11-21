@@ -98,11 +98,11 @@ TEST_CASE("JSON data validity flag", "[unit][json]") {
 
 TEST_CASE("JSON output size", "[unit][json]") {
     SECTION("JSON is reasonably sized") {
-        // With 361 variables, JSON should be < 50KB
+        // With 358 variables, JSON should be < 50KB
         const size_t MAX_JSON_SIZE = 50 * 1024;
 
         // Estimate: ~100 bytes per variable average
-        size_t estimated_size = 361 * 100;
+        size_t estimated_size = 358 * 100;
 
         REQUIRE(estimated_size < MAX_JSON_SIZE);
     }
