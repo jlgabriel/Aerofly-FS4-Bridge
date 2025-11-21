@@ -201,6 +201,43 @@ AEROFLY_BRIDGE_BROADCAST_MS=50
 **After changing variables:**
 - Restart Aerofly FS 4 for changes to take effect
 
+**Logging Configuration (v0.4.0+):**
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `AEROFLY_BRIDGE_LOG_LEVEL` | `info` | Log level: trace, debug, info, warn, error, critical |
+| `AEROFLY_BRIDGE_LOG_FILE` | `1` | Enable file logging (1=on, 0=off) |
+| `AEROFLY_BRIDGE_LOG_CONSOLE` | `1` | Enable console logging (1=on, 0=off) |
+
+**Log file location:**
+```
+%USERPROFILE%\Documents\Aerofly FS 4\logs\bridge_YYYYMMDD.log
+```
+
+See [docs/logging.md](logging.md) for detailed logging configuration.
+
+---
+
+## 🧪 Testing (v0.4.0+)
+
+The project includes automated tests using Catch2 framework:
+
+**Run all tests:**
+```powershell
+.\scripts\build.ps1 -Config Debug -Test
+```
+
+**Or manually:**
+```cmd
+cmake --build build --config Debug --target run_tests
+```
+
+**Test organization:**
+- **Unit tests**: Fast, isolated component tests
+- **Integration tests**: System-level testing
+
+See [docs/testing.md](testing.md) for details on writing and running tests.
+
 ---
 
 ## ⚠️ Common Issues
@@ -259,39 +296,67 @@ AEROFLY_BRIDGE_BROADCAST_MS=50
 
 3. **Clone the repository**:
    ```bash
-   git clone https://github.com/yourusername/Aerofly-FS4-Bridge.git
-   cd Aerofly-FS4-Bridge/src
+   git clone https://github.com/jlgabriel/Aerofly-FS4-Bridge.git
+   cd Aerofly-FS4-Bridge
    ```
 
 ### Building the DLL
 
-**Method 1: Using the Build Script (Recommended)**
+**Method 1: Using CMake (Recommended - v0.4.0+)**
 
-1. Open Command Prompt in the `src` folder
+1. Open PowerShell in the project root folder
 2. Run the build script:
-   ```cmd
-   compile.bat
+   ```powershell
+   .\scripts\build.ps1
    ```
 3. The script will:
    - Auto-detect Visual Studio 2022
-   - Set up the build environment
+   - Configure CMake project
+   - Fetch dependencies (spdlog, Catch2)
    - Compile with optimized settings
-   - Output `AeroflyBridge.dll`
+   - Output `build\Release\AeroflyBridge.dll`
 
-**Method 2: Manual Compilation**
+**Optional CMake parameters:**
+```powershell
+# Build Debug version
+.\scripts\build.ps1 -Config Debug
 
-1. Open "x64 Native Tools Command Prompt for VS 2022"
-2. Navigate to the `src` folder
-3. Run the compile command:
+# Build and run tests
+.\scripts\build.ps1 -Config Debug -Test
+
+# Build and install to Aerofly directory
+.\scripts\build.ps1 -Install
+
+# Clean rebuild
+.\scripts\build.ps1 -Rebuild
+```
+
+**Method 2: Using Legacy Batch Script**
+
+1. Open Command Prompt in the project root folder
+2. Run the legacy compile script:
    ```cmd
-   cl.exe /LD /EHsc /O2 /DNDEBUG /std:c++17 /DWIN32 /D_WINDOWS /D_USRDLL aerofly_bridge_dll_complete_estable.cpp /Fe:AeroflyBridge.dll /link ws2_32.lib kernel32.lib user32.lib
+   scripts\compile.bat
    ```
+3. Output: `dist\AeroflyBridge.dll`
+
+**Method 3: Manual Compilation with CMake**
+
+1. Open Command Prompt in the project root folder
+2. Configure and build:
+   ```cmd
+   cmake -B build -G "Visual Studio 17 2022" -A x64
+   cmake --build build --config Release
+   ```
+3. Output: `build\Release\AeroflyBridge.dll`
 
 ### Important Build Notes
 
 **Required Files:**
-- `aerofly_bridge_dll_complete_estable.cpp` (main source)
-- `tm_external_message.h` (Aerofly SDK header)
+- `aerofly_bridge_dll.cpp` (main source - in project root)
+- `tm_external_message.h` (Aerofly SDK header - in project root)
+- `include/logging/logger.h` (logging system header)
+- `src/logging/logger.cpp` (logging implementation)
 
 **Build Flags Explained:**
 - `/DNDEBUG`: Disables assert() macros (prevents Windows 10 breakpoint issues)
@@ -300,8 +365,13 @@ AEROFLY_BRIDGE_BROADCAST_MS=50
 - `/LD`: Creates a DLL instead of executable
 
 **Output Files:**
-- `AeroflyBridge.dll` - The final bridge DLL
+- CMake: `build/Release/AeroflyBridge.dll` or `build/Debug/AeroflyBridge.dll`
+- Legacy: `dist/AeroflyBridge.dll`
 - Temporary files (`.obj`, `.exp`, `.lib`) are automatically cleaned
+
+**Dependencies (auto-fetched by CMake):**
+- spdlog v1.12.0 (structured logging)
+- Catch2 v3.5.0 (testing framework)
 
 ### Development Testing
 
@@ -313,7 +383,19 @@ AEROFLY_BRIDGE_BROADCAST_MS=50
 4. **Performance testing**: Monitor CPU/memory usage
 
 **Debug Build (for development):**
-Use Visual Studio or adapt `scripts\compile.bat` replacing `/O2 /DNDEBUG` por `/Od /Zi` y cambiando `/Fe:dist\AeroflyBridge.dll` por `/Fe:dist\AeroflyBridge_debug.dll`.
+```powershell
+# Using CMake (recommended)
+.\scripts\build.ps1 -Config Debug
+
+# Or manually with CMake
+cmake --build build --config Debug
+```
+
+Debug builds include:
+- Full debug symbols
+- TRACE and DEBUG log levels enabled
+- Assert statements active
+- No optimization (easier debugging)
 
 ---
 
