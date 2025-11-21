@@ -276,24 +276,24 @@ docs/logging.md                     # Logging guide
 
 #### **BREAKING CHANGE: Simplified JSON Structure**
 - **Removed** `all_variables` array from JSON output to eliminate duplication
-- **Expanded** variable coverage from 191 to **361 total variables** with canonical Aerofly SDK names
+- **Expanded** variable coverage from 191 to **358 total variables** with canonical Aerofly SDK names
 - **Enhanced** JSON structure now provides all variables with descriptive names (e.g., `"Aircraft.Altitude"`, `"Controls.Throttle"`)
 
 #### **Updated BuildDataJSON() Function**
-- Complete rewrite to include all 361 variables with canonical naming
+- Complete rewrite to include all 358 variables with canonical naming
 - Eliminated redundant `all_variables` array that duplicated data
 - Improved performance with cleaner, more efficient JSON payload
 - Better developer experience with named variable access instead of numeric indices
 
 #### **Documentation Overhaul**
-- Updated all documentation files to reflect new 361-variable structure
+- Updated all documentation files to reflect new 358-variable structure
 - Removed references to deprecated `all_variables` array throughout docs
 - Enhanced examples with canonical variable names
 - Updated JSON schema to match simplified format
 - Improved code examples across all tutorials and API reference
 
 #### **Benefits of v0.2.0**
-- ✅ **+170 additional variables** available (191 → 361)
+- ✅ **+167 additional variables** available (191 → 358)
 - ✅ **No duplication** - eliminated redundant `all_variables` array
 - ✅ **Descriptive names** - `Aircraft.Altitude` vs numeric index access
 - ✅ **Better IDE support** with autocompletion for variable names
@@ -315,7 +315,7 @@ const throttle = data.variables["Controls.Throttle"];    // Clear and maintainab
 ```
 
 ### **Files Updated**
-- `aerofly_bridge_dll.cpp` - Enhanced BuildDataJSON() with 361 variables
+- `aerofly_bridge_dll.cpp` - Enhanced BuildDataJSON() with 358 variables
 - `docs/` - Complete documentation update for new structure
 - `reference/json_schema.json` - Updated schema without `all_variables`
 

@@ -56,7 +56,7 @@ For detailed setup, see the Installation Guide in this docs folder: `installatio
 - **WebSocket Server**: Native browser and mobile app connectivity
 
 ### 📊 **Comprehensive Data Access**
-- **361 variables** exposed with canonical Aerofly SDK names (e.g., `"Aircraft.Altitude"`)
+- **358 variables** exposed with canonical Aerofly SDK names (e.g., `"Aircraft.Altitude"`)
 - **Real-time updates**: 50Hz telemetry streaming (configurable)
 - **Bidirectional control**: Read telemetry + send commands
 - **JSON protocol**: Consistent format across TCP and WebSocket
@@ -72,7 +72,7 @@ For detailed setup, see the Installation Guide in this docs folder: `installatio
 ### Quick Reference
 - **Installation Guide** (`docs/installation_guide.md`): Step-by-step setup and build instructions.
 - **API Reference** (`docs/api_reference.md`): Complete interface documentation for Shared Memory, TCP, and WebSocket.
-- **Variables Reference** (`docs/variables_reference.md`): All 361 available variables with canonical names.
+- **Variables Reference** (`docs/variables_reference.md`): All 358 available variables with canonical names.
 - **JSON Schema** (`reference/json_schema.json`): Telemetry payload structure.
 - **Release Guide** (`docs/release_guide.md`): How to build the DLL and publish a GitHub Release.
 
@@ -210,7 +210,7 @@ Record flights for analysis and training:
     "Aircraft.MagneticHeading": 1.5708,
     "Controls.Throttle": 0.8,
     "Navigation.NAV1Frequency": 108500000.0
-    // ... all 361 variables with descriptive names
+    // ... all 358 variables with descriptive names
   }
 }
 ```
@@ -293,7 +293,7 @@ See `CHANGELOG.md` for release notes and version history.
 
 ### Core Reference
 - **`api_reference.md`** - Complete interface documentation (Shared Memory, TCP, WebSocket)
-- **`variables_reference.md`** - All 361 available variables with canonical names
+- **`variables_reference.md`** - All 358 available variables with canonical names
 - **`installation_guide.md`** - Step-by-step setup and build instructions
 
 ### Architecture & Development

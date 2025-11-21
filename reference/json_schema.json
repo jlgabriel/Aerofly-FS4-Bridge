@@ -48,7 +48,7 @@
     },
     "variables": {
       "type": "object",
-      "description": "Canonical Aerofly SDK variable map (name → numeric value) - 361 variables total",
+      "description": "Canonical Aerofly SDK variable map (name → numeric value) - 358 variables total",
       "additionalProperties": {
         "type": "number"
       }

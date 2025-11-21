@@ -215,7 +215,7 @@ Create a file named `airspeed_envelope.html`:
 
 ## How It Works
 - Receives JSON frames over WebSocket from the Bridge.
-- Uses canonical keys in `variables{}` (e.g., `Performance.Speed.*`) with all 361 variables available by name.
+- Uses canonical keys in `variables{}` (e.g., `Performance.Speed.*`) with all 358 variables available by name.
 - Converts m/s → knots and draws a simple horizontal tape with colored arcs:
   - White: VS0..VFE (flap operating range)
   - Green: VFE..VNO (normal ops)

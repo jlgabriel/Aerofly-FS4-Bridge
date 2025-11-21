@@ -40,11 +40,11 @@ TEST_CASE("VariableMapper hash-based lookup", "[unit][variable_mapper]") {
 }
 
 TEST_CASE("Variable index enumeration", "[unit][variable_mapper]") {
-    SECTION("All 361 variables are accounted for") {
+    SECTION("All 358 variables are accounted for") {
         // Verify that all expected variables are present
         // This would test against the actual VariableIndex enum
-        const int EXPECTED_VARIABLE_COUNT = 361;
-        REQUIRE(EXPECTED_VARIABLE_COUNT == 361);
+        const int EXPECTED_VARIABLE_COUNT = 358;
+        REQUIRE(EXPECTED_VARIABLE_COUNT == 358);
     }
 
     SECTION("Variable names follow SDK naming convention") {

@@ -114,13 +114,13 @@ constexpr size_t MAX_VARIABLES = 400;  // Extra room for future expansion
 #include "tm_external_message.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-// COMPLETE AEROFLYBRIDGE DATA STRUCTURE - ALL 339+ VARIABLES
+// COMPLETE AEROFLYBRIDGE DATA STRUCTURE - ALL 358 VARIABLES
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
  * @brief Complete data structure following exact VariableIndex enum order
  * 
- * This structure provides direct access to all 339+ variables in the same order 
+ * This structure provides direct access to all 358 variables in the same order 
  * as defined in MESSAGE_LIST from the official Aerofly SDK.
  * Memory layout is optimized for performance and maintainability.
  */
@@ -4913,7 +4913,7 @@ static std::string BuildDataJSON(const AeroflyBridgeData* data) {
         json << cached_rate << ",";
     }
     
-    // VARIABLES SECTION - ALL 339+ VARIABLES WITH DESCRIPTIVE NAMES
+    // VARIABLES SECTION - ALL 358 VARIABLES WITH DESCRIPTIVE NAMES
     json << "\"variables\":{";
     
     // === AIRCRAFT VARIABLES (0-94) FROM all_variables[] ===
@@ -8983,7 +8983,7 @@ extern "C" {
  * ✅ JSON Compatibility:
  *    - Same JSON payload for TCP and WebSocket (single builder)
  * 
- * ✅ 339+ Variables:
+ * ✅ 358 Variables:
  *    - Full read/write coverage, organized by subsystem
  * 
  * ✅ Robust & Performant:
