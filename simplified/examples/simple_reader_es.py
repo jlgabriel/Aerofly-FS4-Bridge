@@ -2,15 +2,15 @@
 """
 Aerofly FS4 Reader - Simple Example
 
-This script connects to the AeroflyReader DLL via TCP and displays
-real-time flight data.
+Este script se conecta al AeroflyReader DLL via TCP y muestra
+los datos del vuelo en tiempo real.
 
-Usage:
+Uso:
     python simple_reader.py
 
-Requirements:
-    - AeroflyReader.dll installed in Aerofly FS 4
-    - Aerofly FS 4 running with an active flight
+Requisitos:
+    - AeroflyReader.dll instalado en Aerofly FS 4
+    - Aerofly FS 4 corriendo con un vuelo activo
 """
 
 import socket
@@ -21,53 +21,53 @@ from datetime import datetime
 
 
 def connect_to_aerofly(host: str = 'localhost', port: int = 12345) -> socket.socket:
-    """Connects to the AeroflyReader TCP server."""
-    print(f"Connecting to {host}:{port}...")
+    """Conecta al servidor TCP del AeroflyReader."""
+    print(f"Conectando a {host}:{port}...")
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.settimeout(5.0)
 
     try:
         sock.connect((host, port))
-        print("Connected!")
+        print("Conectado!")
         return sock
     except socket.timeout:
-        print("Error: Connection timeout. Make sure Aerofly is running.")
+        print("Error: Timeout al conectar. Verifica que Aerofly esté corriendo.")
         sys.exit(1)
     except ConnectionRefusedError:
-        print("Error: Connection refused. Make sure AeroflyReader.dll is loaded.")
+        print("Error: Conexión rechazada. Verifica que AeroflyReader.dll esté cargado.")
         sys.exit(1)
 
 
 def format_heading(radians: float) -> str:
-    """Converts radians to heading degrees (000-360)."""
+    """Convierte radianes a grados de rumbo (000-360)."""
     import math
     degrees = math.degrees(radians) % 360
     return f"{degrees:03.0f}°"
 
 
 def format_speed_kts(ms: float) -> str:
-    """Converts m/s to knots."""
+    """Convierte m/s a nudos."""
     kts = ms * 1.94384
     return f"{kts:.0f} kts"
 
 
 def format_altitude(feet: float) -> str:
-    """Formats altitude in feet."""
+    """Formatea altitud en pies."""
     return f"{feet:,.0f} ft"
 
 
 def format_vs(ms: float) -> str:
-    """Converts vertical speed from m/s to ft/min."""
+    """Convierte velocidad vertical de m/s a ft/min."""
     ftmin = ms * 196.85
     sign = "+" if ftmin > 0 else ""
     return f"{sign}{ftmin:.0f} fpm"
 
 
 def display_flight_data(data: dict):
-    """Displays flight data in a readable format."""
+    """Muestra los datos del vuelo de forma legible."""
 
-    # Clear screen (optional, comment out if it doesn't work on your terminal)
+    # Limpiar pantalla (opcional, comenta si no funciona en tu terminal)
     print("\033[H\033[J", end="")
 
     print("=" * 60)
@@ -75,43 +75,43 @@ def display_flight_data(data: dict):
     print("=" * 60)
     print()
 
-    # Aircraft and basic information
-    print(f"  Aircraft: {data.get('aircraft_name', 'Unknown')}")
-    print(f"  Nearest airport: {data.get('nearest_airport_id', '----')} - {data.get('nearest_airport_name', 'Unknown')}")
+    # Avión e información básica
+    print(f"  Avión: {data.get('aircraft_name', 'Unknown')}")
+    print(f"  Aeropuerto cercano: {data.get('nearest_airport_id', '----')} - {data.get('nearest_airport_name', 'Unknown')}")
     print()
 
-    # Position
+    # Posición
     lat = data.get('latitude', 0)
     lon = data.get('longitude', 0)
-    print("  POSITION")
+    print("  POSICIÓN")
     print(f"    Lat: {lat:+.6f}°")
     print(f"    Lon: {lon:+.6f}°")
     print()
 
-    # Altitudes and speeds
-    print("  ALTITUDE & SPEED")
-    print(f"    Altitude MSL: {format_altitude(data.get('altitude', 0))}")
-    print(f"    Height AGL:   {format_altitude(data.get('height', 0))}")
-    print(f"    IAS:          {format_speed_kts(data.get('indicated_airspeed', 0))}")
-    print(f"    GS:           {format_speed_kts(data.get('ground_speed', 0))}")
-    print(f"    VS:           {format_vs(data.get('vertical_speed', 0))}")
+    # Altitudes y velocidades
+    print("  ALTITUD & VELOCIDAD")
+    print(f"    Altitud MSL: {format_altitude(data.get('altitude', 0))}")
+    print(f"    Altura AGL:  {format_altitude(data.get('height', 0))}")
+    print(f"    IAS:         {format_speed_kts(data.get('indicated_airspeed', 0))}")
+    print(f"    GS:          {format_speed_kts(data.get('ground_speed', 0))}")
+    print(f"    VS:          {format_vs(data.get('vertical_speed', 0))}")
     print()
 
-    # Orientation
-    print("  ORIENTATION")
-    print(f"    Mag Heading:  {format_heading(data.get('magnetic_heading', 0))}")
-    print(f"    True Heading: {format_heading(data.get('true_heading', 0))}")
+    # Orientación
+    print("  ORIENTACIÓN")
+    print(f"    Rumbo Mag:   {format_heading(data.get('magnetic_heading', 0))}")
+    print(f"    Rumbo True:  {format_heading(data.get('true_heading', 0))}")
     import math
     pitch_deg = math.degrees(data.get('pitch', 0))
     bank_deg = math.degrees(data.get('bank', 0))
-    print(f"    Pitch:        {pitch_deg:+.1f}°")
-    print(f"    Bank:         {bank_deg:+.1f}°")
+    print(f"    Pitch:       {pitch_deg:+.1f}°")
+    print(f"    Bank:        {bank_deg:+.1f}°")
     print()
 
-    # State
-    print("  STATE")
-    on_ground = "ON GROUND" if data.get('on_ground', 0) > 0.5 else "IN FLIGHT"
-    gear = "DOWN" if data.get('gear', 0) > 0.5 else "UP"
+    # Estado
+    print("  ESTADO")
+    on_ground = "EN TIERRA" if data.get('on_ground', 0) > 0.5 else "EN VUELO"
+    gear = "ABAJO" if data.get('gear', 0) > 0.5 else "ARRIBA"
     flaps = f"{data.get('flaps', 0) * 100:.0f}%"
     throttle = f"{data.get('throttle', 0) * 100:.0f}%"
     print(f"    {on_ground}")
@@ -120,12 +120,12 @@ def display_flight_data(data: dict):
     print(f"    Throttle: {throttle}")
     print()
 
-    # Engines
+    # Motores
     eng1 = "ON" if data.get('engine_running_1', 0) > 0.5 else "OFF"
     eng2 = "ON" if data.get('engine_running_2', 0) > 0.5 else "OFF"
-    print("  ENGINES")
-    print(f"    Engine 1: {eng1} ({data.get('engine_throttle_1', 0) * 100:.0f}%)")
-    print(f"    Engine 2: {eng2} ({data.get('engine_throttle_2', 0) * 100:.0f}%)")
+    print("  MOTORES")
+    print(f"    Motor 1: {eng1} ({data.get('engine_throttle_1', 0) * 100:.0f}%)")
+    print(f"    Motor 2: {eng2} ({data.get('engine_throttle_2', 0) * 100:.0f}%)")
     print()
 
     # Autopilot
@@ -148,12 +148,12 @@ def display_flight_data(data: dict):
     update = data.get('update_counter', 0)
     valid = "✓" if data.get('data_valid', 0) else "✗"
     print(f"  Update #{update} | Data valid: {valid} | {datetime.now().strftime('%H:%M:%S')}")
-    print("  Press Ctrl+C to exit")
+    print("  Presiona Ctrl+C para salir")
     print("=" * 60)
 
 
 def main():
-    """Main function."""
+    """Función principal."""
     print()
     print("  Aerofly FS4 Reader - Simple Example")
     print("  ------------------------------------")
@@ -164,17 +164,17 @@ def main():
 
     try:
         while True:
-            # Receive data
+            # Recibir datos
             try:
                 data = sock.recv(4096).decode('utf-8')
                 if not data:
-                    print("Connection closed by server.")
+                    print("Conexión cerrada por el servidor.")
                     break
                 buffer += data
             except socket.timeout:
                 continue
 
-            # Process complete JSON lines
+            # Procesar líneas JSON completas
             while '\n' in buffer:
                 line, buffer = buffer.split('\n', 1)
                 line = line.strip()
@@ -189,14 +189,14 @@ def main():
                     print(f"Error parsing JSON: {e}")
                     continue
 
-            # Small pause to avoid CPU saturation
+            # Pequeña pausa para no saturar la CPU
             time.sleep(0.05)
 
     except KeyboardInterrupt:
-        print("\n\nDisconnecting...")
+        print("\n\nDesconectando...")
     finally:
         sock.close()
-        print("Connection closed.")
+        print("Conexión cerrada.")
 
 
 if __name__ == "__main__":

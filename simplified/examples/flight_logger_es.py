@@ -2,16 +2,16 @@
 """
 Aerofly FS4 Reader - Flight Logger
 
-This script records flight data to a CSV file for
-later analysis. Ideal for:
-- Reviewing training flights
-- Performance analysis
-- Flight path reconstruction
+Este script graba los datos del vuelo en un archivo CSV para
+análisis posterior. Ideal para:
+- Revisión de vuelos de entrenamiento
+- Análisis de rendimiento
+- Reconstrucción de trayectorias
 
-Usage:
-    python flight_logger.py [filename.csv]
+Uso:
+    python flight_logger.py [nombre_archivo.csv]
 
-The CSV file includes timestamp and all main variables.
+El archivo CSV incluye timestamp y todas las variables principales.
 """
 
 import socket
@@ -24,7 +24,7 @@ from datetime import datetime
 from pathlib import Path
 
 
-# CSV Columns
+# Columnas del CSV
 CSV_COLUMNS = [
     'timestamp',
     'elapsed_seconds',
@@ -55,41 +55,41 @@ CSV_COLUMNS = [
 
 
 def connect_to_aerofly(host: str = 'localhost', port: int = 12345) -> socket.socket:
-    """Connects to the AeroflyReader TCP server."""
-    print(f"Connecting to {host}:{port}...")
+    """Conecta al servidor TCP del AeroflyReader."""
+    print(f"Conectando a {host}:{port}...")
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.settimeout(5.0)
 
     try:
         sock.connect((host, port))
-        print("Connected!")
+        print("Conectado!")
         return sock
     except socket.timeout:
-        print("Error: Connection timeout.")
+        print("Error: Timeout al conectar.")
         sys.exit(1)
     except ConnectionRefusedError:
-        print("Error: Connection refused.")
+        print("Error: Conexión rechazada.")
         sys.exit(1)
 
 
 def ms_to_kts(ms: float) -> float:
-    """Converts m/s to knots."""
+    """Convierte m/s a nudos."""
     return ms * 1.94384
 
 
 def ms_to_fpm(ms: float) -> float:
-    """Converts m/s to ft/min."""
+    """Convierte m/s a ft/min."""
     return ms * 196.85
 
 
 def rad_to_deg(rad: float) -> float:
-    """Converts radians to degrees."""
+    """Convierte radianes a grados."""
     return math.degrees(rad)
 
 
 def process_data(data: dict, start_time: float) -> dict:
-    """Processes raw data and converts to standard units."""
+    """Procesa los datos crudos y los convierte a unidades estándar."""
     elapsed = time.time() - start_time
 
     return {
@@ -122,13 +122,13 @@ def process_data(data: dict, start_time: float) -> dict:
 
 
 def main():
-    """Main function."""
+    """Función principal."""
     print()
     print("  Aerofly FS4 Reader - Flight Logger")
     print("  -----------------------------------")
     print()
 
-    # Determine filename
+    # Determinar nombre del archivo
     if len(sys.argv) > 1:
         filename = sys.argv[1]
     else:
@@ -136,7 +136,7 @@ def main():
         filename = f"flight_log_{timestamp}.csv"
 
     filepath = Path(filename)
-    print(f"  Log file: {filepath.absolute()}")
+    print(f"  Archivo de log: {filepath.absolute()}")
     print()
 
     sock = connect_to_aerofly()
@@ -144,29 +144,29 @@ def main():
     start_time = time.time()
     record_count = 0
     last_log_time = 0
-    log_interval = 1.0  # Record every 1 second
+    log_interval = 1.0  # Grabar cada 1 segundo
 
-    # Create CSV file
+    # Crear archivo CSV
     with open(filepath, 'w', newline='', encoding='utf-8') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=CSV_COLUMNS)
         writer.writeheader()
 
-        print("  Recording data... (Ctrl+C to stop)")
+        print("  Grabando datos... (Ctrl+C para detener)")
         print()
 
         try:
             while True:
-                # Receive data
+                # Recibir datos
                 try:
                     data = sock.recv(4096).decode('utf-8')
                     if not data:
-                        print("Connection closed.")
+                        print("Conexión cerrada.")
                         break
                     buffer += data
                 except socket.timeout:
                     continue
 
-                # Process JSON lines
+                # Procesar líneas JSON
                 while '\n' in buffer:
                     line, buffer = buffer.split('\n', 1)
                     line = line.strip()
@@ -179,7 +179,7 @@ def main():
                     except json.JSONDecodeError:
                         continue
 
-                    # Record according to interval
+                    # Grabar según intervalo
                     current_time = time.time()
                     if current_time - last_log_time >= log_interval:
                         row = process_data(flight_data, start_time)
@@ -189,7 +189,7 @@ def main():
                         record_count += 1
                         last_log_time = current_time
 
-                        # Show progress
+                        # Mostrar progreso
                         elapsed = row['elapsed_seconds']
                         alt = row['altitude_ft']
                         spd = row['indicated_airspeed_kts']
@@ -200,15 +200,15 @@ def main():
 
         except KeyboardInterrupt:
             print("\n")
-            print("  Stopping recording...")
+            print("  Deteniendo grabación...")
 
-    # Final summary
+    # Resumen final
     print()
     print("  " + "=" * 50)
-    print(f"  Recording completed!")
-    print(f"  File: {filepath.absolute()}")
-    print(f"  Records: {record_count}")
-    print(f"  Duration: {time.time() - start_time:.1f} seconds")
+    print(f"  Grabación completada!")
+    print(f"  Archivo: {filepath.absolute()}")
+    print(f"  Registros: {record_count}")
+    print(f"  Duración: {time.time() - start_time:.1f} segundos")
     print("  " + "=" * 50)
 
     sock.close()
