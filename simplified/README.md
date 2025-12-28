@@ -1,16 +1,16 @@
 # Aerofly FS4 Reader DLL v1.1.0
 
-Una versión simplificada y optimizada del Aerofly Bridge enfocada exclusivamente en **lectura de datos** del simulador. Ideal para integraciones que solo necesitan monitorear el estado del vuelo sin controlar el avión.
+A simplified and optimized version of Aerofly Bridge focused exclusively on **reading data** from the simulator. Ideal for integrations that only need to monitor flight status without controlling the aircraft.
 
-## Características Principales
+## Key Features
 
-- **Solo lectura** - Sin comandos, sin control del avión
-- **~850 líneas de código** - vs 9,000+ del bridge completo
-- **Alto rendimiento** - JSON builder optimizado con zero allocations
-- **Dos interfaces** - Shared Memory (local) + TCP Streaming (red)
-- **Robusto** - Protección automática contra valores NaN/Inf
+- **Read-only** - No commands, no aircraft control
+- **~850 lines of code** - vs 9,000+ in the complete bridge
+- **High performance** - Optimized JSON builder with zero allocations
+- **Two interfaces** - Shared Memory (local) + TCP Streaming (network)
+- **Robust** - Automatic protection against NaN/Inf values
 
-## Arquitectura
+## Architecture
 
 ```
 Aerofly FS4 (50-60 Hz)
@@ -22,27 +22,27 @@ Aerofly FS4 (50-60 Hz)
 │                                                 │
 │  ┌─────────────────┐    ┌─────────────────┐    │
 │  │ SharedMemory    │    │ TCPDataServer   │    │
-│  │ "AeroflyReader  │    │ Puerto 12345    │    │
+│  │ "AeroflyReader  │    │ Port 12345      │    │
 │  │  Data"          │    │ JSON @ 50 Hz    │    │
 │  └────────┬────────┘    └────────┬────────┘    │
 └───────────┼──────────────────────┼─────────────┘
             │                      │
             ▼                      ▼
-     Apps Locales            Clientes Red
+     Local Apps              Network Clients
     (Python, C++)         (Python, Web, etc.)
 ```
 
-## Entrega de Datos
+## Data Delivery
 
-### 1. Shared Memory (Alto Rendimiento)
+### 1. Shared Memory (High Performance)
 
-Acceso directo a memoria para aplicaciones locales. Latencia mínima (~0.01ms).
+Direct memory access for local applications. Minimal latency (~0.01ms).
 
 ```python
 import mmap
 import struct
 
-# Abrir shared memory
+# Open shared memory
 shm = mmap.mmap(-1, 1024, "AeroflyReaderData", access=mmap.ACCESS_READ)
 
 while True:
@@ -53,7 +53,7 @@ while True:
     data_valid = struct.unpack('I', shm.read(4))[0]
     update_counter = struct.unpack('I', shm.read(4))[0]
 
-    # Posición (doubles)
+    # Position (doubles)
     lat = struct.unpack('d', shm.read(8))[0]
     lon = struct.unpack('d', shm.read(8))[0]
     alt = struct.unpack('d', shm.read(8))[0]
@@ -62,9 +62,9 @@ while True:
         print(f"Pos: {lat:.4f}, {lon:.4f} | Alt: {alt:.0f} ft")
 ```
 
-### 2. TCP Streaming (Red)
+### 2. TCP Streaming (Network)
 
-JSON streaming para clientes de red. Configurable hasta 50 Hz.
+JSON streaming for network clients. Configurable up to 50 Hz.
 
 ```python
 import socket
@@ -84,7 +84,7 @@ while True:
             print(f"Alt: {data['altitude']:.0f} ft @ {data['update_hz']:.1f} Hz")
 ```
 
-## Formato JSON
+## JSON Format
 
 ```json
 {
@@ -145,176 +145,176 @@ while True:
 }
 ```
 
-### Campos Especiales
+### Special Fields
 
-| Campo | Descripción |
+| Field | Description |
 |-------|-------------|
-| `version` | Versión del DLL (ej: "1.1.0") |
-| `update_hz` | Frecuencia real de actualización calculada |
-| `data_valid` | 1 = datos válidos, 0 = en actualización |
+| `version` | DLL version (e.g., "1.1.0") |
+| `update_hz` | Calculated actual update frequency |
+| `data_valid` | 1 = valid data, 0 = updating |
 
-## Variables Disponibles
+## Available Variables
 
-### Posición y Orientación
-| Variable | Unidad | Descripción |
-|----------|--------|-------------|
-| `latitude` | grados | Latitud GPS |
-| `longitude` | grados | Longitud GPS |
-| `altitude` | pies | Altitud MSL |
-| `height` | pies | Altura AGL (sobre el terreno) |
-| `pitch` | radianes | Cabeceo |
-| `bank` | radianes | Alabeo |
-| `true_heading` | radianes | Rumbo verdadero |
-| `magnetic_heading` | radianes | Rumbo magnético |
+### Position and Orientation
+| Variable | Unit | Description |
+|----------|------|-------------|
+| `latitude` | degrees | GPS latitude |
+| `longitude` | degrees | GPS longitude |
+| `altitude` | feet | MSL altitude |
+| `height` | feet | AGL height (above ground) |
+| `pitch` | radians | Pitch |
+| `bank` | radians | Bank/Roll |
+| `true_heading` | radians | True heading |
+| `magnetic_heading` | radians | Magnetic heading |
 
-### Velocidades
-| Variable | Unidad | Descripción |
-|----------|--------|-------------|
-| `indicated_airspeed` | m/s | Velocidad indicada |
-| `ground_speed` | m/s | Velocidad sobre el suelo |
-| `vertical_speed` | m/s | Velocidad vertical |
-| `mach_number` | - | Número Mach |
-| `angle_of_attack` | radianes | Ángulo de ataque |
+### Speeds
+| Variable | Unit | Description |
+|----------|------|-------------|
+| `indicated_airspeed` | m/s | Indicated airspeed |
+| `ground_speed` | m/s | Ground speed |
+| `vertical_speed` | m/s | Vertical speed |
+| `mach_number` | - | Mach number |
+| `angle_of_attack` | radians | Angle of attack |
 
-### Estado del Avión
-| Variable | Rango | Descripción |
+### Aircraft State
+| Variable | Range | Description |
 |----------|-------|-------------|
-| `on_ground` | 0/1 | En tierra |
-| `gear` | 0-1 | Posición tren de aterrizaje |
-| `flaps` | 0-1 | Posición flaps |
-| `throttle` | 0-1 | Potencia general |
-| `parking_brake` | 0/1 | Freno de estacionamiento |
+| `on_ground` | 0/1 | On ground |
+| `gear` | 0-1 | Landing gear position |
+| `flaps` | 0-1 | Flaps position |
+| `throttle` | 0-1 | Overall power |
+| `parking_brake` | 0/1 | Parking brake |
 
-### Motores
-| Variable | Rango | Descripción |
+### Engines
+| Variable | Range | Description |
 |----------|-------|-------------|
-| `engine_running_1` | 0/1 | Motor 1 encendido |
-| `engine_running_2` | 0/1 | Motor 2 encendido |
-| `engine_throttle_1` | 0-1 | Throttle motor 1 |
-| `engine_throttle_2` | 0-1 | Throttle motor 2 |
+| `engine_running_1` | 0/1 | Engine 1 running |
+| `engine_running_2` | 0/1 | Engine 2 running |
+| `engine_throttle_1` | 0-1 | Engine 1 throttle |
+| `engine_throttle_2` | 0-1 | Engine 2 throttle |
 
-### Navegación
-| Variable | Unidad | Descripción |
-|----------|--------|-------------|
-| `nav1_frequency` | MHz | Frecuencia NAV1 |
-| `nav2_frequency` | MHz | Frecuencia NAV2 |
-| `com1_frequency` | MHz | Frecuencia COM1 |
-| `com2_frequency` | MHz | Frecuencia COM2 |
-| `selected_course_1` | radianes | Curso seleccionado 1 |
-| `selected_course_2` | radianes | Curso seleccionado 2 |
+### Navigation
+| Variable | Unit | Description |
+|----------|------|-------------|
+| `nav1_frequency` | MHz | NAV1 frequency |
+| `nav2_frequency` | MHz | NAV2 frequency |
+| `com1_frequency` | MHz | COM1 frequency |
+| `com2_frequency` | MHz | COM2 frequency |
+| `selected_course_1` | radians | Selected course 1 |
+| `selected_course_2` | radians | Selected course 2 |
 
-### Autopilot (solo lectura)
-| Variable | Unidad | Descripción |
-|----------|--------|-------------|
-| `autopilot_master` | 0/1 | AP activo |
-| `autopilot_heading` | radianes | Rumbo seleccionado |
-| `autopilot_altitude` | pies | Altitud seleccionada |
+### Autopilot (read-only)
+| Variable | Unit | Description |
+|----------|------|-------------|
+| `autopilot_master` | 0/1 | AP active |
+| `autopilot_heading` | radians | Selected heading |
+| `autopilot_altitude` | feet | Selected altitude |
 
 ### V-Speeds
-| Variable | Descripción |
+| Variable | Description |
 |----------|-------------|
-| `vs0` | Velocidad de pérdida (flaps extendidos) |
-| `vs1` | Velocidad de pérdida (configuración limpia) |
-| `vfe` | Velocidad máxima con flaps |
-| `vno` | Velocidad máxima crucero estructural |
-| `vne` | Velocidad de nunca exceder |
+| `vs0` | Stall speed (flaps extended) |
+| `vs1` | Stall speed (clean configuration) |
+| `vfe` | Maximum flaps extended speed |
+| `vno` | Maximum structural cruise speed |
+| `vne` | Never exceed speed |
 
-## Configuración
+## Configuration
 
-### Variables de Entorno
+### Environment Variables
 
-| Variable | Default | Descripción |
+| Variable | Default | Description |
 |----------|---------|-------------|
-| `AEROFLY_READER_TCP_PORT` | 12345 | Puerto TCP para streaming |
-| `AEROFLY_READER_BROADCAST_MS` | 20 | Intervalo de broadcast (ms) |
+| `AEROFLY_READER_TCP_PORT` | 12345 | TCP port for streaming |
+| `AEROFLY_READER_BROADCAST_MS` | 20 | Broadcast interval (ms) |
 
 ```powershell
-# Ejemplo: cambiar puerto y reducir frecuencia
+# Example: change port and reduce frequency
 $env:AEROFLY_READER_TCP_PORT = "8888"
 $env:AEROFLY_READER_BROADCAST_MS = "100"  # 10 Hz
 ```
 
-## Compilación
+## Build
 
-### Requisitos
+### Requirements
 - Windows 10/11
 - Visual Studio 2022 (C++ desktop development)
 - CMake 3.15+
-- Header del SDK: `tm_external_message.h`
+- SDK Header: `tm_external_message.h`
 
-### Pasos
+### Steps
 
 ```powershell
-# 1. Copiar el header del SDK de Aerofly a este directorio
+# 1. Copy Aerofly SDK header to this directory
 copy "path\to\tm_external_message.h" simplified\
 
-# 2. Configurar y compilar
+# 2. Configure and build
 cd simplified
 cmake -B build -G "Visual Studio 17 2022" -A x64
 cmake --build build --config Release
 
-# 3. Instalar
+# 3. Install
 copy build\Release\AeroflyReader.dll "$env:USERPROFILE\Documents\Aerofly FS 4\external_dll\"
 ```
 
-## Optimizaciones de Rendimiento
+## Performance Optimizations
 
-### v1.1.0 Mejoras
+### v1.1.0 Improvements
 
-| Optimización | Beneficio |
-|--------------|-----------|
-| **JSON con snprintf** | 3-5x más rápido que ostringstream |
-| **Buffer estático** | Zero allocations por frame |
-| **Macros para handlers** | Código 15% más compacto |
-| **Protección NaN/Inf** | JSON siempre válido |
+| Optimization | Benefit |
+|--------------|---------|
+| **JSON with snprintf** | 3-5x faster than ostringstream |
+| **Static buffer** | Zero allocations per frame |
+| **Handler macros** | 15% more compact code |
+| **NaN/Inf protection** | Always valid JSON |
 
-### Características Técnicas
+### Technical Features
 
-- **Thread-local buffer**: Cada thread tiene su propio buffer JSON
-- **Validación automática**: Valores NaN/Inf se convierten a 0.0
-- **Hash map O(1)**: Lookup instantáneo de message handlers
-- **Non-blocking sockets**: TCP no bloquea el thread principal
+- **Thread-local buffer**: Each thread has its own JSON buffer
+- **Automatic validation**: NaN/Inf values converted to 0.0
+- **Hash map O(1)**: Instant message handler lookup
+- **Non-blocking sockets**: TCP doesn't block main thread
 
-## Casos de Uso
+## Use Cases
 
-| Aplicación | Descripción |
-|------------|-------------|
-| **Flight Logger** | Graba vuelos a CSV/base de datos |
-| **Map Tracker** | Posición en tiempo real en mapas |
-| **Training Dashboard** | Métricas para entrenamiento |
-| **Stream Overlay** | Overlay OBS con datos de vuelo |
-| **Home Cockpit** | Alimenta instrumentos físicos |
+| Application | Description |
+|-------------|-------------|
+| **Flight Logger** | Record flights to CSV/database |
+| **Map Tracker** | Real-time position on maps |
+| **Training Dashboard** | Metrics for training |
+| **Stream Overlay** | OBS overlay with flight data |
+| **Home Cockpit** | Feed physical instruments |
 
-## Ejemplos Incluidos
+## Included Examples
 
 ```
 simplified/
 └── examples/
-    ├── simple_reader.py   # Visualización en tiempo real
-    └── flight_logger.py   # Grabación a CSV
+    ├── simple_reader.py   # Real-time visualization
+    └── flight_logger.py   # CSV recording
 ```
 
-## Comparación con Bridge Completo
+## Comparison with Complete Bridge
 
-| Característica | Reader | Bridge Completo |
-|----------------|--------|-----------------|
-| Líneas de código | ~850 | ~9,000 |
+| Feature | Reader | Complete Bridge |
+|---------|--------|-----------------|
+| Lines of code | ~850 | ~9,000 |
 | Variables | ~50 | 358 |
-| Lectura de datos | ✅ | ✅ |
-| Control del avión | ❌ | ✅ |
+| Data reading | ✅ | ✅ |
+| Aircraft control | ❌ | ✅ |
 | Shared Memory | ✅ | ✅ |
 | TCP Streaming | ✅ | ✅ |
 | TCP Commands | ❌ | ✅ |
 | WebSocket | ❌ | ✅ |
-| C172 específico | ❌ | ✅ |
+| C172 specific | ❌ | ✅ |
 | Warnings | ❌ | ✅ |
 
-## Licencia
+## License
 
-MIT License - Mismo que el proyecto principal.
+MIT License - Same as the main project.
 
 ---
 
-**Versión**: 1.1.0
-**Compatibilidad**: Aerofly FS 4
-**Plataforma**: Windows x64
+**Version**: 1.1.0
+**Compatibility**: Aerofly FS 4
+**Platform**: Windows x64
