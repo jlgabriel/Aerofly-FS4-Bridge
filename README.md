@@ -8,6 +8,36 @@ A multi-interface bridge (Shared Memory, TCP, WebSocket) between Aerofly FS4 and
    `%USERPROFILE%\Documents\Aerofly FS 4\external_dll\AeroflyBridge.dll`
 3. Start Aerofly FS4 and load a flight.
 
+---
+
+## 📦 Simplified Version Available: AeroflyReader DLL
+
+For users who only need to **read flight data** without controlling the aircraft, we offer a lightweight alternative: **AeroflyReader.dll**.
+
+This simplified DLL is ideal for flight loggers, map trackers, stream overlays, and monitoring dashboards where aircraft control is not required.
+
+### Quick Comparison
+
+| Feature | AeroflyReader (Simplified) | AeroflyBridge (Full) |
+|---------|---------------------------|----------------------|
+| **Lines of code** | ~850 | ~9,000 |
+| **Data reading** | ✅ | ✅ |
+| **Aircraft control** | ❌ | ✅ |
+| **Shared Memory** | ✅ | ✅ |
+| **TCP Streaming** | ✅ | ✅ |
+| **TCP Commands** | ❌ | ✅ |
+| **WebSocket** | ❌ | ✅ |
+| **Variables available** | ~50 core | 358 extended |
+
+### When to Use Each Version
+
+- **AeroflyReader (Simplified)**: Flight logging, position tracking, real-time monitors, stream overlays, home cockpit instruments (read-only)
+- **AeroflyBridge (Full)**: External control panels, autopilot integrations, command-based applications, web dashboards with controls
+
+📁 **See [`simplified/README.md`](simplified/README.md) for full documentation, examples, and installation instructions.**
+
+---
+
 ## Build from source (developers)
 
 ### 📋 **Prerequisites**
@@ -85,6 +115,7 @@ Output: `dist\AeroflyBridge.dll` (dist/ is gitignored)
 - **`include/`** - Header files (logging system)
 - **`src/`** - Source files (logging implementation)
 - **`tests/`** - Unit and integration tests (6 test suites)
+- **`simplified/`** - Lightweight read-only DLL version (AeroflyReader)
 - **`dist/`** - Local build outputs (gitignored)
 - **`build/`** - CMake build outputs (gitignored)
 
