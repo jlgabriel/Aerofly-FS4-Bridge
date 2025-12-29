@@ -5,11 +5,12 @@ A simplified and optimized version of Aerofly Bridge focused exclusively on **re
 ## Key Features
 
 - **Read-only** - No commands, no aircraft control
-- **~850 lines of code** - vs 9,000+ in the complete bridge
+- **~900 lines of code** - vs 9,000+ in the complete bridge
 - **High performance** - Optimized JSON builder with zero allocations
 - **Two interfaces** - Shared Memory (local) + TCP Streaming (network)
 - **Robust** - Automatic protection against NaN/Inf values
 - **Pre-built binary** - Ready to use DLL in `bin/` folder
+- **5 Python examples** - From simple readers to map trackers
 
 ## Quick Start (Pre-built DLL)
 
@@ -105,8 +106,8 @@ while True:
     "data_valid": 1,
     "update_counter": 42,
 
-    "latitude": 47.449889,
-    "longitude": -122.309444,
+    "latitude": 0.828321,
+    "longitude": 4.147626,
     "altitude": 5280.0,
     "height": 1500.0,
     "pitch": 0.087266,
@@ -155,6 +156,11 @@ while True:
 }
 ```
 
+> **Note on Latitude/Longitude**: Values are in **radians** as received from the simulator. To convert to degrees:
+> - `lat_deg = lat_rad * (180 / pi)`
+> - `lon_deg = lon_rad * (180 / pi)`
+> - If `lon_deg > 180`: `lon_deg -= 360` (normalize to -180/+180)
+
 ### Special Fields
 
 | Field | Description |
@@ -168,8 +174,8 @@ while True:
 ### Position and Orientation
 | Variable | Unit | Description |
 |----------|------|-------------|
-| `latitude` | degrees | GPS latitude |
-| `longitude` | degrees | GPS longitude |
+| `latitude` | radians | GPS latitude (convert to degrees, see note above) |
+| `longitude` | radians | GPS longitude (convert to degrees and normalize) |
 | `altitude` | feet | MSL altitude |
 | `height` | feet | AGL height (above ground) |
 | `pitch` | radians | Pitch |
@@ -300,15 +306,28 @@ copy build\Release\AeroflyReader.dll "$env:USERPROFILE\Documents\Aerofly FS 4\ex
 ```
 simplified/
 └── examples/
-    ├── simple_reader.py   # Real-time visualization
-    └── flight_logger.py   # CSV recording
+    ├── simple_reader.py          # Basic real-time console display
+    ├── flight_logger.py          # CSV flight recording
+    ├── aircraft_tracker.py       # Interactive map with aircraft position
+    ├── advanced_flight_logger.py # CSV + statistics + takeoff/landing detection
+    └── realtime_monitor.py       # Tkinter GUI with tree view of all variables
 ```
+
+### Example Descriptions
+
+| Example | Description | Requirements |
+|---------|-------------|--------------|
+| `simple_reader.py` | Console display of flight data | None (standard lib) |
+| `flight_logger.py` | Records flight data to CSV file | None (standard lib) |
+| `aircraft_tracker.py` | Shows aircraft on interactive map | `tkintermapview`, `pillow` |
+| `advanced_flight_logger.py` | Flight logger with stats and event detection | None (standard lib) |
+| `realtime_monitor.py` | Desktop GUI showing all variables in tree view | `tkinter` (included with Python) |
 
 ## Comparison with Complete Bridge
 
 | Feature | Reader | Complete Bridge |
 |---------|--------|-----------------|
-| Lines of code | ~850 | ~9,000 |
+| Lines of code | ~900 | ~9,000 |
 | Variables | ~50 | 358 |
 | Data reading | ✅ | ✅ |
 | Aircraft control | ❌ | ✅ |
