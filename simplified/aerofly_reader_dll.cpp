@@ -63,7 +63,11 @@ static inline double safe_double(double v) {
 #define HANDLE_VECTOR3D(msgName, field) \
     message_handlers[msgName.GetID()] = [this](const auto& msg) { pData->field = msg.GetVector3d(); }
 #define HANDLE_VECTOR2D(msgName, field) \
-    message_handlers[msgName.GetID()] = [this](const auto& msg) { pData->field = msg.GetVector2d(); }
+    message_handlers[msgName.GetID()] = [this](const auto& msg) { \
+        tm_vector3d v = msg.GetVector2d(); \
+        pData->field.x = v.x; \
+        pData->field.y = v.y; \
+    }
 
 // High-resolution timestamp in microseconds
 static inline uint64_t get_time_us() {
@@ -94,8 +98,68 @@ Data Flow (READ-ONLY):
   Aerofly SDK --> Update(received_messages) --> SharedMemory --> TCP Broadcast --> Clients
 */
 
-// Include Aerofly SDK header (must be downloaded separately)
+// Include Aerofly SDK header
 #include "tm_external_message.h"
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// MESSAGE DEFINITIONS - Required for message ID lookup
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+#define TM_MESSAGE( a1, a2, a3, a4, a5, a6, a7 ) \
+    static tm_external_message Message##a1( ##a2, a3, a4, a5, a6 );
+
+// Core message definitions used by this simplified reader
+#define SIMPLIFIED_MESSAGE_LIST(F) \
+F( AircraftLatitude,                      "Aircraft.Latitude",                        tm_msg_data_type::Double,   tm_msg_flag::Value,  tm_msg_access::Read,      tm_msg_unit::Radiant,                  "" ) \
+F( AircraftLongitude,                     "Aircraft.Longitude",                       tm_msg_data_type::Double,   tm_msg_flag::Value,  tm_msg_access::Read,      tm_msg_unit::Radiant,                  "" ) \
+F( AircraftAltitude,                      "Aircraft.Altitude",                        tm_msg_data_type::Double,   tm_msg_flag::Value,  tm_msg_access::Read,      tm_msg_unit::Meter,                    "" ) \
+F( AircraftHeight,                        "Aircraft.Height",                          tm_msg_data_type::Double,   tm_msg_flag::Value,  tm_msg_access::Read,      tm_msg_unit::Meter,                    "" ) \
+F( AircraftPitch,                         "Aircraft.Pitch",                           tm_msg_data_type::Double,   tm_msg_flag::Value,  tm_msg_access::Read,      tm_msg_unit::Radiant,                  "" ) \
+F( AircraftBank,                          "Aircraft.Bank",                            tm_msg_data_type::Double,   tm_msg_flag::Value,  tm_msg_access::Read,      tm_msg_unit::Radiant,                  "" ) \
+F( AircraftTrueHeading,                   "Aircraft.TrueHeading",                     tm_msg_data_type::Double,   tm_msg_flag::Value,  tm_msg_access::Read,      tm_msg_unit::Radiant,                  "" ) \
+F( AircraftMagneticHeading,               "Aircraft.MagneticHeading",                 tm_msg_data_type::Double,   tm_msg_flag::Value,  tm_msg_access::Read,      tm_msg_unit::Radiant,                  "" ) \
+F( AircraftIndicatedAirspeed,             "Aircraft.IndicatedAirspeed",               tm_msg_data_type::Double,   tm_msg_flag::Value,  tm_msg_access::Read,      tm_msg_unit::MeterPerSecond,           "" ) \
+F( AircraftGroundSpeed,                   "Aircraft.GroundSpeed",                     tm_msg_data_type::Double,   tm_msg_flag::Value,  tm_msg_access::Read,      tm_msg_unit::MeterPerSecond,           "" ) \
+F( AircraftVerticalSpeed,                 "Aircraft.VerticalSpeed",                   tm_msg_data_type::Double,   tm_msg_flag::Value,  tm_msg_access::Read,      tm_msg_unit::MeterPerSecond,           "" ) \
+F( AircraftMachNumber,                    "Aircraft.MachNumber",                      tm_msg_data_type::Double,   tm_msg_flag::Value,  tm_msg_access::Read,      tm_msg_unit::None,                     "" ) \
+F( AircraftAngleOfAttack,                 "Aircraft.AngleOfAttack",                   tm_msg_data_type::Double,   tm_msg_flag::Value,  tm_msg_access::Read,      tm_msg_unit::Radiant,                  "" ) \
+F( AircraftPosition,                      "Aircraft.Position",                        tm_msg_data_type::Vector3d, tm_msg_flag::Value,  tm_msg_access::Read,      tm_msg_unit::Meter,                    "" ) \
+F( AircraftVelocity,                      "Aircraft.Velocity",                        tm_msg_data_type::Vector3d, tm_msg_flag::Value,  tm_msg_access::Read,      tm_msg_unit::MeterPerSecond,           "" ) \
+F( AircraftAcceleration,                  "Aircraft.Acceleration",                    tm_msg_data_type::Vector3d, tm_msg_flag::Value,  tm_msg_access::Read,      tm_msg_unit::MeterPerSecondSquared,    "" ) \
+F( AircraftWind,                          "Aircraft.Wind",                            tm_msg_data_type::Vector3d, tm_msg_flag::Value,  tm_msg_access::Read,      tm_msg_unit::MeterPerSecond,           "" ) \
+F( AircraftOnGround,                      "Aircraft.OnGround",                        tm_msg_data_type::Double,   tm_msg_flag::Value,  tm_msg_access::Read,      tm_msg_unit::None,                     "" ) \
+F( AircraftGear,                          "Aircraft.Gear",                            tm_msg_data_type::Double,   tm_msg_flag::Value,  tm_msg_access::Read,      tm_msg_unit::None,                     "" ) \
+F( AircraftFlaps,                         "Aircraft.Flaps",                           tm_msg_data_type::Double,   tm_msg_flag::Value,  tm_msg_access::Read,      tm_msg_unit::None,                     "" ) \
+F( AircraftThrottle,                      "Aircraft.Throttle",                        tm_msg_data_type::Double,   tm_msg_flag::Value,  tm_msg_access::Read,      tm_msg_unit::None,                     "" ) \
+F( AircraftParkingBrake,                  "Aircraft.ParkingBrake",                    tm_msg_data_type::Double,   tm_msg_flag::Value,  tm_msg_access::Read,      tm_msg_unit::None,                     "" ) \
+F( AircraftEngineRunning1,                "Aircraft.EngineRunning1",                  tm_msg_data_type::Double,   tm_msg_flag::Value,  tm_msg_access::Read,      tm_msg_unit::None,                     "" ) \
+F( AircraftEngineRunning2,                "Aircraft.EngineRunning2",                  tm_msg_data_type::Double,   tm_msg_flag::Value,  tm_msg_access::Read,      tm_msg_unit::None,                     "" ) \
+F( AircraftEngineThrottle1,               "Aircraft.EngineThrottle1",                 tm_msg_data_type::Double,   tm_msg_flag::Value,  tm_msg_access::Read,      tm_msg_unit::None,                     "" ) \
+F( AircraftEngineThrottle2,               "Aircraft.EngineThrottle2",                 tm_msg_data_type::Double,   tm_msg_flag::Value,  tm_msg_access::Read,      tm_msg_unit::None,                     "" ) \
+F( NavigationNAV1Frequency,               "Navigation.NAV1Frequency",                 tm_msg_data_type::Double,   tm_msg_flag::Value,  tm_msg_access::ReadWrite, tm_msg_unit::Hertz,                    "" ) \
+F( NavigationNAV2Frequency,               "Navigation.NAV2Frequency",                 tm_msg_data_type::Double,   tm_msg_flag::Value,  tm_msg_access::ReadWrite, tm_msg_unit::Hertz,                    "" ) \
+F( CommunicationCOM1Frequency,            "Communication.COM1Frequency",              tm_msg_data_type::Double,   tm_msg_flag::Value,  tm_msg_access::ReadWrite, tm_msg_unit::Hertz,                    "" ) \
+F( CommunicationCOM2Frequency,            "Communication.COM2Frequency",              tm_msg_data_type::Double,   tm_msg_flag::Value,  tm_msg_access::ReadWrite, tm_msg_unit::Hertz,                    "" ) \
+F( NavigationSelectedCourse1,             "Navigation.SelectedCourse1",               tm_msg_data_type::Double,   tm_msg_flag::Value,  tm_msg_access::ReadWrite, tm_msg_unit::Radiant,                  "" ) \
+F( NavigationSelectedCourse2,             "Navigation.SelectedCourse2",               tm_msg_data_type::Double,   tm_msg_flag::Value,  tm_msg_access::ReadWrite, tm_msg_unit::Radiant,                  "" ) \
+F( AutopilotMaster,                       "Autopilot.Master",                         tm_msg_data_type::Double,   tm_msg_flag::Event,  tm_msg_access::Write,     tm_msg_unit::None,                     "" ) \
+F( AutopilotHeading,                      "Autopilot.Heading",                        tm_msg_data_type::Double,   tm_msg_flag::Event,  tm_msg_access::Write,     tm_msg_unit::Radiant,                  "" ) \
+F( AutopilotSelectedAltitude,             "Autopilot.SelectedAltitude",               tm_msg_data_type::Double,   tm_msg_flag::Value,  tm_msg_access::ReadWrite, tm_msg_unit::Meter,                    "" ) \
+F( AutopilotSelectedVerticalSpeed,        "Autopilot.SelectedVerticalSpeed",          tm_msg_data_type::Double,   tm_msg_flag::Value,  tm_msg_access::ReadWrite, tm_msg_unit::MeterPerSecond,           "" ) \
+F( AutopilotSelectedSpeed,                "Autopilot.SelectedSpeed",                  tm_msg_data_type::Double,   tm_msg_flag::Event,  tm_msg_access::Write,     tm_msg_unit::MeterPerSecond,           "" ) \
+F( PerformanceSpeedVS0,                   "Performance.Speed.VS0",                    tm_msg_data_type::Double,   tm_msg_flag::Value,  tm_msg_access::Read,      tm_msg_unit::MeterPerSecond,           "" ) \
+F( PerformanceSpeedVS1,                   "Performance.Speed.VS1",                    tm_msg_data_type::Double,   tm_msg_flag::Value,  tm_msg_access::Read,      tm_msg_unit::MeterPerSecond,           "" ) \
+F( PerformanceSpeedVFE,                   "Performance.Speed.VFE",                    tm_msg_data_type::Double,   tm_msg_flag::Value,  tm_msg_access::Read,      tm_msg_unit::MeterPerSecond,           "" ) \
+F( PerformanceSpeedVNO,                   "Performance.Speed.VNO",                    tm_msg_data_type::Double,   tm_msg_flag::Value,  tm_msg_access::Read,      tm_msg_unit::MeterPerSecond,           "" ) \
+F( PerformanceSpeedVNE,                   "Performance.Speed.VNE",                    tm_msg_data_type::Double,   tm_msg_flag::Value,  tm_msg_access::Read,      tm_msg_unit::MeterPerSecond,           "" ) \
+F( AircraftNearestAirportElevation,       "Aircraft.NearestAirportElevation",         tm_msg_data_type::Double,   tm_msg_flag::Value,  tm_msg_access::Read,      tm_msg_unit::None,                     "" ) \
+F( AircraftNearestAirportLocation,        "Aircraft.NearestAirportLocation",          tm_msg_data_type::Vector2d, tm_msg_flag::Value,  tm_msg_access::Read,      tm_msg_unit::None,                     "" ) \
+F( AircraftName,                          "Aircraft.Name",                            tm_msg_data_type::String,   tm_msg_flag::Value,  tm_msg_access::Read,      tm_msg_unit::None,                     "" ) \
+F( AircraftNearestAirportIdentifier,      "Aircraft.NearestAirportIdentifier",        tm_msg_data_type::String,   tm_msg_flag::Value,  tm_msg_access::Read,      tm_msg_unit::None,                     "" ) \
+F( AircraftNearestAirportName,            "Aircraft.NearestAirportName",              tm_msg_data_type::String,   tm_msg_flag::Value,  tm_msg_access::Read,      tm_msg_unit::None,                     "" )
+
+// Generate the message instances
+SIMPLIFIED_MESSAGE_LIST(TM_MESSAGE)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // SIMPLIFIED DATA STRUCTURE - Core Variables Only
@@ -207,7 +271,7 @@ struct AeroflyReaderData {
 };
 
 // Forward declaration for JSON builder
-static std::string BuildDataJSON(const AeroflyReaderData* data);
+static const char* BuildDataJSON(const AeroflyReaderData* data, int& out_len, double update_hz = 0.0);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // SHARED MEMORY INTERFACE (Read-Only)
@@ -626,7 +690,7 @@ private:
 
 static thread_local char g_json_buffer[4096];
 
-static const char* BuildDataJSON(const AeroflyReaderData* data, int& out_len, double update_hz = 0.0) {
+static const char* BuildDataJSON(const AeroflyReaderData* data, int& out_len, double update_hz) {
     if (!data) { out_len = 3; return "{}\n"; }
 
     out_len = snprintf(g_json_buffer, sizeof(g_json_buffer),
@@ -826,16 +890,17 @@ __declspec(dllexport) void Aerofly_FS_4_External_DLL_Update(
 
     // Parse incoming messages
     std::vector<tm_external_message> received_messages;
-    int offset = 0;
+    tm_uint32 byte_stream_pos = 0;
+    const tm_uint8* byte_stream = reinterpret_cast<const tm_uint8*>(received_bytes);
 
-    while (offset < received_size) {
-        tm_external_message msg;
-        int bytes_read = msg.GetFromByteStream(received_bytes + offset, received_size - offset);
-
-        if (bytes_read <= 0) break;
-
+    while (byte_stream_pos < static_cast<tm_uint32>(received_size)) {
+        tm_uint32 prev_pos = byte_stream_pos;
+        tm_external_message msg = tm_external_message::GetFromByteStream(byte_stream, byte_stream_pos);
+        
+        // Check if we made progress (avoid infinite loop)
+        if (byte_stream_pos <= prev_pos) break;
+        
         received_messages.push_back(msg);
-        offset += bytes_read;
     }
 
     // Update reader (shared memory + TCP broadcast)

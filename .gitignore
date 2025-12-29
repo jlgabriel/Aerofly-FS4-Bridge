@@ -5,12 +5,14 @@ src/tm_external_message.h
 # Build outputs (legacy batch script)
 /dist/
 *.dll
+!simplified/bin/*.dll
 *.pdb
 *.obj
 dist/*.obj
 
 # CMake build directories and outputs
 /build/
+simplified/build/
 /out/
 /cmake-build-*/
 CMakeCache.txt
