@@ -147,12 +147,17 @@ class FlightLogger:
             MPS_TO_FPM = 196.8503937
             RAD_TO_DEG = 180.0 / math.pi
 
-            # Extract data (already in convenient units in simplified format)
+            # Extract data (convert from radians where needed)
+            # Longitude needs normalization from 0-360 to -180/+180
+            lon_deg = RAD_TO_DEG * json_data.get('longitude', 0.0)
+            if lon_deg > 180:
+                lon_deg -= 360
+
             current_data = {
                 'timestamp': datetime.datetime.now().isoformat(),
                 'elapsed_time': self.get_elapsed_time(),
-                'latitude': json_data.get('latitude', 0.0),
-                'longitude': json_data.get('longitude', 0.0),
+                'latitude': RAD_TO_DEG * json_data.get('latitude', 0.0),
+                'longitude': lon_deg,
                 'altitude_ft': json_data.get('altitude', 0.0),
                 'height_agl_ft': json_data.get('height', 0.0),
                 'indicated_airspeed_kts': json_data.get('indicated_airspeed', 0.0) * MPS_TO_KT,

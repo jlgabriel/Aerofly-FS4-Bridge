@@ -133,9 +133,13 @@ class DataReceiver:
             return
 
         # Extract data from the simplified JSON format
-        # Note: latitude/longitude are already in degrees, altitude in feet
-        lat = float(data.get("latitude", 0.0))
-        lon = float(data.get("longitude", 0.0))
+        # Note: latitude/longitude come from sim in radians, convert to degrees
+        # Longitude needs normalization from 0-360 to -180/+180
+        import math
+        lat = math.degrees(float(data.get("latitude", 0.0)))
+        lon = math.degrees(float(data.get("longitude", 0.0)))
+        if lon > 180:
+            lon -= 360
         alt_ft = float(data.get("altitude", 0.0))
         gs_ms = float(data.get("ground_speed", 0.0))
 

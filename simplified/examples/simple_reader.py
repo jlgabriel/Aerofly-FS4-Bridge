@@ -17,6 +17,7 @@ import socket
 import json
 import sys
 import time
+import math
 from datetime import datetime
 
 
@@ -80,9 +81,11 @@ def display_flight_data(data: dict):
     print(f"  Nearest airport: {data.get('nearest_airport_id', '----')} - {data.get('nearest_airport_name', 'Unknown')}")
     print()
 
-    # Position
-    lat = data.get('latitude', 0)
-    lon = data.get('longitude', 0)
+    # Position (convert from radians to degrees, normalize longitude to -180/+180)
+    lat = math.degrees(data.get('latitude', 0))
+    lon = math.degrees(data.get('longitude', 0))
+    if lon > 180:
+        lon -= 360
     print("  POSITION")
     print(f"    Lat: {lat:+.6f}°")
     print(f"    Lon: {lon:+.6f}°")
@@ -101,7 +104,6 @@ def display_flight_data(data: dict):
     print("  ORIENTATION")
     print(f"    Mag Heading:  {format_heading(data.get('magnetic_heading', 0))}")
     print(f"    True Heading: {format_heading(data.get('true_heading', 0))}")
-    import math
     pitch_deg = math.degrees(data.get('pitch', 0))
     bank_deg = math.degrees(data.get('bank', 0))
     print(f"    Pitch:        {pitch_deg:+.1f}°")

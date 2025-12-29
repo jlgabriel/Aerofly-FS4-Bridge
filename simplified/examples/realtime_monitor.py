@@ -196,8 +196,8 @@ class AeroflyMonitorApp(tk.Tk):
                 ("update_counter", "counter"),
             ],
             "Position": [
-                ("latitude", "degrees"),
-                ("longitude", "degrees"),
+                ("latitude", "radians"),
+                ("longitude", "radians"),
                 ("altitude", "feet"),
                 ("height", "feet"),
             ],
@@ -303,8 +303,8 @@ class AeroflyMonitorApp(tk.Tk):
                         us_str = "N/A"
                     else:
                         raw_str = self._format_raw(value, unit)
-                        intl_str = self._format_converted(value, unit, "intl")
-                        us_str = self._format_converted(value, unit, "us")
+                        intl_str = self._format_converted(value, unit, "intl", field_name)
+                        us_str = self._format_converted(value, unit, "us", field_name)
 
                     if self.tree.set(item_id, "value") != raw_str:
                         self.tree.set(item_id, "value", raw_str)
@@ -335,7 +335,7 @@ class AeroflyMonitorApp(tk.Tk):
         else:
             return str(value)
 
-    def _format_converted(self, value, unit: str, target: str) -> str:
+    def _format_converted(self, value, unit: str, target: str, field_name: str = "") -> str:
         """Format converted value for INTL or US."""
         try:
             # Handle vectors
@@ -359,7 +359,13 @@ class AeroflyMonitorApp(tk.Tk):
 
             # Conversions based on unit
             if unit == "radians":
-                deg = math.degrees(value) % 360
+                deg = math.degrees(value)
+                # Normalize longitude from 0-360 to -180/+180
+                if field_name == "longitude" and deg > 180:
+                    deg -= 360
+                # For headings, keep 0-360 range
+                elif field_name not in ("latitude", "longitude"):
+                    deg = deg % 360
                 return f"{deg:.1f}°"
 
             elif unit == "m/s":

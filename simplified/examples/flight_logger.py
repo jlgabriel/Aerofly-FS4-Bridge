@@ -88,6 +88,13 @@ def rad_to_deg(rad: float) -> float:
     return math.degrees(rad)
 
 
+def normalize_longitude(lon_deg: float) -> float:
+    """Normalizes longitude from 0-360 to -180/+180."""
+    if lon_deg > 180:
+        return lon_deg - 360
+    return lon_deg
+
+
 def process_data(data: dict, start_time: float) -> dict:
     """Processes raw data and converts to standard units."""
     elapsed = time.time() - start_time
@@ -95,8 +102,8 @@ def process_data(data: dict, start_time: float) -> dict:
     return {
         'timestamp': datetime.now().isoformat(),
         'elapsed_seconds': round(elapsed, 2),
-        'latitude': round(data.get('latitude', 0), 6),
-        'longitude': round(data.get('longitude', 0), 6),
+        'latitude': round(rad_to_deg(data.get('latitude', 0)), 6),
+        'longitude': round(normalize_longitude(rad_to_deg(data.get('longitude', 0))), 6),
         'altitude_ft': round(data.get('altitude', 0), 1),
         'height_agl_ft': round(data.get('height', 0), 1),
         'indicated_airspeed_kts': round(ms_to_kts(data.get('indicated_airspeed', 0)), 1),

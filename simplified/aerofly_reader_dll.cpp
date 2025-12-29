@@ -185,8 +185,8 @@ struct AeroflyReaderData {
     // ========================================================================
     // AIRCRAFT POSITION & ORIENTATION
     // ========================================================================
-    double latitude;                    // Aircraft.Latitude (degrees)
-    double longitude;                   // Aircraft.Longitude (degrees)
+    double latitude;                    // Aircraft.Latitude (radians)
+    double longitude;                   // Aircraft.Longitude (radians)
     double altitude;                    // Aircraft.Altitude (feet MSL)
     double height;                      // Aircraft.Height (feet AGL)
     double pitch;                       // Aircraft.Pitch (radians)
