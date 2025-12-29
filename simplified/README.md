@@ -9,6 +9,16 @@ A simplified and optimized version of Aerofly Bridge focused exclusively on **re
 - **High performance** - Optimized JSON builder with zero allocations
 - **Two interfaces** - Shared Memory (local) + TCP Streaming (network)
 - **Robust** - Automatic protection against NaN/Inf values
+- **Pre-built binary** - Ready to use DLL in `bin/` folder
+
+## Quick Start (Pre-built DLL)
+
+A pre-built DLL is available in the `bin/` folder for immediate use:
+
+```powershell
+# Install pre-built DLL directly
+copy simplified\bin\AeroflyReader.dll "$env:USERPROFILE\Documents\Aerofly FS 4\external_dll\"
+```
 
 ## Architecture
 
@@ -234,7 +244,7 @@ $env:AEROFLY_READER_TCP_PORT = "8888"
 $env:AEROFLY_READER_BROADCAST_MS = "100"  # 10 Hz
 ```
 
-## Build
+## Build from Source
 
 ### Requirements
 - Windows 10/11
