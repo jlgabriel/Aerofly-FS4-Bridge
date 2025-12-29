@@ -34,7 +34,14 @@ This simplified DLL is ideal for flight loggers, map trackers, stream overlays, 
 - **AeroflyReader (Simplified)**: Flight logging, position tracking, real-time monitors, stream overlays, home cockpit instruments (read-only)
 - **AeroflyBridge (Full)**: External control panels, autopilot integrations, command-based applications, web dashboards with controls
 
-📁 **See [`simplified/README.md`](simplified/README.md) for full documentation, examples, and installation instructions.**
+### Quick Install (Simplified DLL)
+
+A pre-built DLL is available for immediate use:
+```powershell
+copy simplified\bin\AeroflyReader.dll "$env:USERPROFILE\Documents\Aerofly FS 4\external_dll\"
+```
+
+📁 **See [`simplified/README.md`](simplified/README.md) for full documentation, examples, and build instructions.**
 
 ---
 
