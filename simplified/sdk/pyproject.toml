@@ -1,0 +1,77 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aerofly-reader"
+version = "1.0.0"
+description = "Python SDK for AeroflyReader DLL - Access Aerofly FS4 flight telemetry"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Aerofly FS4 Bridge Project"}
+]
+keywords = [
+    "aerofly",
+    "flight-simulator",
+    "telemetry",
+    "aviation",
+    "sdk",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Games/Entertainment :: Simulation",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
+requires-python = ">=3.8"
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+    "mypy>=1.0",
+    "ruff>=0.1",
+]
+
+[project.urls]
+Homepage = "https://github.com/jlgabriel/Aerofly-FS4-Bridge"
+Documentation = "https://github.com/jlgabriel/Aerofly-FS4-Bridge/tree/main/simplified/sdk"
+Repository = "https://github.com/jlgabriel/Aerofly-FS4-Bridge"
+Issues = "https://github.com/jlgabriel/Aerofly-FS4-Bridge/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["aerofly_reader*"]
+
+[tool.setuptools.package-data]
+aerofly_reader = ["py.typed"]
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.ruff]
+target-version = "py38"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "D", "UP", "B", "C4", "SIM"]
+ignore = ["D100", "D104", "D107"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
