@@ -195,6 +195,58 @@ ap.altitude        # Selected altitude (feet)
 ap.vertical_speed  # Selected VS (fpm)
 ```
 
+### Vector3D (Physics Vectors)
+
+The SDK includes 4 physics vectors as `Vector3D` objects, each with `x`, `y`, `z` components:
+
+```python
+# Available vectors in FlightData
+flight.world_position   # Aircraft position in world coordinates
+flight.velocity         # Velocity vector (m/s)
+flight.acceleration     # Acceleration vector (m/s²)
+flight.wind             # Wind vector (m/s)
+```
+
+**Vector3D Properties:**
+
+```python
+vec = flight.velocity
+
+# Individual components
+vec.x                # X component
+vec.y                # Y component
+vec.z                # Z component
+
+# Calculated property
+vec.magnitude        # Vector magnitude (√(x² + y² + z²))
+```
+
+**Example Usage:**
+
+```python
+from aerofly_reader import stream
+
+for flight in stream():
+    # Get velocity components
+    print(f"Velocity X: {flight.velocity.x:.2f} m/s")
+    print(f"Velocity Y: {flight.velocity.y:.2f} m/s")
+    print(f"Velocity Z: {flight.velocity.z:.2f} m/s")
+
+    # Calculate total speed from velocity vector
+    total_speed = flight.velocity.magnitude
+    print(f"Total Speed: {total_speed:.2f} m/s")
+
+    # Wind information
+    wind_speed = flight.wind.magnitude
+    print(f"Wind Speed: {wind_speed:.2f} m/s")
+
+    # Acceleration (useful for G-force calculations)
+    g_force = flight.acceleration.magnitude / 9.81
+    print(f"G-Force: {g_force:.2f} G")
+```
+
+**Vector3D is immutable** (`frozen=True`) for thread safety and data integrity.
+
 ## Unit Conversion Utilities
 
 ```python
