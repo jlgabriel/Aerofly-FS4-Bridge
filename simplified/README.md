@@ -323,6 +323,68 @@ simplified/
 | `advanced_flight_logger.py` | Flight logger with stats and event detection | None (standard lib) |
 | `realtime_monitor.py` | Desktop GUI showing all variables in tree view | `tkinter` (included with Python) |
 
+## Python SDK
+
+For easier Python integration, a complete **Python SDK** is available in the `sdk/` folder. The SDK provides:
+
+- **Typed Data Models** - Full autocompletion and type hints
+- **Automatic Unit Conversions** - Radians to degrees, m/s to knots, etc.
+- **Multiple Clients** - TCP (sync/async) and Shared Memory
+- **Context Managers** - Clean resource management
+- **Auto-reconnect** - Handles connection drops gracefully
+
+### Quick Comparison
+
+**Without SDK:**
+```python
+import socket, json, math
+
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+sock.connect(('localhost', 12345))
+buffer = ""
+data = sock.recv(4096).decode('utf-8')
+buffer += data
+line, buffer = buffer.split('\n', 1)
+flight_data = json.loads(line)
+
+lat = math.degrees(flight_data['latitude'])
+speed_kts = flight_data['indicated_airspeed'] * 1.94384
+```
+
+**With SDK:**
+```python
+from aerofly_reader import stream
+
+for flight in stream():
+    print(f"Lat: {flight.position.latitude}°")
+    print(f"Speed: {flight.speeds.indicated_airspeed} kts")
+```
+
+### SDK Installation
+
+```bash
+cd simplified/sdk
+pip install -e .
+```
+
+### SDK Structure
+
+```
+sdk/
+├── aerofly_reader/        # Main package
+│   ├── client.py          # TCP client (sync)
+│   ├── async_client.py    # TCP client (async)
+│   ├── shared_memory.py   # Shared memory client
+│   ├── models.py          # FlightData, Position, Speeds, etc.
+│   ├── units.py           # Unit conversions
+│   └── exceptions.py      # Custom exceptions
+├── examples/              # SDK usage examples
+├── pyproject.toml         # Package configuration
+└── README.md              # Full SDK documentation
+```
+
+See [`sdk/README.md`](sdk/README.md) for complete SDK documentation.
+
 ## Comparison with Complete Bridge
 
 | Feature | Reader | Complete Bridge |
